@@ -1,0 +1,16 @@
+.DS_Store
+/Manifest.toml
+/dev/
+
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+.DS_Store
+/dev/
+.vscode
+/data/
+*.py
+*.ipynb
+*.ipynb_checkpoints
+/notebooks
+/test/cache
