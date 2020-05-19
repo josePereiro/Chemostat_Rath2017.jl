@@ -1,0 +1,35 @@
+id	val	%err	unit
+CD	18.7	1.1	μm
+CVv	3.4	4.9	μL/ mL
+D	0.0133	0	1/ hr
+Xd	0.075	18.5	1e6 cells/ mL
+Xv	0.998	2.5	1e6 cells/ mL
+cGAL	3.0	0.0	mM
+cGLC	8.0	0.0	mM
+cGLN	2.0	0.0	mM
+qA1AT	-14.29	7.5	pg/ cell d
+qALA	-2.81	9.4	nmol/ μL hr
+qASP	-2.16	53.1	nmol/ μL hr
+qGAL	1.61	23.3	nmol/ μL hr
+qGLC	27.64	4.8	nmol/ μL hr
+qGLN	5.07	8.1	nmol/ μL hr
+qGLU	-0.88	43.8	nmol/ μL hr
+qLAC	-49.68	2.6	nmol/ μL hr
+qNH4	-5.66	5.9	nmol/ μL hr
+qPYR	7.04	7.8	nmol/ μL hr
+sA1AT	44.6	6.2	mg/ L
+sALA	1.0	5.2	mM
+sASP	2.8	10.8	mM
+sGAL	2.4	3.2	mM
+sGLC	0.0	0.0	mM
+sGLN	0.5	13.7	mM
+sGLU	0.8	12.8	mM
+sLAC	12.7	3.0	mM
+sNH4	1.6	1.6	mM
+sPYR	1.1	5.3	mM
+yALA/GLN	0.6	7.9	mol/ mol
+yCVv/GLC	518	3.5	μL/ mmol
+yCVv/GLN	2837	7.1	μL/ mmol
+yLAC/GLC	1.8	3.2	mol/ mol
+yNH4/GLN	1.1	4.8	mol/ mol
+μ	0.0143	1.4	1/ hr
