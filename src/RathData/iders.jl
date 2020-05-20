@@ -1,4 +1,4 @@
-# experiments performed by Rath2017
+# ids related with experiments performed by Rath2017
 exps = ["A", "B", "C", "D", "E", "F01","F02","F03"] 
 # experiments that reached steady states, ordered by ξ value
 ststs = ["E", "D", "F01", "A", "B", "C"]
@@ -15,3 +15,5 @@ all_mets = ["LAC", "NH4", "HCO3", "ASN", "MET",
 rate_q = ["q$met" for met in msd_mets]
 # feed concentrations
 feed_c = ["cGLC", "cGAL", "cGLN"]
+# medium concentration
+med_s = ["s$met" for met in msd_mets];

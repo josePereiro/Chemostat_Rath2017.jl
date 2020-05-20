@@ -8,11 +8,11 @@
 module RathData
 
     import ..Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR
-    import DataFrames: DataFrame
+    using DataFrames
+    using Serialization
     import CSV
 
-    include("1_iders.jl")
-    include("2_files.jl")
-    include("3_convert_rath_data.jl")
-    include("4_interface.jl")
+    include("iders.jl")
+    include("dir_and_files.jl")
+    include("interface.jl")
 end

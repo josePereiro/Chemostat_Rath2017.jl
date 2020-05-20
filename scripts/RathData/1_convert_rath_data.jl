@@ -1,9 +1,23 @@
-
+# -*- coding: utf-8 -*-
 # +
 # This script take the data from data/raw, fetched from
 # Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
 # and convert it for compatibility with further modeling
 # -
+
+import Chemostat_Rath2017.RathData
+Rd = RathData;
+import CSV
+import DataFrames: DataFrame
+
+# ---
+# ### Processed data dir
+# ---
+
+if !isdir(Rd.RATH_PROCESSED_DATA_DIR)
+    mkpath(Rd.RATH_PROCESSED_DATA_DIR)
+    println("created $(relpath(Rd.RATH_PROCESSED_DATA_DIR))!!!")
+end
 
 # ---
 # ### Standard Medium 42 MAX-UB
@@ -11,7 +25,7 @@
 
 # Standard medium original file
 # This is the base of the feed medium
-stdm_orig = DataFrame(CSV.read(RATH_STDM_ORIG_FILE, delim = "\t"));
+stdm_orig = DataFrame(CSV.read(Rd.RATH_STDM_ORIG_FILE, delim = "\t"));
 
 # +
 # Converting all conc to mM
@@ -40,20 +54,12 @@ end
 # -
 
 # Saving
-if !isfile(RATH_STDM_CONV_FILE)
-    CSV.write(RATH_STDM_CONV_FILE, stdm_conv, delim = "\t")
-    println("created $(relpath(RATH_STDM_CONV_FILE, PROJ_ROOT))!!!")
-end
+CSV.write(Rd.RATH_STDM_CONV_FILE, stdm_conv, delim = "\t")
+println("created $(relpath(Rd.RATH_STDM_CONV_FILE))!!!")
 
 # ---
 # ### Cont cult data
 # ---
-
-# ##### Data related names
-
-# measured metabolites
-# medium concentration
-med_s = ["s$met" for met in msd_mets]
 
 # Cell density ρ = 0.25 pgDW/μm³ from Niklas(2011) https://doi.org/10.1007/s00449-010-0502-y.
 ρ = 0.25
@@ -62,16 +68,12 @@ med_s = ["s$met" for met in msd_mets]
 
 # +
 # Original files
-cul_data_origs = Dict()
-cul_data_convs = Dict()
-CUL_DATA_ORIG_FILES = Dict()
-CUL_DATA_CONV_FILES = Dict()
-for exp in exps
+for exp in Rd.exps
     
     # file names
-    filename = "$(RATH_CONT_CUL_DATA_FILE_SUFFIX)_$(exp).tsv"
+    filename = "$(Rd.RATH_CONT_CUL_DATA_FILE_SUFFIX)_$(exp).tsv"
     
-    orig_file_path = joinpath(RATH_RAW_DATA_DIR, filename)
+    orig_file_path = Rd.RATH_CONT_CUL_DATA_ORIG_FILES[exp]
     
     if !isfile(orig_file_path)
         error("$(orig_file_path) not found!!!")
@@ -81,11 +83,7 @@ for exp in exps
     orig_data = DataFrame(CSV.read(orig_file_path, delim = "\t"))
     
     # Converted Data
-    conv_data = DataFrame([String, Float64, Float64, String], ["id", "val", "err", "unit"])
-    
-    #TODO Delete
-    data = orig_data
-
+    conv_data = DataFrame([String, Float64, Float64, String], [:id, :val, :err, :unit])
 
     # Converting cell volume per media volume (CVv) to Cell mass density (gDW/ L)
     # μL/ mL * 1e9     = μm^3/ mL                    (1 μL = 1e9 μm^3)
@@ -102,7 +100,7 @@ for exp in exps
     push!(conv_data, ["Xv", val, err, unit])
     
     # This values was already in the desired units
-    for ider in [med_s; feed_c; ["D", "μ"]]
+    for ider in [Rd.med_s; Rd.feed_c; ["D", "μ"]]
         rowidx = findfirst(orig_data.id .== ider)
         
         val = orig_data[rowidx, :val]
@@ -118,7 +116,7 @@ for exp in exps
     # mmol/ pgDW hr * 1e12   = mmol/ gDW hr         (1 pg = 1 g * 1e-12)
     # q = qrath * 1e-6 * 1e-9 * (1/ ρ) * 1e12
     # q = qrath * (1/ ρ) * 1e-3 (mmol/ gDW hr)
-    for ider in rate_q
+    for ider in Rd.rate_q
         rowidx = findfirst(orig_data.id .== ider)
         
         val = (orig_data[rowidx, :val] * 1e-3) / ρ
@@ -144,23 +142,16 @@ for exp in exps
     push!(conv_data, ["qA1AT", qa1at, err, unit])
         
     # Saving
-    conv_file_path = joinpath(RATH_PROCESSED_DATA_DIR, filename)
-    if !isfile(conv_file_path)
-        CSV.write(conv_file_path, conv_data, delim = "\t")
-        println("created $(relpath(conv_file_path, PROJ_ROOT))!!!")
-    end
-
-    cul_data_origs[exp] = orig_data
-    cul_data_convs[exp] = conv_data
-    CUL_DATA_ORIG_FILES[exp] = orig_file_path
-    CUL_DATA_CONV_FILES[exp] = conv_file_path
+    conv_file_path = Rd.RATH_CONT_CUL_DATA_CONV_FILES[exp]
+    CSV.write(conv_file_path, conv_data, delim = "\t")
+    println("created $(relpath(conv_file_path))!!!")
 
 end
 
 # invitro max fluxes
-RATH_MAX_FLUX_ORIG_FILE = joinpath(RATH_RAW_DATA_DIR, "rath2017___max_invitro_fluxs.tsv")
 
-max_flux_data_orig = DataFrame(CSV.read(RATH_MAX_FLUX_ORIG_FILE, delim = "\t"))
+
+max_flux_data_orig = DataFrame(CSV.read(Rd.RATH_MAX_FLUX_ORIG_FILE, delim = "\t"))
 max_flux_data_conv = DataFrame(max_flux_data_orig)
 
 # Converting fluxes (nmol/ μL hr) to (mmol/ gDW hr)
@@ -180,12 +171,5 @@ end
 max_flux_data_conv[!, :flux_unit] .= "mmol/ gDW hr";
 
 # Saving
-RATH_MAX_FLUX_CONV_FILE = joinpath(RATH_PROCESSED_DATA_DIR, basename(RATH_MAX_FLUX_ORIG_FILE))
-if !isfile(RATH_MAX_FLUX_CONV_FILE)
-    CSV.write(RATH_MAX_FLUX_CONV_FILE, max_flux_data_conv, delim = "\t")
-    println("created $(relpath(RATH_MAX_FLUX_CONV_FILE, PROJ_ROOT))!!!")
-end
-
-# -
-
-
+CSV.write(Rd.RATH_MAX_FLUX_CONV_FILE, max_flux_data_conv, delim = "\t")
+println("created $(relpath(Rd.RATH_MAX_FLUX_CONV_FILE))!!!")
