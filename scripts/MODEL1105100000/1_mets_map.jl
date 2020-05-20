@@ -1,3 +1,14 @@
+# +
+import CSV
+import DataFrames: DataFrame
+
+import Chemostat_Rath2017
+M = Chemostat_Rath2017.MODEL1105100000
+# -
+
+# This just check that the script is run in the
+# package enviroment
+Chemostat_Rath2017.check_env();
 
 # This create a map between the metabolites ids of the MODEL1105100000_url model 
 # and the ids used in Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
@@ -37,9 +48,7 @@ for (k, v) in mets_map
 end
 
 # Saving
-const METS_MAP_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "mets_map.csv")
-if !isfile(METS_MAP_FILE)
-    df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
-    CSV.write(METS_MAP_FILE, df)
-    println("created $(METS_MAP_FILE)")
-end
+df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
+CSV.write(M.METS_MAP_FILE, df)
+println("created $(relpath(M.METS_MAP_FILE))")
+

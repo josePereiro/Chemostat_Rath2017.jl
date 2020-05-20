@@ -4,12 +4,18 @@
 # TODO search model download link
 
 module MODEL1105100000
-    using ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR
+    import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR
+    # import .RathData
+    # Rd = RathData
     import CSV
+    # import MAT
+    import Serialization: deserialize
     import DataFrames: DataFrame
+    # import Chemostat
+    # Ch = Chemostat
+    
 
-    include("1_meta.jl")
-    include("2_mets_map.jl")
-    # include("2_rxns_map.py")
+    include("meta.jl")
+    include("dir_and_files.jl")
+    include("load_data.jl")
 end
-
