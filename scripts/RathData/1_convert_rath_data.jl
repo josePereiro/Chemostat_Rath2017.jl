@@ -3,12 +3,19 @@
 # This script take the data from data/raw, fetched from
 # Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
 # and convert it for compatibility with further modeling
+
+# +
+import DataFrames: DataFrame
+import CSV
+
+import Chemostat_Rath2017
+Rd = Chemostat_Rath2017.RathData;
+M = Chemostat_Rath2017.MODEL1105100000;
 # -
 
-import Chemostat_Rath2017.RathData
-Rd = RathData;
-import CSV
-import DataFrames: DataFrame
+# This just check that the script is run in the
+# package enviroment
+Chemostat_Rath2017.check_env()
 
 # ---
 # ### Processed data dir
