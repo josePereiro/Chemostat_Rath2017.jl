@@ -33,8 +33,3 @@ function load_base_intake_info()
     return base_intake_info
 end
 load_base_intake_info()
-
-function load_base_model()
-    isfile(BASE_MODEL_FILE) && return deserialize(BASE_MODEL_FILE)
-    error("File $(relpath(BASE_MODEL_FILE)) not found. You must run 'make all' first")
-end
