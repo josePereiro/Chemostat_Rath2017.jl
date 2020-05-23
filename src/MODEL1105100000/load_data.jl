@@ -33,3 +33,15 @@ function load_base_intake_info()
     return base_intake_info
 end
 load_base_intake_info()
+
+niklas_biomass = nothing
+function load_niklas_biomass()
+    !isfile(NIKLAS_BIOMASS_FILE) && return nothing
+    global niklas_biomass = Dict()
+    df = DataFrame(CSV.read(NIKLAS_BIOMASS_FILE))
+    for (met, y) in zip(df[!,1], df[!,2])
+        niklas_biomass[met] = y
+    end
+    return niklas_biomass
+end
+load_niklas_biomass()

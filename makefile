@@ -7,7 +7,6 @@ dummy_file_message = "This is a dummy file used by make to track\
 dummy_file_name = .dummy_makefile.txt
 	
 .PHONY: clean all 
-
 all: \
 	rath_data \
 	MODEL1105100000
@@ -46,11 +45,23 @@ data/processed/MODEL1105100000/MODEL1105100000_url.mat: scripts/MODEL1105100000/
 
 MODEL1105100000_mat_file : data/processed/MODEL1105100000/MODEL1105100000_url.mat
 
+
+
 # mets_map
 data/processed/MODEL1105100000/mets_map.csv: scripts/MODEL1105100000/1_mets_map.jl
 	$(JULIA) $^
 
 MODEL1105100000_mets_map: data/processed/MODEL1105100000/mets_map.csv
+
+
+
+# niklas biomass
+data/processed/MODEL1105100000/niklas_biomass.csv: scripts/MODEL1105100000/1_niklas_biomass.jl
+	$(JULIA) $^
+
+MODEL1105100000_niklas_biomass: data/processed/MODEL1105100000/niklas_biomass.csv
+
+
 
 # preparing base models
 data/processed/MODEL1105100000/fva_preprocessed_base_model.jls: \
@@ -59,9 +70,12 @@ data/processed/MODEL1105100000/fva_preprocessed_base_model.jls: \
 
 MODEL1105100000_preparing_base_model: data/processed/MODEL1105100000/fva_preprocessed_base_model.jls
 
+
+
 MODEL1105100000: \
 	MODEL1105100000_mat_file \
 	MODEL1105100000_mets_map \
+	MODEL1105100000_niklas_biomass \
 	MODEL1105100000_preparing_base_model
 
 MODEL1105100000_clear:

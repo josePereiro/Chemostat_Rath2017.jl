@@ -16,7 +16,7 @@ Rd = Chemostat_Rath2017.RathData
 # package enviroment
 Chemostat_Rath2017.check_env();
 
-# This file is the primary imput to the processing
+# This file is the primary input to the processing
 if !isfile(M.MODEL_RAW_MAT_FILE)
     error("$(M.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
 end
@@ -129,11 +129,12 @@ end
 
 
 # Required open intakes from FBA analysis (a.k.a the base_model die if not open)
-for rxn in ["EX_adprib_LPAREN_e_RPAREN_", 
+for rxn in ["EX_adprib_LPAREN_e_RPAREN_", # warning wit this one, is a carbon sorce
             "EX_h2o_LPAREN_e_RPAREN_", 
             "EX_o2_LPAREN_e_RPAREN"]
     base_intake_info[rxn] = Dict("c" => c_max_dflt, "lb" => -bound_max_dflt) 
 end
+
 
 # Saving
 ids = base_intake_info |> keys |> collect |> sort;
@@ -149,6 +150,22 @@ println("created $(relpath(M.BASE_INTAKE_INFO_FILE))")
 
 ξ = 1
 Ch.SteadyState.apply_bound!(base_model, ξ, base_intake_info);
+
+
+# ### Niklas Biomasss
+
+# +
+# I will modified the biomass equation of MODEL1105100000 model with data
+# derived from Niklas (2013): https://doi.org/10.1016/j.ymben.2013.01.002. Table1. (see README)
+# I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
+println("Applying Niklas Biomass")
+biomass_idx = Ch.Utils.rxnindex(base_model, obj_ider)
+base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
+for (met, y) in M.niklas_biomass
+    met_idx = Ch.Utils.metindex(base_model, met)
+    base_model.S[met_idx, biomass_idx] = y
+end
+
 
 # ### ATPM demand
 
@@ -201,7 +218,3 @@ Ch.Utils.summary(fva_preprocessed_model)
 serialize(M.FVA_PP_BASE_MODEL_FILE, fva_preprocessed_model)
 println("$(relpath(M.FVA_PP_BASE_MODEL_FILE)) created")
 # -
-
-# Because this create files that modified how Chemostat_Rath2017
-# is imported, for avoiding cache artifacts, we recompile it
-# Base.compilecache(Base.PkgId(Chemostat_Rath2017))
