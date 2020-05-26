@@ -120,7 +120,10 @@ for rath_met in Rd.all_mets
     model_met = M.mets_map[rath_met]   
     exch_rxn = exch_met_map[model_met]
     
-    conc = Rd.val(conc_met_id, "A", 0.0) # 42_MAX_UB standard medium and exp A
+    # 42_MAX_UB standard medium
+    # we take the openest version of the inteke for building the
+    # base model
+    conc = maximum(Rd.val(conc_met_id, Rd.ststs, 0.0)) 
     conc == 0.0 && continue
     
     lb = -bound_max_dflt # intake bound
@@ -129,11 +132,16 @@ end
 
 
 # Required open intakes from FBA analysis (a.k.a the base_model die if not open)
-for rxn in ["EX_adprib_LPAREN_e_RPAREN_", # warning wit this one, is a carbon sorce
-            "EX_h2o_LPAREN_e_RPAREN_", 
+for rxn in ["EX_h2o_LPAREN_e_RPAREN_", 
             "EX_o2_LPAREN_e_RPAREN"]
     base_intake_info[rxn] = Dict("c" => c_max_dflt, "lb" => -bound_max_dflt) 
 end
+
+# This met is a carbon source but is required, so, 
+# I restricted till garanties a credible growth rate 
+# interval and variability with xi
+base_intake_info["EX_adprib_LPAREN_e_RPAREN_"] = 
+    Dict("c" => 1, "lb" => -bound_max_dflt) 
 
 
 # Saving
