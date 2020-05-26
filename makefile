@@ -31,9 +31,18 @@ $(rath_data_dummy_file): scripts/RathData/1_convert_rath_data.jl
 	-@touch ${rath_data_dummy_file}
 	-@echo ${dummy_file_message} > ${rath_data_dummy_file}
 
-rath_data: ${rath_data_dummy_file}
+rath_data: \
+	${rath_data_dummy_file} \
+	rath_data_a1at_aa_rel_abundance
+
 rath_data_clear:
 	rm -fr data/processed/rath2017___data
+
+# a1at aminoacids relative abundance
+data/processed/rath2017___data/a1at_aa_rel_abundance.csv: scripts/RathData/2_a1at_demand.jl
+	$(JULIA) $^
+
+rath_data_a1at_aa_rel_abundance: data/processed/rath2017___data/a1at_aa_rel_abundance.csv
 
 
 ###############################################
