@@ -14,5 +14,6 @@ module RathData
 
     include("iders.jl")
     include("dir_and_files.jl")
-    include("interface.jl")
+    include("data_interface.jl")
+    include("a1at_aa_rel_ab.jl")
 end

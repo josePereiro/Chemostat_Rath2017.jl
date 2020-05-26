@@ -53,7 +53,8 @@ for ider in ["val", "err", "unit"]
         $(ider)(id::AbstractString, exp::AbstractString) = rath_bundle[exp][id]["$(ider)"]"""))
 
     eval(Meta.parse("""
-        $(ider)(id, exps::Vector) = [$(ider)(id, exp) for exp in exps]"""))
+        $(ider)(id::AbstractString, exps::Vector) = 
+                [$(ider)(id, exp) for exp in exps]"""))
 
     eval(Meta.parse("""
         function $(ider)(id::AbstractString, exp::AbstractString, deflt)
@@ -63,5 +64,9 @@ for ider in ["val", "err", "unit"]
                       return deflt
                 end
         end """))
+    
+    eval(Meta.parse("""
+        $(ider)(id::AbstractString, exps::Vector, deflt) =
+                [$(ider)(id, exp, deflt) for exp in exps]"""))
     
 end
