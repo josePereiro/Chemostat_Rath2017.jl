@@ -8,6 +8,9 @@
 import DataFrames: DataFrame
 import CSV
 
+# Call add https://github.com/josePereiro/Chemostat_Rath2017.jl.git
+# from the julia Pkg REPL for installing the package.
+# You must then activate the package enviroment
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData;
 M = Chemostat_Rath2017.MODEL1105100000;

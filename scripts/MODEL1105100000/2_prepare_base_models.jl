@@ -73,8 +73,8 @@ for exch_i in exchs
     # Because, this reactions are foward unbalanced (A <-> nothing)
     # positibe (+) bounds limit the outtake of the cell and
     # negative (-) bounds limit the intake.
-    # Because in the Chemostat the intake is 
-    # controlled by the medium, we'll close now
+    # Because in the Chemostat the intakes is 
+    # controlled by the medium, we'll close all intakes now
     # We'll open all outtakes
     Ch.Utils.lb!(base_model, exch_i, 0.0)
     Ch.Utils.ub!(base_model, exch_i, bound_max_dflt)
@@ -94,7 +94,6 @@ for rxn in exchs
         rxn = base_model.rxns[rxn]
         
         exch_met_map[met] = rxn
-        haskey(exch_met_map, rxn) && error("Duplicated key")
         exch_met_map[rxn] = met
     end
 end
@@ -170,8 +169,7 @@ println("Applying Niklas Biomass")
 biomass_idx = Ch.Utils.rxnindex(base_model, obj_ider)
 base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
 for (met, y) in M.niklas_biomass
-    met_idx = Ch.Utils.metindex(base_model, met)
-    base_model.S[met_idx, biomass_idx] = y
+    Ch.Utils.S!(base_model, met, biomass_idx, y)
 end
 
 
@@ -192,7 +190,7 @@ Ch.Utils.S!(base_model, cost_met, atpm_ider, 0.0)
 
 # This reaction is foward defined with respect to atp
 # atp + more_reacts <-> adp + more_products
-# so we limit the lower bounds as the minimum atp demend 
+# so we limit the lower bounds as the minimum atp demand 
 # that the cell metabolism must fullfill
 Ch.Utils.lb!(base_model, atpm_ider, atpm_flux)
 
