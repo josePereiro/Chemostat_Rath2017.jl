@@ -27,7 +27,7 @@ JULIA = julia  --project  # I used julia 1.1.0 (2019-01-21) (do not forget the -
 # The julia pakage will use it too
 rath_data_dummy_file = data/processed/rath2017___data/${dummy_file_name}
 $(rath_data_dummy_file): scripts/RathData/1_convert_rath_data.jl
-	$(JULIA) scripts/RathData/1_convert_rath_data.jl
+	$(JULIA) $^
 	-@touch ${rath_data_dummy_file}
 	-@echo ${dummy_file_message} > ${rath_data_dummy_file}
 
