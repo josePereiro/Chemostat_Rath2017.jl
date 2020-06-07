@@ -34,16 +34,16 @@ println("Preparing Base Model: ", size(base_model))
 
 #
 # ### Important Vals
-# Some mets and rxns identifiers oand default values that are relevant for the processing
+# Some mets and rxns identifiers and default values that are relevant for the processing
 
 obj_ider = "BIOMASS";
 cost_met = "enzyme_c";
 bound_max_dflt = 1000
-c_max_dflt = 1e20 # Inf conc means that the metabolite will be never limiting the growht
+c_max_dflt = 99999 # Inf conc means that the metabolite will be never limiting the growth
 atpm_ider = "ATPmaint_LSQBKT_c_RSQBKT_";
 
 # ### Exchanges
-# bkwd and fwd splitted reactions are troublemakers for EP, but they are necessary to base_model metabolic costs. So, we leave as least as possible. We unified the exchanges (make them a unique rxn), and let the in a semi-open state (intake bloked, outtake open)
+# bkwd and fwd splitted reactions are troublemakers for EP, but they are necessary to model enzymatic costs. So, we leave as least as possible. We unified the exchanges (make them a unique rxn), and let the in a semi-open state (intake bloked, outtake open)
 
 # +
 # Deleting bkwd_exchs
@@ -82,7 +82,7 @@ for exch_i in exchs
 end
 # -
 
-# ### Exch Rxn map
+# ### Exch Met map
 # A fast way to get the exch reaction from the metabolite and viceversa
 
 # +
@@ -105,7 +105,7 @@ println("created $(relpath(M.EXCH_MET_MAP_FILE))")
 # -
 
 # ### Base intake info
-# The Base base_model will have a medium (expressed as open intake fluxes) that resamble the cultivation at xi = 1 using the set up in Rath 2017 exp A. So the lb of the intakes will be directly the (the negative) concentration in 42_MAX_UB standard medium. Also, a few intakes, not justified in the standart medium will be add based in the intakes of the original base_model FBA analysis.
+# The Base model will have a medium (expressed as open intake fluxes) that resamble the cultivation at xi = 1 using the set up in Rath 2017 exp A. So the lb of the intakes will be directly the (negative) concentration in 42_MAX_UB standard medium (see Cossio's paper). Also, a few intakes, not justified in the standard medium will be add based in the intakes of the original model FBA analysis.
 
 # +
 base_intake_info = Dict()
@@ -161,7 +161,6 @@ Ch.SteadyState.apply_bound!(base_model, ξ, base_intake_info);
 
 # ### Niklas Biomasss
 
-# +
 # I will modified the biomass equation of MODEL1105100000 model with data
 # derived from Niklas (2013): https://doi.org/10.1016/j.ymben.2013.01.002. Table1. (see README)
 # I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
@@ -171,7 +170,6 @@ base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
 for (met, y) in M.niklas_biomass
     Ch.Utils.S!(base_model, met, biomass_idx, y)
 end
-
 
 # ### ATPM demand
 
@@ -195,7 +193,7 @@ Ch.Utils.S!(base_model, cost_met, atpm_ider, 0.0)
 Ch.Utils.lb!(base_model, atpm_ider, atpm_flux)
 
 # println(atpm_ider)
-# println(Ch.Utils.rxn_str(base_model, atpm_ider), " ", Ch.Utils.bounds(base_model, atpm_ider))
+println(Ch.Utils.rxn_str(base_model, atpm_ider), " ", Ch.Utils.bounds(base_model, atpm_ider))
 # -
 
 # Saving base_model
@@ -221,6 +219,9 @@ fva_preprocessed_model = Ch.Utils.preprocess(base_model, eps = 0, verbose = true
 
 println("Fva preprocessed base_model summary")
 Ch.Utils.summary(fva_preprocessed_model)
+# -
+
 serialize(M.FVA_PP_BASE_MODEL_FILE, fva_preprocessed_model)
 println("$(relpath(M.FVA_PP_BASE_MODEL_FILE)) created")
-# -
+
+
