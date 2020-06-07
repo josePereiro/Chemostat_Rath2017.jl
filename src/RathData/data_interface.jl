@@ -47,26 +47,26 @@ load_rath_bundle()
 
 
 # interface
-for ider in ["val", "err", "unit"]      
+for fun in ["val", "err", "unit"]      
 
     eval(Meta.parse("""
-        $(ider)(id::AbstractString, exp::AbstractString) = rath_bundle[exp][id]["$(ider)"]"""))
+        $(fun)(id, exp::AbstractString) = rath_bundle[exp][string(id)]["$(fun)"]"""))
 
     eval(Meta.parse("""
-        $(ider)(id::AbstractString, exps::Vector) = 
-                [$(ider)(id, exp) for exp in exps]"""))
+        $(fun)(id, exps::Vector) = 
+                [$(fun)(id, exp) for exp in exps]"""))
 
     eval(Meta.parse("""
-        function $(ider)(id::AbstractString, exp::AbstractString, deflt)
+        function $(fun)(id, exp::AbstractString, deflt)
                 try
-                      return $(ider)(id, exp)
+                      return $(fun)(id, exp)
                 catch KeyError
                       return deflt
                 end
         end """))
     
     eval(Meta.parse("""
-        $(ider)(id::AbstractString, exps::Vector, deflt) =
-                [$(ider)(id, exp, deflt) for exp in exps]"""))
+        $(fun)(id, exps::Vector, deflt) =
+                [$(fun)(id, exp, deflt) for exp in exps]"""))
     
 end
