@@ -215,7 +215,7 @@ Ch.Utils.summary(base_model)
 println("FVA Preprocessing")
 # This can take a while
 # TODO use COBRA fva for speed up
-fva_preprocessed_model = Ch.Utils.preprocess(base_model, eps = 0, verbose = true)
+fva_preprocessed_model = Ch.Utils.fva_preprocess(base_model, eps = 0, verbose = true)
 
 println("Fva preprocessed base_model summary")
 Ch.Utils.summary(fva_preprocessed_model)
