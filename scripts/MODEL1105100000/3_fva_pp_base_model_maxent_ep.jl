@@ -3,7 +3,7 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: jl,ipynb
+#     formats: jl:light,ipynb
 #     text_representation:
 #       extension: .jl
 #       format_name: light
@@ -94,7 +94,8 @@ end
 
 @everywhere function print_progress(wid, stst, 
             ξi, ξs, ξ,  βi, βs, β, 
-            exp_av, fba_av, ep_av, ep_alpha, ep_epsconv, ep_maxiter,
+            exp_av, fba_av, 
+            ep_av, ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter,
             elapsed)
     Core.println("Worker: $wid stst: $stst progress at $(Time(now())) ----------------------------")
     Core.println("\txi: [$ξi/ $(length(ξs))] beta: [$βi/ $(length(βs))]")
@@ -103,6 +104,8 @@ end
     Core.println("\tmodel beta:         $β")
     Core.println("\tmodel ep_alpha:     $ep_alpha")
     Core.println("\tmodel ep_epsconv:   $ep_epsconv")
+    Core.println("\tmodel ep_status:    $ep_status")
+    Core.println("\tmodel ep_iter:      $ep_iter")
     Core.println("\tmodel ep_maxiter:   $ep_maxiter")
     Core.println("\tmodel fba obj:      $fba_av")
     Core.println("\tmodel ep obj:       $ep_av")
@@ -178,8 +181,8 @@ end
 
     # ep
     params["ep_alpha"] = 1e9
-    params["ep_epsconv"] = 1e-5
-    params["ep_maxiter"] = 5e3
+    params["ep_epsconv"] = 1e-8
+    params["ep_maxiter"] = 1e4
 
 end
 # -
@@ -212,25 +215,20 @@ end
     ξs = range(10, 210, length = 3)
     ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
     
-    
     # Change here how many betas to model
     # The beta range is set up by trial and error
     βs = range(10.0^5, 10.0^5.4, length = 30) |> collect |> unique |> sort |> reverse
-
     
     # Print hello in worker 1
     remotecall_wait(print_stst_hello, 1, myid(), stst, ξs, βs)
     
+    # Parallel processing
+    ixs_data = pmap((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
+    
+    # Boundling
     boundle = Ch.Utils.ChstatBoundle()
-    
-    for (ξi, ξ) in ξs |> enumerate 
-        
-        xi_data = process_xi(stst, ξi, ξs, βs, upfrec)
-        
-        boundle_xi_data!(boundle, ξ, βs, xi_data)
-        
-    end
-    
+    foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
+
     # Catching 
     serialize(tcache_file, ((stst, boundle)))
     
@@ -276,6 +274,7 @@ end
     intake_info = M.stst_base_intake_info(stst)
 
 
+
     # prepare model
     model = deserialize(M.FVA_PP_BASE_MODEL_FILE);
     obj_idx = Ch.Utils.rxnindex(model, obj_ider)
@@ -314,7 +313,7 @@ end
                 solution = seed_epout, 
                 verbose = false)
 
-            seed_epout = epout isa Ch.Utils.AbstractOut ? epout : nothing
+            seed_epout = epout
 
             # storing
             xi_data[(ξ, β, :ep)] = epout
@@ -323,17 +322,19 @@ end
             ep_av = Ch.Utils.av(model, epout, obj_idx)
 
             # Print progress in worker 1
-            show_progress = βi == 1 || βi == length(βs) || βi % upfrec == 0
+            show_progress = βi == 1 || βi == length(βs) || βi % upfrec == 0 || epout.iter > 10
             show_progress && 
                 remotecall_wait(print_progress, 1, myid(), stst, 
                     ξi, ξs, ξ, βi, βs, β, 
                     exp_av, fba_av, ep_av, 
-                    ep_alpha, ep_epsconv, ep_maxiter,
+                    ep_alpha, ep_epsconv, ep_maxiter, epout.status, epout.iter,
                     time() - t0)
-            
+
         catch err
             # Print error in 1
             remotecall_wait(print_error, 1, myid(), stst, ξi, βi, err)
+            # storing
+            xi_data[(ξ, β, :ep)] = err
             err isa InterruptException && rethrow(err)
         end
         
@@ -352,21 +353,22 @@ end
 
 @everywhere function boundle_xi_data!(boundle, ξ, βs, xi_data)
 
-    Ch.Utils.add_data!(boundle, ξ, :net, xi_data[(ξ, :net)])
-    Ch.Utils.add_data!(boundle, ξ, :fba, xi_data[(ξ, :fba)])
+    boundle[ξ, :net] = xi_data[(ξ, :net)]
+    boundle[ξ, :fba] = xi_data[(ξ, :fba)]
     
     for β in βs
-        Ch.Utils.add_data!(boundle, ξ, β, :ep, xi_data[(ξ, β, :ep)])
+        boundle[ξ, β, :ep] = xi_data[(ξ, β, :ep)]
     end
 end
 
-# ### Parallel loop
+# ### Processing
 
 # this can take a while!!!
 # A, B, C steady states have the same initial conditions
 ststs_ = [stst for stst in Rd.ststs if stst != "B" && stst != "C"]
+
 println("Ststs: ", ststs_)
-remote_results = pmap(process_stst, ststs_);
+remote_results = map(process_stst, ststs_);
 
 # ### Delete Temp Caches
 # It is safer to run this last, but I have not enought memory to have redundant results
@@ -398,177 +400,3 @@ end
 file_ = joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___boundles.jls")
 serialize(file_, (params, remote_results))
 println(relpath(file_), " created!!!")
-
-# +
-# stst, boundle = remote_results[1];
-
-# +
-# # using Plots
-# p = Plots.plot()
-# Ch.Plots.plot_marginal!(p, boundle, 1, 1, [:ep, :fba], "BIOMASS")
-# -
-
-
-
-
-
-
-
-
-
-# +
-# for stst in Rd.ststs
-    
-#     ξs = range(10, 250, length = 3)
-#     ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> unique |> sort
-
-    
-#     # The beta range is set up by trial and error
-#     βs = floor.(Ch.Utils.logspace(5, 5.6, 30)) |> sort
-    
-#     # both have the same initial conditions than C
-# #     stst == "A" && continue
-# #     stst == "B" && continue
-    
-#     # rath steady state
-#     meta_info["stst"] = stst
-    
-#     # the maximum beta at which we get results
-#     max_feasible_β = nothing 
-    
-#     # Taken possible cached boundle
-#     boundle = haskey(boundles, stst) ? boundles[stst] : Ch.Utils.ChstatBoundle()
-
-#     intake_info = M.stst_base_intake_info(stst)
-
-#     # Computing
-#     ξs = [Rd.val("ξ", stst)]
-#     ξs_str = round.(ξs, digits = 3)
-#     for (ξi, (ξ, ξstr)) in enumerate(zip(ξs, ξs_str))        
-
-#         # prepare model
-#         model = deserialize(M.FVA_PP_BASE_MODEL_FILE);
-#         obj_idx = Ch.Utils.rxnindex(model, obj_ider)
-
-#         # Chemostat steady state constraint, see Cossios paper, (see README)
-#         Ch.SteadyState.apply_bound!(model, ξ, intake_info)
-        
-#         # atat demand
-#         M.add_a1at_synthesis!(model, stst)
-
-#         # maxent-fba
-#         fbaout = Ch.FBA.fba(model, obj_idx)
-
-#         # boundling
-#         Ch.Utils.add_data!(boundle, ξ, :fba, fbaout)
-#         Ch.Utils.add_data!(boundle, ξ, :net, model)
-        
-#         # seed solution
-#         seed_epout = nothing
-
-#         βv = zeros(size(model, 2))
-#         β_iter_ = zip(sort(βs, rev = true), sort(βs_str, rev = true))
-#         for (βi, (β, βstr)) in β_iter_ |> enumerate
-            
-#             # avoid error runs
-#             !isnothing(max_feasible_β) && β > max_feasible_β && continue
-            
-#             # avoid redo
-#             haskey(boundle, ξ, β, :ep) && continue
-            
-#             # Info
-#             seed_str = isnothing(seed_epout) ? "No seed" : "Seed mu: $(Ch.Utils.av(model, seed_epout, obj_ider))"
-#             println("Doing stst: $stst, xi [$ξi / $(length(ξs))]: $ξstr  beta [$βi / $(length(βs))]: $βstr    $(seed_str)"); flush(stdout)
-
-#             try
-#                 # maxent-ep
-#                 βv[obj_idx] = β
-#                 @time epout = Ch.MaxEntEP.maxent_ep(model, α = α, βv = βv, 
-#                     epsconv = epsconv_, solution = seed_epout, verbose = true); flush(stdout)
-                
-#                 # boundling
-#                 Ch.Utils.add_data!(boundle, ξ, β, :ep, epout)
-
-#                 # Info
-#                 fba_mu = Ch.Utils.av(boundle, ξ, :fba, obj_ider)
-#                 ep_mu = Ch.Utils.av(boundle, ξ, β, :ep, obj_ider)
-#                 println("\tfba mu: $(fba_mu)\tep_mu: $(ep_mu)"); flush(stdout)
-                
-#                 # seed and max_feasible_β
-#                 if isnothing(max_feasible_β) && epout isa Ch.Utils.EPout
-#                     max_feasible_β = β
-#                     println("Max feasible beta[$βi]: $β")
-#                 end
-#                 seed_epout = epout
-                
-#             catch err
-#                 err isa InterruptException && rethrow(err)
-                
-#                 # boundling
-#                 Ch.Utils.add_data!(boundle, ξ, β, :ep, err)
-#                 println("ERROR Doing xi: $ξstr  beta: $βstr, $(err)"); flush(stdout)
-#                 continue
-#             end # try
-
-#         end # β loop
-#         println()
-        
-#     end # ξ loop
-#     println()
-    
-#     boundles[stst] = boundle
-#     # Catching
-#     cache_file = joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___boundle___$(stst).jls");
-#     serialize(cache_file, (meta_info, boundle))
-#     @assert isfile(cache_file)
-#     println("created $(relpath(cache_file)) !!!")
-
-# end # stst loop
-# println("Finitooooooooooooo!!! ", " "^50)
-
-# +
-# ξs = copy(boundle.ξs)
-# ξs_str = round.(ξs, digits = 3);
-# println("ξs ($(length(ξs))) from ", minimum(ξs), " to ", maximum(ξs))
-
-# βs = copy(boundle.βs);
-# βs_str = round.(βs, digits = 3);
-# println("βs ($(length(βs))) from ", minimum(βs), " to ", maximum(βs))
-# -
-
-# #### Biomass checking
-
-# +
-# ider = obj_ider
-# p = Plots.plot(title = ider, 
-#     xlabel = "xi", xscale = :linear,
-#     ylabel = "mu", yaxis = [-0.01, 0.08])
-# avs = Ch.Utils.av(boundle, ξs, :fba, ider)
-# Plots.scatter!(boundle.ξs, avs,  label = "fba", lw = 3, ms = 5)
-# Plots.scatter!(Rd.val("ξ", Rd.ststs), Rd.val("μ", Rd.ststs), label = "exp", ms = 5, 
-#     xerr = Rd.err("ξ", Rd.ststs), yerr = Rd.err("μ", Rd.ststs), color = :black)
-# -
-
-# ---
-# ## CheckPlots
-# --- 
-
-# +
-# ider = obj_ider
-# eps_ = minimum(βs) == 0 ? 0.0 : 0.1
-# p = Plots.plot(title = ider, legend = :topleft, 
-#     xlabel = "beta",
-#     ylabel = "flx",
-#     xscale = :log10)
-# Plots.scatter!(p, [], [], label = "ep", color = :black) # legend
-# for (βstr, β) in zip(βs_str, βs)
-#     ep_av = Ch.Utils.av(boundle, ξs[1], β, :ep, ider)
-#     Plots.scatter!(p, [β + eps_], [ep_av], ms = 2, label = "", color = :black)   
-# end
-# fba_av = Ch.Utils.av(boundle, ξs[1], :fba, ider)
-# Plots.plot!(p, x -> fba_av, minimum(βs) + eps_, maximum(βs),
-#     lw = 3, ls = :dot, color = :red,
-#     label = "fba")
-# Plots.plot!(p, x -> Rd.val("μ", stst), minimum(βs) + eps_, maximum(βs),
-#     lw = 3, ls = :dash, label = "exp E")
-# p
