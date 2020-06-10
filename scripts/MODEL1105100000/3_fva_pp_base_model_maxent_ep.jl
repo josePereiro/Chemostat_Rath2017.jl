@@ -17,7 +17,6 @@
 
 using DataFrames
 using Serialization
-# using Plots
 using Dates
 
 # ### Precompaling in master worker first
@@ -181,7 +180,7 @@ end
 
     # ep
     params["ep_alpha"] = 1e9
-    params["ep_epsconv"] = 1e-8
+    params["ep_epsconv"] = 1e-5
     params["ep_maxiter"] = 1e4
 
 end
