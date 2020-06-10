@@ -5,7 +5,7 @@
 # https://www.ebi.ac.uk/compneur-srv/biomodels-main/MODEL1105100000
 
 module MODEL1105100000
-    import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR, RathData
+    import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
     import Chemostat
     Ch = Chemostat
     import CSV
