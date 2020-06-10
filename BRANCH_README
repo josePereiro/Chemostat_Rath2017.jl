@@ -1,5 +1,5 @@
-This branch contains the experiment 'replicating old results'. It is the base analysis, with 
-a very similar, or equal, setup than the julia0.6 package. 
+This branch contains the experiment 'delete_cost_metabolite'. It do the same as
+'replicating old results' but excluding the enzymatic cost part of the model
 
 Summary
 - The network have few modifications:
@@ -8,3 +8,4 @@ Summary
     - The Niklas Biomass was used
     - The A1AT synthesis was simulated
     - A Custom ATP Demand was used
+    - All the stoichiometric coefficients of the cost metabolite are set to zero
