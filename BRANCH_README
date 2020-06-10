@@ -1,0 +1,10 @@
+This branch contains the experiment 'replicating old results'. It is the base analysis, with 
+a very similar, or equal, setup than the julia0.6 package. 
+
+Summary
+- The network have few modifications:
+    - Original costs (Only was eliminated for exchanges and biomass equation)
+    - The bounds was change using fva analysis
+    - The Niklas Biomass was used
+    - The A1AT synthesis was simulated
+    - A Custom ATP Demand was used
