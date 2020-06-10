@@ -70,7 +70,7 @@ end
 # ## META
 # ---
 
-@everywhere notebook_name = "fva_pp_base_model_maxent_ep_v1";
+@everywhere notebook_name = "fva_pp_base_model_maxent_ep_costless";
 
 # ---
 # ## Print functions
@@ -277,8 +277,11 @@ end
     # prepare model
     model = deserialize(M.FVA_PP_BASE_MODEL_FILE);
     obj_idx = Ch.Utils.rxnindex(model, obj_ider)
-    
+    cost_idx = Ch.Utils.rxnindex(model, cost_ider)
 
+    # Deleting cost metabolite
+    model.S[cost_idx, :] .= 0.0
+    
     # Chemostat steady state constraint, see Cossios paper, (see README)
     Ch.SteadyState.apply_bound!(model, ξ, intake_info)
 
