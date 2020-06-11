@@ -70,7 +70,7 @@ end
 # ## META
 # ---
 
-@everywhere notebook_name = "fva_pp_base_model_maxent_ep_v1";
+@everywhere notebook_name = "fva_pp_base_model_maxent_ep_epsconv_study";
 
 # ---
 # ## Print functions
@@ -159,11 +159,8 @@ end
 
 # ### temp cache file
 
-@everywhere temp_cache_file(stst) = 
-    joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___temp_cache___stst_$(stst).jls")
-
-@everywhere temp_cache_file(stst, xi::Int) = 
-    joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___temp_cache___stst_$(stst)_xi_$(xi).jls")
+@everywhere temp_cache_file(state...) = 
+    joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___temp_cache___state_$(hash(state)).jls")
 
 # ---
 # ## Params
@@ -173,16 +170,29 @@ end
 @everywhere begin
     
     params = Dict()
+    params["stst"] = "A"
     
     # model iders
     params["obj_ider"] = "BIOMASS"
     params["cost_ider"] = "enzyme_solvent_capacity"
+    params["cost_met_ider"] = "enzyme_c"
+    
 
     # ep
     params["ep_alpha"] = 1e9
-    params["ep_epsconv"] = 1e-5
+    params["ep_epsconvs"] = [1e-3, 1e-4, 1e-5, 1e-6, 1e-7]
     params["ep_maxiter"] = 1e4
-
+    # beta values that force the approximation of the current model
+    # to the experimental objective (μ). 
+    # The values come from previows experiments
+    params["closest_βs"] = Dict(
+        "B"=>1.57347e5,
+        "A"=>1.67774e5,
+        "C"=>1.41707e5,
+        "F01"=>1.67774e5,
+        "D"=>1.67774e5,
+        "E"=>1.62561e5)
+        
 end
 # -
 
@@ -191,60 +201,68 @@ end
 # ---
 
 # +
-@everywhere function process_stst(stst, upfrec = 10)
+@everywhere function process_state(state, upfrec = 10)
+    
+    # extract state
+    stst, epsconv = state
     
     # I will cache temporally the results of this function 
     # I do not check any cache consistency, so delete the temporal caches if you
     # dont trust them
-    tcache_file = temp_cache_file(stst)
+    tcache_file = temp_cache_file(state)
 
     # If cached return 
     if isfile(tcache_file)
         
-        (stst, boundle) =  deserialize(tcache_file)
+        (state, boundle) =  deserialize(tcache_file)
         
         # Print in worker 1
         remotecall_wait(print_return_cached, 1, myid(), stst, tcache_file)
         
-        return (stst, boundle)
+        return (state, boundle)
     end
     
     # prepare params
     # Change here how many xi to model, you should always include the experimental xis
-    ξs = range(10, 210, length = 3)
-    ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
+    ξs = [Rd.val("ξ", stst)] 
     
     # Change here how many betas to model
     # The beta range is set up by trial and error
-    βs = range(10.0^5, 10.0^5.4, length = 30) |> collect |> unique |> sort |> reverse
+    closest_β = params["closest_βs"][stst]
+    βs = [closest_β]
     
     # Print hello in worker 1
     remotecall_wait(print_stst_hello, 1, myid(), stst, ξs, βs)
     
-    # Parallel processing
-    ixs_data = pmap((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
+    # xi_data
+    xis_data = map((ξi) -> process_xi(state, ξi, ξs, βs, upfrec), eachindex(ξs))
     
     # Boundling
     boundle = Ch.Utils.ChstatBoundle()
-    foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
+    foreach(eachindex(ξs)) do ξi
+        boundle_xi_data!(boundle, ξs[ξi], βs, xis_data[ξi])
+    end
 
     # Catching 
-    serialize(tcache_file, ((stst, boundle)))
+    serialize(tcache_file, (state, boundle))
     
     # Printing in 1
     remotecall_wait(print_stst_good_bye, 1, myid(), stst, tcache_file)
     
-    return (stst, boundle)
+    return (state, boundle)
     
 end
 
 # +
-@everywhere function process_xi(stst, ξi, ξs, βs, upfrec)
+@everywhere function process_xi(state, ξi, ξs, βs, upfrec)
+    
+    # extract state
+    stst, ep_epsconv = state
     
     ξ = ξs[ξi]
         
     # If cached load 
-    xi_tcache_file = temp_cache_file(stst, ξi)
+    xi_tcache_file = temp_cache_file(state, ξ)
     if isfile(xi_tcache_file)
         xi_data =  deserialize(xi_tcache_file)
 
@@ -265,19 +283,21 @@ end
 
     # Params
     ep_alpha = params["ep_alpha"]
-    ep_epsconv = params["ep_epsconv"]
     ep_maxiter = floor(Int, params["ep_maxiter"])
 
     obj_ider = params["obj_ider"]
     cost_ider = params["cost_ider"]
+    cost_met_ider = params["cost_met_ider"]
     intake_info = M.stst_base_intake_info(stst)
-
 
 
     # prepare model
     model = deserialize(M.FVA_PP_BASE_MODEL_FILE);
     obj_idx = Ch.Utils.rxnindex(model, obj_ider)
     
+    # delete cost
+    cost_met_idx = Ch.Utils.metindex(model, cost_met_ider)
+    model.S[cost_met_idx, :] .= 0.0
 
     # Chemostat steady state constraint, see Cossios paper, (see README)
     Ch.SteadyState.apply_bound!(model, ξ, intake_info)
@@ -288,6 +308,7 @@ end
 
     # maxent-fba
     fbaout = Ch.FBA.fba(model, obj_ider, cost_ider)
+    
 
     # storing
     xi_data[(ξ, :net)] = model
@@ -333,7 +354,8 @@ end
             # Print error in 1
             remotecall_wait(print_error, 1, myid(), stst, ξi, βi, err)
             # storing
-            xi_data[(ξ, β, :ep)] = err
+#             xi_data[(ξ, β, :ep)] = err
+            rethrow(err)
             err isa InterruptException && rethrow(err)
         end
         
@@ -362,40 +384,37 @@ end
 
 # ### Processing
 
+# +
 # this can take a while!!!
 # A, B, C steady states have the same initial conditions
-ststs_ = [stst for stst in Rd.ststs if stst != "B" && stst != "C"]
+# -
 
-println("Ststs: ", ststs_)
-remote_results = map(process_stst, ststs_);
+states = Iterators.product(Rd.ststs, params["ep_epsconvs"]) |> collect |> vec;
+
+println()
+println("States")
+println.(states);
+println()
+remote_results = pmap(process_state, states);
 
 # ### Delete Temp Caches
 # It is safer to run this last, but I have not enought memory to have redundant results
 
-# +
 # Do not forget to run this if you change any parameter
-for stst in Rd.ststs
-    
-    # Steady state cache
-    tcache_file = temp_cache_file(stst)
-    if isfile(tcache_file)
+cache_dir = dirname(temp_cache_file("bla"))
+temp_file_hint = "$(notebook_name)___temp_cache"
+for file in readdir(M.MODEL_CACHE_DATA_DIR)
+    if startswith(file, temp_file_hint)
+        tcache_file = joinpath(cache_dir, file)
         rm(tcache_file, force = true)
-        println(relpath(tcache_file), " deleted!!!"); flush(stdout)
+        println(relpath(tcache_file), " deleted!!!")
     end
-    
-    # Xi caches
-    for xi in 1:10_000 # More than this, I dont think so
-        tcache_file = temp_cache_file(stst, xi)
-        if isfile(tcache_file)
-            rm(tcache_file, force = true)
-            println(relpath(tcache_file), " deleted!!!"); flush(stdout)
-        end
-    end
-    
 end
-# -
 
-## Saving
+# ---
+# ## Saving
+# ---
+
 file_ = joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___boundles.jls")
 serialize(file_, (params, remote_results))
 println(relpath(file_), " created!!!")
