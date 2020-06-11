@@ -3,7 +3,7 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: jl,ipynb
+#     formats: jl:light,ipynb
 #     text_representation:
 #       extension: .jl
 #       format_name: light
@@ -41,7 +41,7 @@ Chemostat_Rath2017.check_env();
 # ---
 
 notebook_name = "fva_pp_base_model_plot";
-data_notebook_name = "fva_pp_base_model_maxent_ep_v1";
+data_notebook_name = "fva_pp_base_model_maxent_ep_costless";
 
 # ---
 # ## MaxEnt-EP
@@ -49,7 +49,6 @@ data_notebook_name = "fva_pp_base_model_maxent_ep_v1";
 
 # Check cached objects
 cache_file = joinpath(M.MODEL_CACHE_DATA_DIR, "$(data_notebook_name)___boundles.jls");
-# cache_file = "/Volumes/Store/Temp Results/Chemostat_Rath2017/fva_pp_base_model_maxent_ep_v1___boundles.jls"
 params, data = deserialize(cache_file)
 println("loaded $(relpath(cache_file))!!!")
 
@@ -304,8 +303,8 @@ ep_p = Plots.plot(title = "EP", xlabel = "experimental", ylabel = "modeled", leg
 # Plots.plot!(ep_p, x -> x)
 plot_tot_corr!(fba_p, ep_p)
 tot_corr_p = Plots.plot(fba_p, ep_p, size = [600, 300], titlefont = 8, 
-    yaxis = [-0.2, 0.2],
-    xaxis = [-0.2, 0.2],
+#     yaxis = [-0.2, 0.2],
+#     xaxis = [-0.2, 0.2],
 )
 
 # +
