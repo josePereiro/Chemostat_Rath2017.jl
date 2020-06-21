@@ -18,3 +18,6 @@ const METS_MAP_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "mets_map.csv")
 Base.include_dependency(METS_MAP_FILE)
 const EXCH_MET_MAP_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "exch_met_map.csv")
 Base.include_dependency(EXCH_MET_MAP_FILE)
+const NIKLAS_BIOMASS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "niklas_biomass.csv")
+Base.include_dependency(NIKLAS_BIOMASS_FILE)
+
