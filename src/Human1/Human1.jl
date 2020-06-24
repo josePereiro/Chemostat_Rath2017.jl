@@ -7,8 +7,12 @@ https://doi.org/10.1126/scisignal.aaz1482.
 
 module Human1
     import ..Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
+    import CSV
+    import Serialization: deserialize
+    import DataFrames: DataFrame
 
     include("meta.jl")
     include("dir_and_files.jl")
-
+    include("load_data.jl")
+    include("base_intake_info.jl")
 end
