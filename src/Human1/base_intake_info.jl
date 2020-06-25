@@ -24,6 +24,5 @@ function stst_base_intake_info(stst)
         model_exch = exch_met_map[model_met]
         intake_info[model_exch]["c"] = RathData.val("c$rath_met", stst)
     end
-    @assert intake_info["EX_glc_LPAREN_e_RPAREN"]["c"] == RathData.val("cGLC", stst)
     return intake_info
 end

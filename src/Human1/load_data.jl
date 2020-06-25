@@ -33,3 +33,27 @@ function load_niklas_biomass()
     return niklas_biomass
 end
 load_niklas_biomass()
+
+readable_met_ids_map = nothing
+function load_readable_met_ids_map()
+    !isfile(NIKLAS_BIOMASS_FILE) && return nothing
+    global readable_met_ids_map = Dict()
+    df = DataFrame(CSV.read(BASE_READABLE_MET_IDS_FILE))
+    for (met, y) in zip(df[!,1], df[!,2])
+        readable_met_ids_map[met] = y
+    end
+    return readable_met_ids_map
+end
+load_readable_met_ids_map()
+
+ham_medium = nothing
+function load_ham_medium()
+    !isfile(NIKLAS_BIOMASS_FILE) && return nothing
+    global ham_medium = Dict()
+    df = DataFrame(CSV.read(HAM_MEDIUM_FILE))
+    for (met, y) in zip(df[!,1], df[!,2])
+        ham_medium[met] = y
+    end
+    return ham_medium
+end
+load_ham_medium()

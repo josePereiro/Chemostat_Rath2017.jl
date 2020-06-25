@@ -22,6 +22,11 @@ const NIKLAS_BIOMASS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "niklas_biomass.c
 Base.include_dependency(NIKLAS_BIOMASS_FILE)
 const BASE_INTAKE_INFO_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "base_intake_info.csv")
 Base.include_dependency(BASE_INTAKE_INFO_FILE)
+const BASE_READABLE_MET_IDS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "readable_met_ids.csv")
+Base.include_dependency(BASE_READABLE_MET_IDS_FILE)
+const HAM_MEDIUM_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "ham_medium.csv")
+Base.include_dependency(HAM_MEDIUM_FILE)
+
 
 # jls
 const BASE_MODEL_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "base_model.jls")
