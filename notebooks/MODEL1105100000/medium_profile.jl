@@ -59,7 +59,7 @@ for (intake, info) in intake_info
         
         μ = 0.0
         try
-            fbaout = Ch.FBA.fba(base_model, obj_ider)
+            fbaout = Ch.LP.fba(base_model, obj_ider)
             μ = Ch.Utils.av(base_model, fbaout, obj_ider)
         catch err
             err isa InterruptException && rethrow(err)
