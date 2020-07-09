@@ -241,7 +241,7 @@ end
     # Here parallel processing can optionally be used by calling 'pmap' or
     # 'map' instead, depending in the configuration of the parameters and the number
     # of experiments
-    ixs_data = map((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
+    ixs_data = pmap((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
     
     # --------------------  BOUNDLING --------------------  
     boundle = Ch.Utils.ChstatBoundle()
