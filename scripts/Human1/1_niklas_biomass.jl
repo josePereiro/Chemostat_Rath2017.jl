@@ -26,6 +26,8 @@ end
 mat_model = MAT.matread(H1.MODEL_RAW_MAT_FILE);
 mat_model = mat_model[first(keys(mat_model))];
 model = Ch.Utils.read_mat(H1.MODEL_RAW_MAT_FILE);
+biomass_ider = "biomass_human"
+biomass_idx = Ch.Utils.rxnindex(model, biomass_ider)
 println("Loaded Model: ", size(model))
 
 # ---
