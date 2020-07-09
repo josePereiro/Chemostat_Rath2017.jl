@@ -226,7 +226,8 @@ end
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
     ξs = range(10, 210, length = 3)
-    @show ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
+    ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
+    ξs = testing ? [Rd.val("ξ", stst)] : ξs
     
     
     # --------------------  MAXENT PARAMETER BETA --------------------  
@@ -234,6 +235,7 @@ end
     # The beta range is set up by trial and error
     βs = 10.0 .^ range(2, 4, length = 19) |> collect |> unique |> sort #|> reverse
     βs = [0.0; βs]
+    βs = testing ? collect(1:5) : βs
     
     
     # Print hello in worker 1
@@ -413,12 +415,10 @@ remote_results = pmap(process_exp, ststs_);
 
 # ### Saving
 
-if !testing 
-    println()
-    file_ = joinpath(H1.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___boundles.jls")
-    serialize(file_, (params, remote_results))
-    println(relpath(file_), " created!!!")
-end
+println()
+file_ = joinpath(H1.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___boundles.jls")
+!testing && serialize(file_, (params, remote_results))
+println(relpath(file_), " created!!!")
 
 # ### Delete Temp Caches
 
