@@ -27,7 +27,6 @@ end
 # Mat Model
 mat_model = MAT.matread(H1.MODEL_RAW_MAT_FILE)["ihuman"];
 Ch.Utils.reshape_mat_dict!(mat_model)
-reshape_mat_dict!(mat_model);
 base_model = Ch.Utils.read_mat(H1.MODEL_RAW_MAT_FILE);
 M, N = size(base_model)
 println("Preparing Base Model: ", size(base_model))
@@ -62,9 +61,9 @@ println("created $(relpath(H1.BASE_READABLE_MET_IDS_FILE))")
 # bkwd and fwd splitted reactions are troublemakers for EP, but they are necessary to model enzymatic costs. So, we leave as least as possible. We unified the exchanges (make them a unique rxn), and let the in a semi-open state (intake bloked, outtake open)
 
 # redefining the Chemostat exchange criteria
-exch_subsys = "Exchange/demand reactions"
+exch_subsys = "Any[\"Exchange/demand reactions\"]"
 Ch.Utils.is_exchange(model::Ch.Utils.MetNet, ider::Ch.Utils.IDER_TYPE) = 
-    exch_subsys in model.subSystems[Ch.Utils.rxnindex(model, ider)]
+    exch_subsys == model.subSystems[Ch.Utils.rxnindex(model, ider)]
 
 # +
 # Exchanges
@@ -133,7 +132,7 @@ for rath_met in Rd.all_mets
     exch_rxn = exch_met_map[model_met]
     
     # 42_MAX_UB standard medium
-    # we take the openest version of the inteke for building the
+    # we take the openest version of the intakes for building the
     # base model
     conc = maximum(Rd.val(conc_met_id, Rd.ststs, 0.0)) 
     lb = -bound_max_dflt # intake bound
@@ -141,7 +140,7 @@ for rath_met in Rd.all_mets
 end
 
 # From ham's medium
-for (Ham_id, conc) in H1.ham_medium
+for (Ham_id, conc) in H1.load_ham_medium()
     model_met = met_readable_ids[Ham_id]
     exch_rxn = exch_met_map[model_met]
     haskey(base_intake_info, exch_rxn) && continue # Not overwrite 42_MAX_UB standard medium
@@ -187,7 +186,7 @@ end
 # pgDW/μL * 1e6 = pgDW/L
 # pgDW/L * 1e-12 = gDW/L
 # atpm_flux = 0.3 mol ATP/ L hr from Fernandez-de-Cossio-Diaz,
-# # Jorge, and Alexei Vazquez. https://doi.org/10.1038/s41598-018-26724-7.
+# Jorge, and Alexei Vazquez. https://doi.org/10.1038/s41598-018-26724-7.
 atpm_flux = 0.3 / (0.25 * 1e9 * 1e6 * 1e-12) * 1e3  # mmol/gWD hr
 
 # This reaction is foward defined with respect to atp
@@ -203,29 +202,3 @@ println(Ch.Utils.rxn_str(base_model, atpm_ider), " ", Ch.Utils.bounds(base_model
 # Saving base_model
 serialize(H1.BASE_MODEL_FILE, base_model)
 println("created $(relpath(H1.BASE_MODEL_FILE))!!!")
-
-# ---
-# ## FVA Preprocess
-# ---
-# We will reduce the bounds interval of all the reactions using the results of FVA.
-# If FVA for a flux returns fva_lb == fva_lb, then the flux is blocked to lb = fva_lb, ub = fva_ub
-# The method allows you to set a block eps (lb = fva_lb - eps, ub = fva_ub + eps).
-# We fully blocked eps = 0, for save computations in EP.
-
-# +
-println("Base base_model summary")
-Ch.Utils.summary(base_model)
-
-println("FVA Preprocessing")
-# This can take a while
-# TODO use COBRA fva for speed up
-fva_preprocessed_model = Ch.Utils.fva_preprocess(base_model, eps = 0, verbose = true)
-
-println("Fva preprocessed base_model summary")
-Ch.Utils.summary(fva_preprocessed_model)
-# -
-
-serialize(H1.FVA_PP_BASE_MODEL_FILE, fva_preprocessed_model)
-println("$(relpath(H1.FVA_PP_BASE_MODEL_FILE)) created")
-
-

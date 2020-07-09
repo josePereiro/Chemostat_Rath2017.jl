@@ -307,7 +307,7 @@ end
     M.add_a1at_synthesis!(model, stst)
 
     # maxent-fba
-    fbaout = Ch.FBA.fba(model, obj_ider, cost_ider)
+    fbaout = Ch.LP.fba(model, obj_ider, cost_ider)
     
 
     # storing

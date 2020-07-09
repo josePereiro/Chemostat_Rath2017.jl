@@ -15,6 +15,21 @@
 #     name: julia-1.1
 # ---
 
+using Revise
+
+import MathProgBase.HighLevelInterface: linprog
+import Clp: ClpSolver
+
+
+betas = 10.0 .^ range(2, 4, length = 20) |> collect |> reverse
+betas[15]
+
+Matrix{Float64}(rand(10,10))
+
+
+
+30778.810222077907 |> log10
+
 # +
 import DataFrames: DataFrame
 import MAT
@@ -31,7 +46,15 @@ H1 = Chemostat_Rath2017.Human1
 Rd = Chemostat_Rath2017.RathData
 # -
 
-notebook_name = "medium_profile"
+notebook_name = "medium_profile";
+
+Ch.LP.
+
+all(uvals .== toy_model.ub) && all(lvals .== toy_model.lb)
+
+
+
+
 
 # +
 # GLC
@@ -41,7 +64,7 @@ stst = "A"
 base_model = deserialize(H1.BASE_MODEL_FILE);
 obj_ider = "biomass_human";
 
-conc_fs = 0.0:0.1:1.0
+conc_fs = 0.0:0.01:1.0
 intake_info = H1.stst_base_intake_info(stst)
 errs = []
 
@@ -60,7 +83,7 @@ for (intake, info) in intake_info
         
         μ = 0.0
         try
-            fbaout = Ch.FBA.fba(base_model, obj_ider)
+            fbaout = Ch.LP.fba(base_model, obj_ider)
             μ = Ch.Utils.av(base_model, fbaout, obj_ider)
         catch err
             err isa InterruptException && rethrow(err)
@@ -97,6 +120,9 @@ for (intake, μs_) in rel_μs
     plot!(conc_fs, μs_, label = "")
     push!(rel_ps, p)
 end
+file_ = joinpath(H1.MODEL_PROCESSED_DATA_DIR, "$(notebook_name).jls")
+serialize(file_, (conc_fs, μs)) # Cache
+println(relpath(file_), " created!!!")
 # -
 
 n = length(rel_ps)
