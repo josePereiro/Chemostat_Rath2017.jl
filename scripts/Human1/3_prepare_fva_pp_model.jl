@@ -26,6 +26,7 @@ using Distributed
 NO_CORES = length(Sys.cpu_info())
 length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
     exeflags = "--project")
+atexit(interrupt)
 println("Working in: ", workers())
 
 # +
