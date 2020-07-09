@@ -411,7 +411,7 @@ end
 ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
 println("Ststs: ", ststs_)
 
-remote_results = pmap(process_exp, ststs_);
+remote_results = map(process_exp, ststs_);
 
 # ### Saving
 
