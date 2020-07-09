@@ -42,12 +42,12 @@ using Distributed
 NO_CORES = length(Sys.cpu_info())
 length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
     exeflags = "--project")
-atexit(interrupt)
-println("Working in: ", workers())
-
 atexit() do
-    
+    for w in workers()
+        remote_do(exit, w)
+    end
 end
+println("Working in: ", workers())
 
 # +
 @everywhere begin
@@ -411,7 +411,7 @@ end
 ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
 println("Ststs: ", ststs_)
 
-remote_results = map(process_exp, ststs_);
+remote_results = pmap(process_exp, ststs_);
 
 # ### Saving
 
