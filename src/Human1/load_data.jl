@@ -36,7 +36,7 @@ load_niklas_biomass()
 
 readable_met_ids_map = nothing
 function load_readable_met_ids_map()
-    !isfile(NIKLAS_BIOMASS_FILE) && return nothing
+    !isfile(BASE_READABLE_MET_IDS_FILE) && return nothing
     global readable_met_ids_map = Dict()
     df = DataFrame(CSV.read(BASE_READABLE_MET_IDS_FILE))
     for (met, y) in zip(df[!,1], df[!,2])
