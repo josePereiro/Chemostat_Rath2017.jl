@@ -16,8 +16,14 @@ Chemostat_Rath2017.check_env();
 
 # This file is the primary input to the processing
 if !isfile(H1.MODEL_RAW_MAT_FILE)
-    error("$(H1.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
+    error("$(relpath(H1.MODEL_RAW_MAT_FILE)) not found, you must run 'make all' fisrt (see README)!!!")
 end
+
+# ---
+# ## Description
+# ---
+
+# This script will produce a file that contains the biomass reaction of the HumanGEM modified using the data extracted from Niklas (2013) (see comments)
 
 # ---
 # ### MAT model

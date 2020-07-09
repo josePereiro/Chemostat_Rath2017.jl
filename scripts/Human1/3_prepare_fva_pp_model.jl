@@ -24,7 +24,7 @@ Chemostat_Rath2017.check_env();
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-length(workers()) < NO_CORES && addprocs(NO_CORES - 1; 
+length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
     exeflags = "--project")
 println("Working in: ", workers())
 
@@ -54,6 +54,12 @@ end
 if !isfile(H1.MODEL_RAW_MAT_FILE)
     error("$(H1.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
 end
+
+# ---
+# ## Description
+# ---
+
+# This script create a new model from the one generated in [2_prepare_base_model](./2_prepare_base_model.jl) (see its description for more details). It use fva to set the bounds of the model to the closer possible state. The reaction that are fixxed are deleted and modeled as a exchange/demand (except the ones protected). 
 
 @everywhere notebook_name = "2_prepare_fva_pp_model";
 
@@ -203,5 +209,3 @@ serialize(H1.FVA_PP_BASE_MODEL_FILE, model)
 println("$(relpath(H1.FVA_PP_BASE_MODEL_FILE)) created")
 
 delete_temp_caches()
-
-

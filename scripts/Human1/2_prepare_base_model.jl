@@ -20,12 +20,6 @@ if !isfile(H1.MODEL_RAW_MAT_FILE)
 end
 
 # ---
-# ## Description
-# ---
-
-# This script prepare the original HumanGEM model for modeling. It include some modifications to it (see comment in code) extracted from several data sources. 
-
-# ---
 # ## Prepare base base_model
 # ---
 # this will be the base model for all the processing

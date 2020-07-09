@@ -40,7 +40,7 @@ Chemostat_Rath2017.check_env();
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-length(workers()) < NO_CORES && addprocs(NO_CORES - 1; 
+length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
     exeflags = "--project")
 println("Working in: ", workers())
 
@@ -71,16 +71,13 @@ Chemostat_Rath2017.check_env()
 end
 # -
 
-@everywhere println(getpid())
-
 # ---
 # ## Description
 # ---
 
 # This script use the model produced in [3_prepare_fva_pp_model](./3_prepare_fva_pp_model.jl) (see 3_prepare_fva_pp_model description for more details). It use MaxEnt EP algorithm as reported in [Cossio et al](https://doi.org/10.1371/journal.pcbi.1006823). 
 
-@everywhere notebook_version = "v1.1.0" # This must uniquelly identified the notebook
-@everywhere notebook_name = "fva_pp_base_model_maxent_ep_$(notebook_version)";
+@everywhere notebook_name = "fva_pp_base_model_maxent_ep";
 
 # ---
 # ## Print functions
@@ -228,7 +225,7 @@ end
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
     ξs = range(10, 210, length = 3)
-    ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
+    @show ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
     
     
     # --------------------  MAXENT PARAMETER BETA --------------------  

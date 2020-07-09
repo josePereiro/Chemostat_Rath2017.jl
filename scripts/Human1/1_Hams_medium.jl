@@ -2,7 +2,7 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: jl
+#     formats: jl:light
 #     text_representation:
 #       extension: .jl
 #       format_name: light
