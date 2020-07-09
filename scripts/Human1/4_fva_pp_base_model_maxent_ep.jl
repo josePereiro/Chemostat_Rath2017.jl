@@ -42,11 +42,11 @@ using Distributed
 NO_CORES = length(Sys.cpu_info())
 length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
     exeflags = "--project")
-atexit() do
-    for w in workers()
-        remote_do(exit, w)
-    end
-end
+# atexit() do
+#     for w in workers()
+#         remote_do(exit, w)
+#     end
+# end
 println("Working in: ", workers())
 
 # +
