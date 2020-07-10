@@ -40,8 +40,8 @@ Chemostat_Rath2017.check_env();
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
-    exeflags = "--project")
+# length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
+#     exeflags = "--project")
 println("Working in: ", workers())
 
 # +
@@ -241,7 +241,7 @@ end
     # Here parallel processing can optionally be used by calling 'pmap' or
     # 'map' instead, depending in the configuration of the parameters and the number
     # of experiments
-    ixs_data = pmap((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
+    ixs_data = map((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
     
     # --------------------  BOUNDLING --------------------  
     boundle = Ch.Utils.ChstatBoundle()
@@ -406,7 +406,7 @@ end
 ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
 println("Ststs: ", ststs_)
 
-remote_results = pmap(process_exp, ststs_);
+remote_results = map(process_exp, ststs_);
 
 # ### Saving
 
