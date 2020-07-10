@@ -180,6 +180,7 @@ end
 @everywhere begin
     testing = false # Change this to true for testing
 end
+println("Testing: ", testing)
 
 # ---
 # ## Params
@@ -314,6 +315,7 @@ end
     # --------------------  BETA LOOP  --------------------  
     # THIS CAN TAKE A WHILE!!!
     βv = zeros(n)
+    show_t = time()
     for (βi, β) in βs |> enumerate
         
         # --------------------  TEMP CACHE  --------------------  
@@ -330,7 +332,8 @@ end
             # I break down ep in several epoch to be able to cache partial results
             βv[obj_idx] = β
             curr_iter = 0
-            while (ep_maxiter > curr_iter) # Till maxiter is reached
+            while (ep_maxiter > curr_iter) && # Till maxiter 
+                isnothing(epout) && epout.status != :converged # Or converged
                 
                 epout = testing ? Ch.Test.empty_epout(model) :
                     Ch.MaxEntEP.maxent_ep(model, 
@@ -345,7 +348,9 @@ end
 
                 # Show progress # TODO epout.iter > 10, make this setable
                 if βi == 1 || βi == length(βs) || βi % upfrec == 0 || 
-                        epout.iter > 10 || epout.status == :converged
+                        epout.iter > 10 || epout.status == :converged ||
+                        (time() - show_t) > 30 # update if more than 30s
+                    show_t = time()
                     exp_av = Rd.val(:μ, stst)
                     fba_av = Ch.Utils.av(model, fbaout, obj_idx)
                     ep_av = Ch.Utils.av(model, epout, obj_idx)
@@ -358,8 +363,6 @@ end
                 
                 # caching
                 save_cache(beta_state, epout)
-                
-                epout.status == :converged && break # Or converged
                 
             end # EP While loop
 
