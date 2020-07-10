@@ -220,8 +220,9 @@ end
     
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
-    ξs = range(10, 210, length = 3)
-    ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
+    # ξs = range(10, 210, length = 3)
+    # ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
+    ξs = [Rd.val("ξ", stst)]
     ξs = testing ? [Rd.val("ξ", stst)] : ξs
     
     
