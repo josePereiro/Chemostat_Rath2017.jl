@@ -333,7 +333,7 @@ end
             βv[obj_idx] = β
             curr_iter = 0
             while (ep_maxiter > curr_iter) && # Till maxiter 
-                isnothing(epout) && epout.status != :converged # Or converged
+                (isnothing(epout) || epout.status != :converged) # Or converged
                 
                 epout = testing ? Ch.Test.empty_epout(model) :
                     Ch.MaxEntEP.maxent_ep(model, 
