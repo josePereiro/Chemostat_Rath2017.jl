@@ -18,6 +18,7 @@
 using DataFrames
 using Serialization
 using Dates
+import StatsBase: mean
 
 # ### Precompaling in master worker first
 
@@ -96,6 +97,7 @@ end
             stst, ξi, ξs, ξ,  βi, βs, β, 
             exp_av, fba_av, 
             ep_av, ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter,
+            min_err, mean_err, max_err,
             elapsed)
     Core.println("Worker: $wid ($pid) stst: $stst progress at $(Time(now())) ----------------------------")
     Core.println("\txi: [$ξi/ $(length(ξs))] beta: [$βi/ $(length(βs))]")
@@ -109,6 +111,7 @@ end
     Core.println("\tmodel ep_maxiter:   $ep_maxiter")
     Core.println("\tmodel fba obj:      $fba_av")
     Core.println("\tmodel ep obj:       $ep_av")
+    Core.println("\tmodel ep stoi err:  $((min_err, mean_err, max_err))")
     Core.println("\t  ----------------- --------------")
     Core.println("\texp   xi:           $(Rd.val(:ξ, stst))")
     Core.println("\texp   cGLC:         $(Rd.val(:cGLC, stst))")
@@ -230,7 +233,8 @@ end
     # --------------------  MAXENT PARAMETER BETA --------------------  
     # Change here how many betas to model
     # The beta range is set up by trial and error
-    βs = 10.0 .^ range(2, 4, length = 19) |> collect |> unique |> sort #|> reverse
+    # βs = 10.0 .^ range(2, 4, length = 19) |> collect |> unique |> sort #|> reverse
+    βs = range(4, 5, length = 19)
     βs = [0.0; βs]
     βs = testing ? collect(1:5) : βs
     
@@ -351,14 +355,24 @@ end
                         epout.iter > 10 || epout.status == :converged ||
                         (time() - show_t) > 30 # update if more than 30s
                     show_t = time()
+                    
                     exp_av = Rd.val(:μ, stst)
                     fba_av = Ch.Utils.av(model, fbaout, obj_idx)
                     ep_av = Ch.Utils.av(model, epout, obj_idx)
                     ep_status = epout.status
                     ep_iter = curr_iter
+
+                    abs_norm_err = Ch.Utils.norm_abs_stoi_err(model, epout) .|> abs
+                    max_err = abs_norm_err |> maximum
+                    min_err = abs_norm_err |> minimum
+                    mean_err = abs_norm_err |> mean
+
                     elapsed = time() - t0
+
                     print_progress(stst, ξi, ξs, ξ, βi, βs, β, exp_av, fba_av, ep_av, 
-                        ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, elapsed)
+                        ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, 
+                        min_err, mean_err, max_err,
+                        elapsed)
                 end
                 
                 # caching
