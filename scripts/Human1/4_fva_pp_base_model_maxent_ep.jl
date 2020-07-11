@@ -269,7 +269,7 @@ end
     
     # Current state
     ξ = ξs[ξi]
-    xi_state = (stst, ξ)
+    xi_state = (stst, ξ, hash(βs))
     t0 = time() # to track xi processing duration
         
     # --------------------  TEMP CACHE  --------------------  
