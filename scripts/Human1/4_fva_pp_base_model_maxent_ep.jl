@@ -213,15 +213,6 @@ end
 # +
 @everywhere function process_exp(stst, upfrec = 10)
     
-    # Current state
-    state = stst
-    
-    # --------------------  TEMP CACHE  --------------------  
-    # I do not check any cache consistency, so delete the temporal caches if you
-    # dont trust them
-    cached_data = load_cached(state)
-    !isnothing(cached_data) && return cached_data
-    
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
     # ξs = range(10, 210, length = 3)
@@ -234,9 +225,18 @@ end
     # Change here how many betas to model
     # The beta range is set up by trial and error
     # βs = 10.0 .^ range(2, 4, length = 19) |> collect |> unique |> sort #|> reverse
-    βs = range(4, 5, length = 19)
+    βs = range(1e4, 1e5, length = 19)
     βs = [0.0; βs]
     βs = testing ? collect(1:5) : βs
+
+    # Current state
+    state = (stst, hash((ξs, βs)))
+    
+    # --------------------  TEMP CACHE  --------------------  
+    # I do not check any cache consistency, so delete the temporal caches if you
+    # dont trust them
+    cached_data = load_cached(state)
+    !isnothing(cached_data) && return cached_data
     
     
     # Print hello in worker 1
