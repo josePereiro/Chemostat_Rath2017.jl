@@ -124,10 +124,10 @@ end
     flush(stdout);
 end
 @everywhere print_progress(stst, ξi, ξs, ξ,  βi, βs, β, exp_av, fba_av, ep_av, ep_alpha, 
-        ep_epsconv, ep_maxiter, ep_status, ep_iter, elapsed) = 
+        ep_epsconv, ep_maxiter, ep_status, ep_iter, min_err, mean_err, max_err, elapsed) = 
     remotecall_wait(print_progress, 1, myid(), getpid(), 
         stst, ξi, ξs, ξ,  βi, βs, β, exp_av, fba_av, ep_av, 
-        ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, elapsed)
+        ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, min_err, mean_err, max_err, elapsed)
 
 # ---
 # ## temp caching
