@@ -8,16 +8,23 @@ import Serialization: serialize, deserialize
 import Chemostat
 Ch = Chemostat
 import Chemostat_Rath2017
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 # This just check that the script is run in the
 # package enviroment
 Chemostat_Rath2017.check_env();
 # -
 # This file is the primary input to the processing
-if !isfile(H1.MODEL_RAW_MAT_FILE)
-    error("$(H1.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
+if !isfile(HG.MODEL_RAW_MAT_FILE)
+    error("$(HG.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
 end
+HG.load_all_data();
+
+# ---
+# ## Description
+# ---
+
+# This script prepare the original HumanGEM model for modeling. It include some modifications to it (see comment in code) extracted from several data sources. 
 
 # ---
 # ## Prepare base base_model
@@ -25,11 +32,11 @@ end
 # this will be the base model for all the processing
 
 # Mat Model
-mat_model = MAT.matread(H1.MODEL_RAW_MAT_FILE)["ihuman"];
+mat_model = MAT.matread(HG.MODEL_RAW_MAT_FILE)["ihuman"];
 Ch.Utils.reshape_mat_dict!(mat_model)
-base_model = Ch.Utils.read_mat(H1.MODEL_RAW_MAT_FILE);
+base_model = Ch.Utils.read_mat(HG.MODEL_RAW_MAT_FILE);
 M, N = size(base_model)
-println("Preparing Base Model: ", size(base_model))
+println("Preparing Base Model: ", (M, N))
 
 #
 # ### Important Vals
@@ -53,8 +60,8 @@ end
 
 # Saving
 df = DataFrame(collect.([keys(met_readable_ids), values(met_readable_ids)]));
-CSV.write(H1.BASE_READABLE_MET_IDS_FILE, df)
-println("created $(relpath(H1.BASE_READABLE_MET_IDS_FILE))")
+CSV.write(HG.BASE_READABLE_MET_IDS_FILE, df)
+println("created $(relpath(HG.BASE_READABLE_MET_IDS_FILE))")
 # -
 
 # ### Exchanges
@@ -64,6 +71,15 @@ println("created $(relpath(H1.BASE_READABLE_MET_IDS_FILE))")
 exch_subsys = "Any[\"Exchange/demand reactions\"]"
 Ch.Utils.is_exchange(model::Ch.Utils.MetNet, ider::Ch.Utils.IDER_TYPE) = 
     exch_subsys == model.subSystems[Ch.Utils.rxnindex(model, ider)]
+
+# I will delete all the Boundary (x) (see comps in the matmodel) metabilites, 
+# leaving only the Extracellular (s) metabolites in the exchange reactions. 
+# Why? they are not required
+to_del = [met for met in base_model.mets if endswith(met, "x")];
+base_model = Ch.Utils.del_met(base_model, to_del);
+size(base_model)
+to_del = [met for met in base_model.mets if endswith(met, "x")];
+@assert isempty(to_del)
 
 # +
 # Exchanges
@@ -77,8 +93,8 @@ for exch_i in Ch.Utils.exchanges(base_model)
     mets = Ch.Utils.rxn_mets(base_model, exch_i)
     reacts = Ch.Utils.rxn_reacts(base_model, exch_i)
     
-    length(mets) != length(mets) != 1 && continue # I want only the forward monomoleculars
-    !endswith(base_model.mets[first(reacts)], "s") && continue # I what only the exchanges 's' is external compartment
+    length(reacts) != length(mets) != 1 && continue # I want only the forward monomoleculars
+    !endswith(base_model.mets[first(reacts)], "s") && continue # I what only the exchanges 's'
     
     # Because, this reactions are forward unbalanced (A <-> nothing)
     # positibe (+) bounds limit the outtake of the cell and
@@ -92,6 +108,7 @@ for exch_i in Ch.Utils.exchanges(base_model)
     push!(exchs, exch_i)
     
 end
+println("Exchanges: ", exchs |> length)
 # -
 
 # ### Exch Met map
@@ -112,8 +129,8 @@ end
 
 # Saving
 df = DataFrame([collect(keys(exch_met_map)), collect(values(exch_met_map))])
-CSV.write(H1.EXCH_MET_MAP_FILE, df)
-println("created $(relpath(H1.EXCH_MET_MAP_FILE))")
+CSV.write(HG.EXCH_MET_MAP_FILE, df)
+println("created $(relpath(HG.EXCH_MET_MAP_FILE))")
 # -
 
 # ### Base intake info
@@ -128,7 +145,7 @@ for rath_met in Rd.all_mets
     conc_met_id = "c$rath_met" # Feed medium conc id
     
     # base_model id
-    model_met = H1.mets_map[rath_met]   
+    model_met = HG.mets_map[rath_met]   
     exch_rxn = exch_met_map[model_met]
     
     # 42_MAX_UB standard medium
@@ -140,7 +157,7 @@ for rath_met in Rd.all_mets
 end
 
 # From ham's medium
-for (Ham_id, conc) in H1.load_ham_medium()
+for (Ham_id, conc) in HG.ham_medium
     model_met = met_readable_ids[Ham_id]
     exch_rxn = exch_met_map[model_met]
     haskey(base_intake_info, exch_rxn) && continue # Not overwrite 42_MAX_UB standard medium
@@ -155,8 +172,8 @@ ids = base_intake_info |> keys |> collect |> sort;
 cs = [base_intake_info[id]["c"] for id in ids];
 lbs = [base_intake_info[id]["lb"] for id in ids];
 df = DataFrame(id = ids, c = cs, lb = lbs)
-CSV.write(H1.BASE_INTAKE_INFO_FILE, df)
-println("created $(relpath(H1.BASE_INTAKE_INFO_FILE))")
+CSV.write(HG.BASE_INTAKE_INFO_FILE, df)
+println("created $(relpath(HG.BASE_INTAKE_INFO_FILE))")
 # -
 
 # ### Apply medium
@@ -172,10 +189,9 @@ Ch.SteadyState.apply_bound!(base_model, ξ, base_intake_info);
 # derived from Niklas (2013): https://doi.org/10.1016/j.ymben.2013.01.002. Table1. (see README)
 # I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
 println("Applying Niklas Biomass")
-H1.load_niklas_biomass()
 biomass_idx = Ch.Utils.rxnindex(base_model, obj_ider)
 base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
-for (met, y) in H1.niklas_biomass
+for (met, y) in HG.niklas_biomass
     Ch.Utils.S!(base_model, met, biomass_idx, y)
 end
 
@@ -200,8 +216,15 @@ Ch.Utils.lb!(base_model, atpm_ider, atpm_flux)
 println(Ch.Utils.rxn_str(base_model, atpm_ider), " ", Ch.Utils.bounds(base_model, atpm_ider))
 # -
 
+# ---
+# ## FBA Test
+# ---
+
+fbaout = Ch.LP.fba(base_model, obj_ider);
+Ch.Utils.summary(base_model, fbaout)
+
 # Saving base_model
-serialize(H1.BASE_MODEL_FILE, base_model)
-println("created $(relpath(H1.BASE_MODEL_FILE))!!!")
+serialize(HG.BASE_MODEL_FILE, base_model)
+println("created $(relpath(HG.BASE_MODEL_FILE))!!!")
 
 

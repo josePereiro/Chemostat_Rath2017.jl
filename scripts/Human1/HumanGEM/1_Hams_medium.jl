@@ -77,22 +77,21 @@ Ham_medium["inositol[s]"] = 1.0e-10
 Ham_medium["choline[s]"] = 1.0e-1
 
 # Vitamins
-# Ham_medium["folate[s]"] = 2.0e-3
-Ham_medium["folate[s]"] = Inf_
-# Ham_medium["pyridoxine[s]"] = 3.0e-3
-Ham_medium["pyridoxine[s]"] = Inf_
-# Ham_medium["nicotinamide[s]"] = 3.0e-4 # Niacinamid in source
-Ham_medium["nicotinamide[s]"] = Inf_ # Niacinamid in source
-# Ham_medium["pantothenate[s]"] = 1.0e-1
-Ham_medium["pantothenate[s]"] = Inf_
-# Ham_medium["biotin[s]"] = 3.0e-5
-Ham_medium["biotin[s]"] = Inf_
-# Ham_medium["riboflavin[s]"] = 1.0e-4
-Ham_medium["riboflavin[s]"] = Inf_
-# Ham_medium["thiamin[s]"] = 1.0e-3
-Ham_medium["thiamin[s]"] = Inf_
+Ham_medium["folate[s]"] = 2.0e-3
+Ham_medium["pyridoxine[s]"] = 3.0e-3
+Ham_medium["nicotinamide[s]"] = 3.0e-4 # Niacinamid in source
+Ham_medium["pantothenate[s]"] = 1.0e-1
+Ham_medium["biotin[s]"] = 3.0e-5
+Ham_medium["riboflavin[s]"] = 1.0e-4
+Ham_medium["thiamin[s]"] = 1.0e-3
 
-
+# Ham_medium["folate[s]"] = Inf_
+# Ham_medium["pyridoxine[s]"] = Inf_
+# Ham_medium["nicotinamide[s]"] = Inf_ # Niacinamid in source
+# Ham_medium["pantothenate[s]"] = Inf_
+# Ham_medium["biotin[s]"] = Inf_
+# Ham_medium["riboflavin[s]"] = Inf_
+# Ham_medium["thiamin[s]"] = Inf_
 
 # Supplements
 Ham_medium["sulfate[s]"] = Inf_ 
@@ -119,16 +118,17 @@ Ham_medium["cysteine[s]"] = 0.0e0 # Not essential
 df = DataFrame(collect.([keys(Ham_medium), values(Ham_medium)]));
 CSV.write(HG.HAM_MEDIUM_FILE, df)
 println("created $(relpath(HG.HAM_MEDIUM_FILE))")
-# -
 
-# This names where taken from the task 'Growth on Ham's media' in the tINIT_GEMs/metabolic_tasks folder
-# TODO: find link
-Ham_medium_ids = ["arginine[s]", "histidine[s]", "lysine[s]", "methionine[s]", "phenylalanine[s]", 
-    "tryptophan[s]", "tyrosine[s]", "alanine[s]", "glycine[s]", "serine[s]", "threonine[s]", "aspartate[s]", 
-    "glutamate[s]", "asparagine[s]", "glutamine[s]", "isoleucine[s]", "leucine[s]", "proline[s]", "valine[s]", 
-    "cysteine[s]", "thiamin[s]", "hypoxanthine[s]", "folate[s]", "biotin[s]", "pantothenate[s]", "choline[s]", 
-    "inositol[s]", "nicotinamide[s]", "pyridoxine[s]", "riboflavin[s]", "thymidine[s]", "aquacob(III)alamin[s]",
-    "lipoic acid[s]", "glucose[s]", "sulfate[s]", "linoleate[s]", "linolenate[s]", "O2[s]", "H2O[s]", 
-    "retinoate[s]", "Fe2+[s]", "Pi[s]", "alpha-tocopherol[s]", "gamma-tocopherol[s]"];
+# +
+# # This names where taken from the task 'Growth on Ham's media' in the tINIT_GEMs/metabolic_tasks folder
+# # TODO: find link
+# Ham_medium_ids = ["arginine[s]", "histidine[s]", "lysine[s]", "methionine[s]", "phenylalanine[s]", 
+#     "tryptophan[s]", "tyrosine[s]", "alanine[s]", "glycine[s]", "serine[s]", "threonine[s]", "aspartate[s]", 
+#     "glutamate[s]", "asparagine[s]", "glutamine[s]", "isoleucine[s]", "leucine[s]", "proline[s]", "valine[s]", 
+#     "cysteine[s]", "thiamin[s]", "hypoxanthine[s]", "folate[s]", "biotin[s]", "pantothenate[s]", "choline[s]", 
+#     "inositol[s]", "nicotinamide[s]", "pyridoxine[s]", "riboflavin[s]", "thymidine[s]", "aquacob(III)alamin[s]",
+#     "lipoic acid[s]", "glucose[s]", "sulfate[s]", "linoleate[s]", "linolenate[s]", "O2[s]", "H2O[s]", 
+#     "retinoate[s]", "Fe2+[s]", "Pi[s]", "alpha-tocopherol[s]", "gamma-tocopherol[s]"];
+# -
 
 
