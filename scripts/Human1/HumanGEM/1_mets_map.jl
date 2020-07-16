@@ -4,7 +4,7 @@ import DataFrames: DataFrame
 import MAT
 
 import Chemostat_Rath2017
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 # -
 
 # This just check that the script is run in the
@@ -15,7 +15,9 @@ Chemostat_Rath2017.check_env();
 # and the ids used in Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
 
 mets_map = Dict{AbstractString, AbstractString}()
-mets_map["LAC"] = "m01716s"
+# Mammalian cells only contain L-LDH so that in humans the lactate produced is almost exclusively L-lactate.
+# https://acutecaretesting.org/en/articles/l-lactate-and-d-lactate-clinical-significance-of-the-difference
+mets_map["LAC"] = "m02403s" # "L-lactate[s]" # "m01716s" # "D-lactate[s]"
 mets_map["NH4"] = "m02579s"
 mets_map["HCO3"] = "m02046s"
 mets_map["ASN"] = "m01369s"
@@ -50,8 +52,8 @@ end
 
 # Saving
 df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
-CSV.write(H1.METS_MAP_FILE, df)
-println("created $(relpath(H1.METS_MAP_FILE))")
+CSV.write(HG.METS_MAP_FILE, df)
+println("created $(relpath(HG.METS_MAP_FILE))")
 
 
 

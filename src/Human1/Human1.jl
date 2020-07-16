@@ -1,2 +1,2 @@
 include("HumanGEM/HumanGEM.jl")
-include("Human1_tINIT/Human1_tINIT.jl")
+include("tINIT_GEMs/tINIT_GEMs.jl")

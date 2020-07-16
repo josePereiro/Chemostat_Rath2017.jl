@@ -6,7 +6,7 @@ import CSV
 import Chemostat
 Ch = Chemostat
 import Chemostat_Rath2017
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 
 # -
@@ -15,8 +15,8 @@ Rd = Chemostat_Rath2017.RathData
 Chemostat_Rath2017.check_env();
 
 # This file is the primary input to the processing
-if !isfile(H1.MODEL_RAW_MAT_FILE)
-    error("$(relpath(H1.MODEL_RAW_MAT_FILE)) not found, you must run 'make all' fisrt (see README)!!!")
+if !isfile(HG.MODEL_RAW_MAT_FILE)
+    error("$(relpath(HG.MODEL_RAW_MAT_FILE)) not found, you must run 'make all' fisrt (see README)!!!")
 end
 
 # ---
@@ -29,9 +29,9 @@ end
 # ### MAT model
 # ---
 
-mat_model = MAT.matread(H1.MODEL_RAW_MAT_FILE);
+mat_model = MAT.matread(HG.MODEL_RAW_MAT_FILE);
 mat_model = mat_model[first(keys(mat_model))];
-model = Ch.Utils.read_mat(H1.MODEL_RAW_MAT_FILE);
+model = Ch.Utils.read_mat(HG.MODEL_RAW_MAT_FILE);
 biomass_ider = "biomass_human"
 biomass_idx = Ch.Utils.rxnindex(model, biomass_ider)
 println("Loaded Model: ", size(model))
@@ -132,7 +132,7 @@ end
 # ### Saving
 
 df = DataFrame([collect(keys(biomass)), collect(values(biomass))])
-CSV.write(H1.NIKLAS_BIOMASS_FILE, df)
-println("created $(relpath(H1.NIKLAS_BIOMASS_FILE))")
+CSV.write(HG.NIKLAS_BIOMASS_FILE, df)
+println("created $(relpath(HG.NIKLAS_BIOMASS_FILE))")
 
 

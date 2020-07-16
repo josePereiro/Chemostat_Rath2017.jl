@@ -9,5 +9,5 @@ module Chemostat_Rath2017
     include("RathData/RathData.jl")
     include("MODEL1105100000/MODEL1105100000.jl")
     include("Human1/Human1.jl")
-
+    
 end # module

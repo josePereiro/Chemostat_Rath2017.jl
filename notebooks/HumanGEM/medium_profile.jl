@@ -42,7 +42,7 @@ pyplot();
 import Chemostat
 Ch = Chemostat
 import Chemostat_Rath2017
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 # -
 
@@ -61,11 +61,11 @@ all(uvals .== toy_model.ub) && all(lvals .== toy_model.lb)
 stst = "A"
 ξ = Rd.val("ξ", stst)
 μs = Dict()
-base_model = deserialize(H1.BASE_MODEL_FILE);
+base_model = deserialize(HG.BASE_MODEL_FILE);
 obj_ider = "biomass_human";
 
 conc_fs = 0.0:0.01:1.0
-intake_info = H1.stst_base_intake_info(stst)
+intake_info = HG.stst_base_intake_info(stst)
 errs = []
 
 for (intake, info) in intake_info
@@ -104,7 +104,7 @@ println.(errs)
 
 # +
 ## Relevants
-glc_intake = H1.exch_met_map[H1.mets_map["GLC"]]
+glc_intake = HG.exch_met_map[HG.mets_map["GLC"]]
 th = 0.2 # Selection threshold
 rel_μs = filter(μs) do p
     intake, μs_ = p
@@ -115,12 +115,12 @@ rel_intakes = rel_μs |> keys |> collect
 
 rel_ps = []
 for (intake, μs_) in rel_μs
-    readable_met = H1.readable_met_ids_map[H1.exch_met_map[intake]]
+    readable_met = HG.readable_met_ids_map[HG.exch_met_map[intake]]
     p = plot(title = readable_met, xticks = false, yticks = false, ylim = [0.0, maximum(μs_)*1.1])
     plot!(conc_fs, μs_, label = "")
     push!(rel_ps, p)
 end
-file_ = joinpath(H1.MODEL_PROCESSED_DATA_DIR, "$(notebook_name).jls")
+file_ = joinpath(HG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name).jls")
 serialize(file_, (conc_fs, μs)) # Cache
 println(relpath(file_), " created!!!")
 # -
@@ -136,7 +136,7 @@ while length(rel_ps) < r*c
 end
 p = plot(rel_ps..., layout = grid(r, c), size = [r * 100, c * 150], titlefont = 10)
 
-filename = joinpath(H1.MODEL_FIGURES_DATA_DIR, "$(notebook_name).png");
+filename = joinpath(HG.MODEL_FIGURES_DATA_DIR, "$(notebook_name).png");
 savefig(p, filename)
 println(relpath(filename), " created!!!")
 

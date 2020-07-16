@@ -29,7 +29,7 @@ Ch = Chemostat
 
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 
 # This just check that the script is run in the
 # package enviroment
@@ -59,7 +59,7 @@ Ch = Chemostat
 # TODO include installation help
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
     
 # This just check that the script is run in the
 # package enviroment
@@ -135,7 +135,7 @@ end
 
 @everywhere temp_cache_file_prefix = "$(notebook_name)___temp_cache"
 @everywhere temp_cache_file(state) = 
-    joinpath(H1.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
+    joinpath(HG.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
 
 @everywhere function load_cached(state)
     
@@ -289,14 +289,14 @@ end
 
 
     # --------------------  PREPARING MODEL  --------------------  
-    model = deserialize(H1.FVA_PP_BASE_MODEL_FILE);
+    model = deserialize(HG.FVA_PP_BASE_MODEL_FILE);
     m, n = size(model)
     obj_ider = params["obj_ider"]
     obj_idx = Ch.Utils.rxnindex(model, obj_ider)
     
     # intake info
     intake_info = Dict()
-    for (intake, info) in H1.stst_base_intake_info(stst)
+    for (intake, info) in HG.stst_base_intake_info(stst)
         if intake in model.rxns 
             intake_info[intake] = info
         else
@@ -429,7 +429,7 @@ remote_results = map(process_exp, ststs_);
 # ### Saving
 
 println()
-file_ = joinpath(H1.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___boundles.jls")
+file_ = joinpath(HG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___boundles.jls")
 !testing && serialize(file_, (params, remote_results))
 println(relpath(file_), " created!!!")
 

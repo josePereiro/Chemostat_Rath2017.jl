@@ -20,7 +20,7 @@ using CSV
 
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 
 # This just check that the script is run in the
 # package enviroment
@@ -117,8 +117,8 @@ Ham_medium["cysteine[s]"] = 0.0e0 # Not essential
 
 # Saving
 df = DataFrame(collect.([keys(Ham_medium), values(Ham_medium)]));
-CSV.write(H1.HAM_MEDIUM_FILE, df)
-println("created $(relpath(H1.HAM_MEDIUM_FILE))")
+CSV.write(HG.HAM_MEDIUM_FILE, df)
+println("created $(relpath(HG.HAM_MEDIUM_FILE))")
 # -
 
 # This names where taken from the task 'Growth on Ham's media' in the tINIT_GEMs/metabolic_tasks folder

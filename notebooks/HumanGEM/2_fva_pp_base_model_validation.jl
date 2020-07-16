@@ -32,7 +32,7 @@ Ch = Chemostat
 
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 
 # This just check that the script is run in the
 # package enviroment
@@ -40,23 +40,23 @@ Chemostat_Rath2017.check_env();
 
 # ## Model
 
-model = deserialize(H1.FVA_PP_BASE_MODEL_FILE);
+model = deserialize(HG.FVA_PP_BASE_MODEL_FILE);
 obj_ider = "biomass_human"
 obj_idx = Ch.Utils.rxnindex(model, obj_ider);
 
-H1.load_base_intake_info();
+HG.load_base_intake_info();
 
 # +
-model = deserialize(H1.FVA_PP_BASE_MODEL_FILE)
+model = deserialize(HG.FVA_PP_BASE_MODEL_FILE)
 # foreach(Ch.Utils.exchanges(model)) do exch
 #     # "HMR_9034" ex_glc
 #     Ch.Utils.lb!(model, exch, -1000)
 # end
 
-H1.load_base_intake_info()
+HG.load_base_intake_info()
 for stst in Rd.ststs |> sort
     ξ = Rd.val(:ξ, stst)
-    intake_info = H1.stst_base_intake_info(stst)
+    intake_info = HG.stst_base_intake_info(stst)
     
     Ch.SteadyState.apply_bound!(model, ξ, intake_info);
     fba_av = Ch.LP.fba(model, obj_ider).obj_val
@@ -73,7 +73,7 @@ end
 ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort;
 
 # +
-model = deserialize(H1.FVA_PP_BASE_MODEL_FILE);
+model = deserialize(HG.FVA_PP_BASE_MODEL_FILE);
 obj_ider = "biomass_human"
 obj_idx = Ch.Utils.rxnindex(model, obj_ider);
 

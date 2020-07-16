@@ -12,7 +12,7 @@ import Serialization: serialize, deserialize
 import Chemostat
 Ch = Chemostat
 import Chemostat_Rath2017
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 # This just check that the script is run in the
 # package enviroment
@@ -42,7 +42,7 @@ import Serialization: serialize, deserialize
 import Chemostat
 Ch = Chemostat
 import Chemostat_Rath2017
-H1 = Chemostat_Rath2017.Human1
+HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 # This just check that the script is run in the
 # package enviroment
@@ -52,8 +52,8 @@ end
 # -
 
 # This file is the primary input to the processing
-if !isfile(H1.MODEL_RAW_MAT_FILE)
-    error("$(H1.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
+if !isfile(HG.MODEL_RAW_MAT_FILE)
+    error("$(HG.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
 end
 
 # ---
@@ -87,7 +87,7 @@ end
 
 @everywhere temp_cache_file_prefix = "$(notebook_name)___temp_cache"
 @everywhere temp_cache_file(state...) = 
-    joinpath(H1.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
+    joinpath(HG.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
 
 @everywhere function load_cached(state)
     
@@ -150,7 +150,7 @@ end
     # --------------------  PREPARE  --------------------  
     i0, epoch_len = state .|> Int
     
-    model = deserialize(H1.BASE_MODEL_FILE);
+    model = deserialize(HG.BASE_MODEL_FILE);
     m, n = size(model)
     
     # epoch
@@ -176,7 +176,7 @@ end
 
 # +
 # prepare epoch
-model = deserialize(H1.BASE_MODEL_FILE);
+model = deserialize(HG.BASE_MODEL_FILE);
 m, n = size(model)
 epoch_len = floor(Int, 100)
 @assert epoch_len > 0
@@ -206,7 +206,7 @@ model = Ch.Utils.del_blocked(model; protected = ignored);
 Ch.Utils.summary(model)
 # -
 
-serialize(H1.FVA_PP_BASE_MODEL_FILE, model)
-println("$(relpath(H1.FVA_PP_BASE_MODEL_FILE)) created")
+serialize(HG.FVA_PP_BASE_MODEL_FILE, model)
+println("$(relpath(HG.FVA_PP_BASE_MODEL_FILE)) created")
 
 delete_temp_caches()
