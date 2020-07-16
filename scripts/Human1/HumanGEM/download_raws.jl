@@ -13,14 +13,18 @@ Chemostat_Rath2017.check_env();
 
 zenodo_download_link = "https://zenodo.org/record/3583004/files/Human1_Publication_Data_Scripts.zip?download=1"
 
+cd(HG.MODEL_RAW_DATA_DIR |> dirname)
+zip_file = "Human1_Publication_Data_Scripts.zip"
 if isdir(HG.MODEL_RAW_DATA_DIR)
-    println(relpath(HG.MODEL_RAW_DATA_DIR), " already exist, to force a re-download delete the folder")
+    println(relpath(HG.MODEL_RAW_DATA_DIR), " already exist, to force a re-unzip delete the folder")
+elseif isfile(zip_file)
+    println(relpath(zip_file), " already exist, to force a re-download delete it")
+    run(`unzip $zip_file`)
 else
-    zip_file = joinpath(HG.MODEL_RAW_DATA_DIR |> dirname, "Human1_Publication_Data_Scripts.zip")
     download(zenodo_download_link, zip_file)
-    run(`unzip $zip_file $(HG.MODEL_RAW_DATA_DIR)`)
-    !isdir(HG.MODEL_RAW_DATA_DIR) && error("$(HG.MODEL_RAW_DATA_DIR) not found after download!!!")
-    println(relpath(HG.MODEL_RAW_DATA_DIR), " downloaded")
+    run(`unzip $zip_file`)
 end
+!isdir(HG.MODEL_RAW_DATA_DIR) && error("$(HG.MODEL_RAW_DATA_DIR) not found after download-unzip!!!")
+println(relpath(HG.MODEL_RAW_DATA_DIR), " ready!!!")
 flush(stdout)
 flush(stderr)
