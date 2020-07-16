@@ -16,7 +16,10 @@ zenodo_download_link = "https://zenodo.org/record/3583004/files/Human1_Publicati
 if isdir(HG.MODEL_RAW_DATA_DIR)
     println(relpath(HG.MODEL_RAW_DATA_DIR), " already exist, to force a re-download delete the folder")
 else
-    download(zenodo_download_link, HG.MODEL_RAW_DATA_DIR)
+    zip_file = joinpath(HG.MODEL_RAW_DATA_DIR |> dirname, "Human1_Publication_Data_Scripts.zip")
+    download(zenodo_download_link, zip_file)
+    run(`unzip $zip_file $(HG.MODEL_RAW_DATA_DIR)`)
+    !isdir(HG.MODEL_RAW_DATA_DIR) && error("$(HG.MODEL_RAW_DATA_DIR) not found after download!!!")
     println(relpath(HG.MODEL_RAW_DATA_DIR), " downloaded")
 end
 flush(stdout)
