@@ -16,6 +16,8 @@ zenodo_download_link = "https://zenodo.org/record/3583004/files/Human1_Publicati
 if isdir(HG.MODEL_RAW_DATA_DIR)
     println(relpath(HG.MODEL_RAW_DATA_DIR), " already exist, to force a re-download delete the folder")
 else
-    # download(zenodo_download_link, HG.MODEL_RAW_DATA_DIR)
+    download(zenodo_download_link, HG.MODEL_RAW_DATA_DIR)
     println(relpath(HG.MODEL_RAW_DATA_DIR), " downloaded")
 end
+flush(stdout)
+flush(stderr)
