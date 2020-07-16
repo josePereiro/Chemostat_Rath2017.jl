@@ -16,3 +16,4 @@ data/*
 *.ipynb
 *.ipynb_checkpoints
 /test/cache
+data/raw/Human1_Publication_Data_Scripts
