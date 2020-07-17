@@ -17,6 +17,7 @@
 # +
 using DataFrames
 using CSV
+import JSON
 
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
@@ -118,6 +119,12 @@ Ham_medium["cysteine[s]"] = 0.0e0 # Not essential
 df = DataFrame(collect.([keys(Ham_medium), values(Ham_medium)]));
 CSV.write(HG.HAM_MEDIUM_FILE, df)
 println("created $(relpath(HG.HAM_MEDIUM_FILE))")
+# -
+
+# Print
+println("\nHam's F-12")
+JSON.print(Ham_medium, 4)
+println()
 
 # +
 # # This names where taken from the task 'Growth on Ham's media' in the tINIT_GEMs/metabolic_tasks folder

@@ -2,6 +2,7 @@
 import DataFrames: DataFrame
 import MAT
 import CSV
+import JSON
 
 import Chemostat
 Ch = Chemostat
@@ -128,6 +129,11 @@ for rna in rna_ids
     biomass[rna] = biomass[rna] * rna_factor
 end
 # -
+
+# Print
+println("\nModified Biomass")
+JSON.print(biomass, 4)
+println()
 
 # ### Saving
 

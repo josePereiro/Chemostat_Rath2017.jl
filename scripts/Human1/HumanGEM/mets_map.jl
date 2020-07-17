@@ -2,6 +2,7 @@
 import CSV
 import DataFrames: DataFrame
 import MAT
+import JSON
 
 import Chemostat_Rath2017
 HG = Chemostat_Rath2017.HumanGEM
@@ -44,6 +45,11 @@ mets_map["ARG"] = "m01365s"
 mets_map["PRO"] = "m02770s"
 mets_map["GAL"] = "m01910s"
 mets_map["THR"] = "m02993s"
+
+# print
+println("\nRath2017 - HumanGEM met map")
+JSON.print(mets_map, 4)
+println()
 
 # makinig it both ways
 for (k, v) in mets_map
