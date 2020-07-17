@@ -34,7 +34,7 @@ Chemostat_Rath2017.check_env();
 ## repo TODO add link and explanation
 ## All concentrations in mM
 Inf_ = 9999 # taked as infinite concentration
-def_ = 1e-3 # taked as infinite concentration
+def_ = 1e-2 # taked as infinite concentration
 
 Ham_medium = Dict()
 
@@ -77,21 +77,21 @@ Ham_medium["inositol[s]"] = 1.0e-10
 Ham_medium["choline[s]"] = 1.0e-1
 
 # Vitamins
-Ham_medium["folate[s]"] = 2.0e-3
-Ham_medium["pyridoxine[s]"] = 3.0e-3
-Ham_medium["nicotinamide[s]"] = 3.0e-4 # Niacinamid in source
-Ham_medium["pantothenate[s]"] = 1.0e-1
-Ham_medium["biotin[s]"] = 3.0e-5
-Ham_medium["riboflavin[s]"] = 1.0e-4
-Ham_medium["thiamin[s]"] = 1.0e-3
+# Ham_medium["folate[s]"] = 2.0e-3
+# Ham_medium["pyridoxine[s]"] = 3.0e-3
+# Ham_medium["nicotinamide[s]"] = 3.0e-4 # Niacinamid in source
+# Ham_medium["pantothenate[s]"] = 1.0e-1
+# Ham_medium["biotin[s]"] = 3.0e-5
+# Ham_medium["riboflavin[s]"] = 1.0e-4
+# Ham_medium["thiamin[s]"] = 1.0e-3
 
-# Ham_medium["folate[s]"] = Inf_
-# Ham_medium["pyridoxine[s]"] = Inf_
-# Ham_medium["nicotinamide[s]"] = Inf_ # Niacinamid in source
-# Ham_medium["pantothenate[s]"] = Inf_
-# Ham_medium["biotin[s]"] = Inf_
-# Ham_medium["riboflavin[s]"] = Inf_
-# Ham_medium["thiamin[s]"] = Inf_
+Ham_medium["folate[s]"] = Inf_
+Ham_medium["pyridoxine[s]"] = Inf_
+Ham_medium["nicotinamide[s]"] = Inf_ # Niacinamid in source
+Ham_medium["pantothenate[s]"] = Inf_
+Ham_medium["biotin[s]"] = Inf_
+Ham_medium["riboflavin[s]"] = Inf_
+Ham_medium["thiamin[s]"] = Inf_
 
 # Supplements
 Ham_medium["sulfate[s]"] = Inf_ 

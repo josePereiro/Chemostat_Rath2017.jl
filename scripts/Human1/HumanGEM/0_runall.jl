@@ -41,6 +41,7 @@ end
 println("To run: ", to_run)
 for script in to_run
     println("\n\n----------------- Running $script -----------------\n\n")
-    # run(`$julia_cmd $script`)
+    flush(stdout); flush(stderr)
     run(`julia --project $script`) # Change this to point to your julia executable, do not forget the flag
+    flush(stdout); flush(stderr)
 end
