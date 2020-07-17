@@ -3,6 +3,7 @@
 import DataFrames: DataFrame
 import MAT
 import CSV
+import JSON
 import Serialization: serialize, deserialize
 
 import Chemostat
@@ -36,7 +37,8 @@ mat_model = MAT.matread(HG.MODEL_RAW_MAT_FILE)["ihuman"];
 Ch.Utils.reshape_mat_dict!(mat_model)
 base_model = Ch.Utils.read_mat(HG.MODEL_RAW_MAT_FILE);
 M, N = size(base_model)
-println("Preparing Base Model: ", (M, N))
+println("\nLoaded Mat model: ", relpath(HG.MODEL_RAW_MAT_FILE))
+println("Base Model: ", (M, N))
 
 #
 # ### Important Vals
@@ -61,6 +63,7 @@ end
 # Saving
 df = DataFrame(collect.([keys(met_readable_ids), values(met_readable_ids)]));
 CSV.write(HG.BASE_READABLE_MET_IDS_FILE, df)
+println("\nMet readable ids")
 println("created $(relpath(HG.BASE_READABLE_MET_IDS_FILE))")
 # -
 
@@ -75,9 +78,11 @@ Ch.Utils.is_exchange(model::Ch.Utils.MetNet, ider::Ch.Utils.IDER_TYPE) =
 # I will delete all the Boundary (x) (see comps in the matmodel) metabilites, 
 # leaving only the Extracellular (s) metabolites in the exchange reactions. 
 # Why? they are not required
+println("\nDeleting Boundary (x) metabolites ")
+println("Before: ", size(base_model))
 to_del = [met for met in base_model.mets if endswith(met, "x")];
 base_model = Ch.Utils.del_met(base_model, to_del);
-size(base_model)
+println("After: ", size(base_model))
 to_del = [met for met in base_model.mets if endswith(met, "x")];
 @assert isempty(to_del)
 
@@ -108,7 +113,7 @@ for exch_i in Ch.Utils.exchanges(base_model)
     push!(exchs, exch_i)
     
 end
-println("Exchanges: ", exchs |> length)
+println("\nExchanges: ", exchs |> length)
 # -
 
 # ### Exch Met map
@@ -126,6 +131,7 @@ for rxn in exchs
         exch_met_map[rxn] = met
     end
 end
+println("\nExchanges met map: ", exch_met_map |> length)
 
 # Saving
 df = DataFrame([collect(keys(exch_met_map)), collect(values(exch_met_map))])
@@ -156,6 +162,10 @@ for rath_met in Rd.all_mets
     base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
 end
 
+println("\nBase intake info: ")
+JSON.print(base_intake_info, 4)
+println()
+
 # From ham's medium
 for (Ham_id, conc) in HG.ham_medium
     model_met = met_readable_ids[Ham_id]
@@ -166,8 +176,12 @@ for (Ham_id, conc) in HG.ham_medium
     base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
 end
 
+println("\nHams medium: ")
+JSON.print(base_intake_info, 4)
+println()
 
 # # Saving
+println("\nSaving")
 ids = base_intake_info |> keys |> collect |> sort;
 cs = [base_intake_info[id]["c"] for id in ids];
 lbs = [base_intake_info[id]["lb"] for id in ids];
@@ -178,8 +192,8 @@ println("created $(relpath(HG.BASE_INTAKE_INFO_FILE))")
 
 # ### Apply medium
 # The steady state assumption in the context of the Chemostat culture impose a constraint over the intakes dependent of xi and c
-
 ξ = 1
+println("\nApplaying chemostat bound, xi: ", ξ)
 Ch.SteadyState.apply_bound!(base_model, ξ, base_intake_info);
 
 
@@ -188,7 +202,10 @@ Ch.SteadyState.apply_bound!(base_model, ξ, base_intake_info);
 # I will modified the biomass equation of MODEL1105100000 model with data
 # derived from Niklas (2013): https://doi.org/10.1016/j.ymben.2013.01.002. Table1. (see README)
 # I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
-println("Applying Niklas Biomass")
+println("\nApplying Niklas Biomass")
+JSON.print(HG.niklas_biomass, 4)
+println()
+
 biomass_idx = Ch.Utils.rxnindex(base_model, obj_ider)
 base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
 for (met, y) in HG.niklas_biomass
@@ -213,10 +230,11 @@ atpm_flux = 0.3 / (0.25 * 1e9 * 1e6 * 1e-12) * 1e3  # mmol/gWD hr
 Ch.Utils.lb!(base_model, atpm_ider, atpm_flux)
 
 # println(atpm_ider)
+println("\nATP demand")
 println(Ch.Utils.rxn_str(base_model, atpm_ider), " ", Ch.Utils.bounds(base_model, atpm_ider))
 # -
 
-println("\nModel summary")
+println("\nBase Model summary")
 Ch.Utils.summary(base_model)
 
 # ---
