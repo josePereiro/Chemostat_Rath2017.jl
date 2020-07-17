@@ -216,11 +216,15 @@ Ch.Utils.lb!(base_model, atpm_ider, atpm_flux)
 println(Ch.Utils.rxn_str(base_model, atpm_ider), " ", Ch.Utils.bounds(base_model, atpm_ider))
 # -
 
+println("\nModel summary")
+Ch.Utils.summary(base_model)
+
 # ---
 # ## FBA Test
 # ---
 
 fbaout = Ch.LP.fba(base_model, obj_ider);
+println("\nFBAout summary")
 Ch.Utils.summary(base_model, fbaout)
 
 # Saving base_model
