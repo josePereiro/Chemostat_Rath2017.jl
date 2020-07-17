@@ -22,7 +22,7 @@ all_scripts = [
     "fva_pp_base_model_maxent_ep_plots.jl"
 ]
 
-usage = "If zero argument are passed, it will run 'all' the scripts. "*
+usage = "If zero argument are passed, it will run 'all' the scripts. " *
     "Possible option 'all', 'base'."
 if isempty(ARGS)
     to_run = all_scripts
