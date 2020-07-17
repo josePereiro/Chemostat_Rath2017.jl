@@ -177,7 +177,7 @@ for (Ham_id, conc) in HG.ham_medium
 end
 
 println("\nHams medium: ")
-JSON.print(base_intake_info, 4)
+JSON.print(HG.ham_medium, 4)
 println()
 
 # # Saving
