@@ -10,6 +10,7 @@ Clp = "e2554f3b-3117-50c0-817c-e040a3ddf72d"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 julia = "1.1"
