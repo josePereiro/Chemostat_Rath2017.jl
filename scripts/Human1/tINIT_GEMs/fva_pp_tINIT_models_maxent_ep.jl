@@ -446,7 +446,8 @@ for model_file in fva_pp_files
     # ### Saving
 
     println("\nSaving")
-    !testing && serialize(boundle_file, (params, remote_results))
+    to_save = (params = params, id = model_id, res = remote_results)
+    !testing && serialize(boundle_file, to_save)
     println(relpath(boundle_file), " created!!!")
 
     # ### Delete Temp Caches
@@ -454,5 +455,7 @@ for model_file in fva_pp_files
     # Do not forget to run this if you change any parameter
     println("\nDeleting caches")
     delete_temp_caches()
-
+    println()
+    flush(stdout)
+    
 end
