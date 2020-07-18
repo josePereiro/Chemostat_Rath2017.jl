@@ -292,6 +292,7 @@ for (dat_id, file) in mat_files
             run_fba_test()
             
             # Saving
+            println("\nSaving")
             file = "$model_id.jls"
             serialize(file, (model_id, base_model, mat))
             # TODO: package this
