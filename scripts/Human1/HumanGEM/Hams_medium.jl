@@ -35,7 +35,7 @@ Chemostat_Rath2017.check_env();
 ## repo TODO add link and explanation
 ## All concentrations in mM
 Inf_ = 9999 # taked as infinite concentration
-def_ = 1e-3 # taked as infinite concentration
+def_ = 1e-1 # taked as infinite concentration
 
 Ham_medium = Dict()
 
