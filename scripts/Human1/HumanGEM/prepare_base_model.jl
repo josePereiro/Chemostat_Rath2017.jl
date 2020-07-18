@@ -70,11 +70,6 @@ println("created $(relpath(HG.BASE_READABLE_MET_IDS_FILE))")
 # ### Exchanges
 # bkwd and fwd splitted reactions are troublemakers for EP, but they are necessary to model enzymatic costs. So, we leave as least as possible. We unified the exchanges (make them a unique rxn), and let the in a semi-open state (intake bloked, outtake open)
 
-# redefining the Chemostat exchange criteria
-exch_subsys = "Any[\"Exchange/demand reactions\"]"
-Ch.Utils.is_exchange(model::Ch.Utils.MetNet, ider::Ch.Utils.IDER_TYPE) = 
-    exch_subsys == model.subSystems[Ch.Utils.rxnindex(model, ider)]
-
 # I will delete all the Boundary (x) (see comps in the matmodel) metabilites, 
 # leaving only the Extracellular (s) metabolites in the exchange reactions. 
 # Why? they are not required
@@ -86,10 +81,20 @@ println("After: ", size(base_model))
 to_del = [met for met in base_model.mets if endswith(met, "x")];
 @assert isempty(to_del)
 
+exch_subsys_hint = "Exchange/demand"
+# redefining the Chemostat exchange criteria
+exch_subsys_hint = "Exchange/demand"
+function is_exchange(model::Ch.Utils.MetNet, ider::Ch.Utils.IDER_TYPE)
+    idx = Ch.Utils.rxnindex(model, ider)
+    subsys = model.subSystems[idx]
+    return occursin(exch_subsys_hint, string(subsys))
+end
+
 # +
 # Exchanges
 exchs = []
-for exch_i in Ch.Utils.exchanges(base_model)
+for exch in filter((ider) -> is_exchange(base_model, ider), base_model.rxns)
+    exch_i = Ch.Utils.rxnindex(base_model, exch)
     
     # First close it, later if it is what I want, open the outtake
     Ch.Utils.lb!(base_model, exch_i, 0.0)
