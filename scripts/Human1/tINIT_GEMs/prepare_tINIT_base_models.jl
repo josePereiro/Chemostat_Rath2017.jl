@@ -245,8 +245,24 @@ function run_fba_test()
     fbaout = Ch.LP.fba(base_model, obj_ider);
     println("\nFBAout summary")
     Ch.Utils.summary(base_model, fbaout)
+
+    println("\nComparing with experiments")
+    model = deepcopy(base_model)
+    for stst in Rd.ststs
+        println("\nStst: $stst")
+        ξ = Rd.val(:ξ, stst)
+        println("exp xi: $ξ")
+        exp_μ = Rd.val(:μ, stst)
+        println("exp growth: $exp_μ")    
+        Ch.SteadyState.apply_bound!(model, ξ, HG.base_intake_info);
+        fbaout = Ch.LP.fba(model, obj_ider);
+        println("fba growth: $(fbaout.obj_val)")
+        
+    end
 end
 run_fba_test();
+
+
 
 # ---
 # ## Iterate for every model

@@ -250,6 +250,22 @@ fbaout = Ch.LP.fba(base_model, obj_ider);
 println("\nFBAout summary")
 Ch.Utils.summary(base_model, fbaout)
 
+# +
+println("\nComparing with experiments")
+model = deepcopy(base_model)
+for stst in Rd.ststs
+    println("\nStst: $stst")
+    ξ = Rd.val(:ξ, stst)
+    println("exp xi: $ξ")
+    exp_μ = Rd.val(:μ, stst)
+    println("exp growth: $exp_μ")    
+    Ch.SteadyState.apply_bound!(model, ξ, base_intake_info);
+    fbaout = Ch.LP.fba(model, obj_ider);
+    println("fba growth: $(fbaout.obj_val)")
+    
+end
+# -
+
 # Saving base_model
 serialize(HG.BASE_MODEL_FILE, base_model)
 println("created $(relpath(HG.BASE_MODEL_FILE))!!!")
