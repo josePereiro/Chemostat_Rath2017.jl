@@ -271,7 +271,7 @@ run_fba_test();
 # TODO: parallelize this
 for (dat_id, file) in mat_files
     @time mat_dat = MAT.matread(file)["INIT_output"]
-    println(dat_id, " loaded")
+    println("\n\n ----------------- $dat_id loaded -----------------\n")
     println("content: ", mat_dat |> keys |> collect, "\n")
     flush(stdout)
     
