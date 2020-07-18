@@ -1,1 +1,1 @@
-MODEL_NAME = "Human1_tINIT"
+MODEL_NAME = "tINIT_GEMs"
