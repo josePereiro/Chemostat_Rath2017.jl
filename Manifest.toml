@@ -95,11 +95,11 @@ version = "0.8.1"
 
 [[Chemostat]]
 deps = ["Clp", "DataFrames", "Distributed", "Distributions", "ExtractMacro", "Gadfly", "HTMLSanitizer", "HTTP", "HTTPClient", "JuMP", "JuliaFormatter", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "Random", "SparseArrays", "SpecialFunctions", "StatsBase"]
-git-tree-sha1 = "0cd7b0bc207676d92dd00bccc5c94840214bb6d5"
-repo-rev = "develop"
+git-tree-sha1 = "f92e3598a299e643f487844cd135178d0be434c7"
+repo-rev = "master"
 repo-url = "https://github.com/josePereiro/Chemostat"
 uuid = "c5987326-81b3-11ea-28dd-b531745de20f"
-version = "0.3.1"
+version = "0.3.2"
 
 [[Clp]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "MathOptInterface", "MathProgBase", "SparseArrays"]
