@@ -12,6 +12,7 @@
 !data/
 data/*
 !data/raw/
+*.jls
 
 *.py
 *.ipynb
