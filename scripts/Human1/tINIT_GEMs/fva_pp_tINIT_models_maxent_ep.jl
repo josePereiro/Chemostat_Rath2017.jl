@@ -30,6 +30,7 @@ Ch = Chemostat
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
 HG = Chemostat_Rath2017.HumanGEM
+tIG = Chemostat_Rath2017.tINIT_GEMs
 
 # This just check that the script is run in the
 # package enviroment
@@ -60,6 +61,7 @@ Ch = Chemostat
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
 HG = Chemostat_Rath2017.HumanGEM
+tIG = Chemostat_Rath2017.tINIT_GEMs
     
 # This just check that the script is run in the
 # package enviroment
@@ -74,7 +76,7 @@ end
 
 # This script use the model produced in [3_prepare_fva_pp_model](./3_prepare_fva_pp_model.jl) (see 3_prepare_fva_pp_model description for more details). It use MaxEnt EP algorithm as reported in [Cossio et al](https://doi.org/10.1371/journal.pcbi.1006823). 
 
-@everywhere notebook_name = "fva_pp_base_model_maxent_ep";
+@everywhere notebook_name = "fva_pp_tINIT_models_maxent_ep";
 
 # ---
 # ## Print functions
@@ -135,7 +137,7 @@ end
 
 @everywhere temp_cache_file_prefix = "$(notebook_name)___temp_cache"
 @everywhere temp_cache_file(state) = 
-    joinpath(HG.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
+    joinpath(tIG.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
 
 @everywhere function load_cached(state)
     
@@ -211,7 +213,7 @@ end
 # ---
 
 # +
-@everywhere function process_exp(stst, upfrec = 10)
+@everywhere function process_exp(stst, model_file, upfrec = 10)
     
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
@@ -230,7 +232,7 @@ end
     βs = testing ? collect(1:5) : βs
 
     # Current state
-    state = (stst, hash((ξs, βs)))
+    state = (stst, model_file, hash((ξs, βs)))
     
     # --------------------  TEMP CACHE  --------------------  
     # I do not check any cache consistency, so delete the temporal caches if you
@@ -247,7 +249,7 @@ end
     # Here parallel processing can optionally be used by calling 'pmap' or
     # 'map' instead, depending in the configuration of the parameters and the number
     # of experiments
-    ixs_data = map((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
+    ixs_data = map((ξi) -> process_xi(stst, model_file, ξi, ξs, βs, upfrec), eachindex(ξs))
     
     # --------------------  BOUNDLING --------------------  
     boundle = Ch.Utils.ChstatBoundle()
@@ -265,7 +267,7 @@ end
 end
 
 # +
-@everywhere function process_xi(stst, ξi, ξs, βs, upfrec)
+@everywhere function process_xi(stst, model_file, ξi, ξs, βs, upfrec)
     
     # Current state
     ξ = ξs[ξi]
@@ -289,7 +291,8 @@ end
 
 
     # --------------------  PREPARING MODEL  --------------------  
-    model = deserialize(HG.FVA_PP_BASE_MODEL_FILE);
+    dat = deserialize(model_file);
+    model = dat.metnet
     m, n = size(model)
     obj_ider = params["obj_ider"]
     obj_idx = Ch.Utils.rxnindex(model, obj_ider)
@@ -418,24 +421,38 @@ end
 
 # ### Processing
 
-# this can take a while!!!
-# A, B, C steady states have the same initial conditions
-# ststs_ = [stst for stst in Rd.ststs if stst != "B" && stst != "C"]
-ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
-println("Ststs: ", ststs_)
+fva_pp_files = filter((s) -> startswith(s, "fva_pp_model_"), readdir(tIG.MODEL_PROCESSED_DATA_DIR))
+fva_pp_files = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, fva_pp_files);
 
-remote_results = map(process_exp, ststs_);
+for model_file in fva_pp_files
 
-# ### Saving
+    model_file = relpath(model_file)
+    dat = deserialize(model_file)
+    model_id = dat.id
+    boundle_file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___$(model_id)___boundles.jls")
+    if isfile(boundle_file)
+        println("\n SKIPPING $model_id, boundle file already exist!!!\n")
+        continue
+    end
 
-println()
-file_ = joinpath(HG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___boundles.jls")
-!testing && serialize(file_, (params, remote_results))
-println(relpath(file_), " created!!!")
+    # this can take a while!!!
+    # A, B, C steady states have the same initial conditions
+    # ststs_ = [stst for stst in Rd.ststs if stst != "B" && stst != "C"]
+    ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
+    println("Ststs: ", ststs_)
 
-# ### Delete Temp Caches
+    remote_results = map((stst) -> process_exp(stst, model_file), ststs_);
 
-# Do not forget to run this if you change any parameter
-delete_temp_caches()
+    # ### Saving
 
+    println("\nSaving")
+    !testing && serialize(boundle_file, (params, remote_results))
+    println(relpath(boundle_file), " created!!!")
 
+    # ### Delete Temp Caches
+
+    # Do not forget to run this if you change any parameter
+    println("\nDeleting caches")
+    delete_temp_caches()
+
+end
