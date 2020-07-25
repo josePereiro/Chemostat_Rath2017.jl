@@ -14,6 +14,7 @@
 #     language: julia
 #     name: julia-1.1
 # ---
+
 # ### Precompaling in master worker first
 
 # +
@@ -35,7 +36,7 @@ tIG = Chemostat_Rath2017.tINIT_GEMs
 # package enviroment
 Chemostat_Rath2017.check_env();
 # -
-### Loading everywhere
+# ## Loading everywhere
 
 # +
 using Distributed
@@ -169,7 +170,7 @@ end
     m, n = size(model)
     
     # epoch
-    i1 = i0+epoch_len > n ? n : i0+epoch_len - 1 |> Int
+    i1 = (i0+epoch_len > n ? n : i0+epoch_len - 1) |> Int
     epoch = i0:i1
 
     # --------------------  FVA  --------------------  
@@ -186,12 +187,34 @@ end
     print_action(state, "EPOCH FINISHED")
     
     return data
-    
 end
 
-# +
-## Base models
+# ---
+# ## FVA Preprocess
+# ---
+function run_fba_test(model, obj_ider)
+    fbaout = Ch.LP.fba(model, obj_ider);
+    println("\nFBAout summary")
+    Ch.Utils.summary(model, fbaout)
+
+    println("\nComparing with experiments")
+    model = deepcopy(model)
+    for stst in Rd.ststs
+        println("\nStst: $stst")
+        ξ = Rd.val(:ξ, stst)
+        println("exp xi: $ξ")
+        exp_μ = Rd.val(:μ, stst)
+        println("exp growth: $exp_μ")    
+        Ch.SteadyState.apply_bound!(model, ξ, HG.base_intake_info);
+        fbaout_μ = Ch.LP.fba(model, obj_ider).obj_val;
+        fbaout_μ < exp_μ && @warn "fbaout_μ ($fbaout_μ) > exp_μ ($exp_μ)"
+        println("fba growth: $fbaout_μ")
+    end
+end
 # -
+
+
+# ## Base models
 
 base_files = filter((s) -> startswith(s, "base_model_"), readdir(tIG.MODEL_PROCESSED_DATA_DIR))
 base_files = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, base_files);
@@ -200,45 +223,55 @@ for base_file in base_files
     
     # prepare epoch
     dat = deserialize(base_file);
-    model = dat.metnet
+    build_model = dat.metnet
     model_id = dat.id
+    
     println("\n\n ------------------- Processing $model_id -------------------\n")
-    m, n = size(model)
+    println("\nBuild model summary")
+    Ch.Utils.summary(build_model)
+    obj_ider = "biomass_human"
+    fbaout = Ch.LP.fba(build_model, obj_ider);
+    fbaout.obj_val <= 0.0 && @warn "fbaout.obj_val ($(fbaout.obj_val)) <= 0.0"
+    m, n = size(build_model)
     epoch_len = 100 # Cahnge here the size of each epoch
     @assert epoch_len > 0
 
     # This is parallizable
+    println("\nParallel processing")
     states = Iterators.product(1:epoch_len:n, epoch_len, [relpath(base_file)])
     fva_res = pmap(process_epoch, states);
 
     # joining fva_res
-    lb_, ub_ = (model.lb, model.ub) .|> copy 
+    lb_, ub_ = (build_model.lb, build_model.ub) .|> copy 
     for (epoch, (fva_lb, fva_ub)) in fva_res
         lb_[epoch] .= fva_lb
         ub_[epoch] .= fva_ub
     end
 
-    ignored = ["HMR_9136"] # put here the reactions you wants to ignore the process
-    ignored_idxs = [Ch.Utils.rxnindex(model, rxn) for rxn in ignored]
+    ignored = HG.base_intake_info |> keys |> collect # put here the reactions you to protect from deleting
+    ignored_idxs = [Ch.Utils.rxnindex(build_model, rxn) for rxn in ignored]
     non_ignored = trues(n)
-    non_ignored[ignored_idxs] .= false
+    non_ignored[ignored_idxs] .= lb_[ignored_idxs] .!= ub_[ignored_idxs] # Only ignore the really fixed
 
-    model.lb[non_ignored] = lb_[non_ignored]
-    model.ub[non_ignored] = ub_[non_ignored]
+    build_model.lb[non_ignored] = lb_[non_ignored]
+    build_model.ub[non_ignored] = ub_[non_ignored]
 
     # deleting blocked
-    model = Ch.Utils.del_blocked(model; protected = ignored);
-    Ch.Utils.summary(model)
+    fva_pp_model = Ch.Utils.del_blocked(build_model; protected = ignored);
+    Ch.Utils.summary(fva_pp_model)
+    
+    println("\nFba checking")
+    run_fba_test(fva_pp_model, obj_ider)
 
     println("\nSaving")
     file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "fva_pp_model_$model_id.jls")
-    serialize(file, (id = model_id, metnet = model, src = dat.src))
+    serialize(file, (id = model_id, metnet = fva_pp_model, src = dat.src))
     println("$(relpath(file)) created")
 
     println("\nDeleting caches")
     delete_temp_caches()
+    
+    println("\n\n ------------------- Finished $model_id -------------------\n")
 end
-
-
 
 
