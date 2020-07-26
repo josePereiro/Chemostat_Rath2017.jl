@@ -163,20 +163,13 @@ end
     print_action(state, "STARTING EPOCH")
     
     # --------------------  PREPARE  --------------------  
-    i0, epoch_len, model_file, obj_val = state
+    i0, epoch_len, model_file = state
     i0, epoch_len = (i0, epoch_len) .|> Int
 
-    dat = deserialize(model_file);
+    dat = deserialize(joinpath(tIG.MODEL_PROCESSED_DATA_DIR, base_file));
     model = dat.metnet
-    obj_idx = Ch.Utils.rxnindex(model, obj_ider)
     m, n = size(model)
 
-    # fix obj
-    if obj_val >= 0.0
-        model.lb[obj_idx] = obj_val * 0.98
-        model.ub[obj_idx] = obj_val * 1.02
-    end
-    
     # epoch
     i1 = (i0+epoch_len > n ? n : i0+epoch_len - 1) |> Int
     epoch = i0:i1
@@ -184,7 +177,7 @@ end
     # --------------------  FVA  --------------------  
     data = (epoch, (model.lb[epoch], model.ub[epoch]))
     try
-        data = (epoch, Ch.LP.fva(model, epoch; verbose = false))
+        data = (epoch, Ch.LP.fva(model, epoch; check_obj = obj_ider, verbose = false))
     catch err
         print_action(state, "ERROR DOING FVA", "Error: $err")
         err isa InterruptException && rethrow(err)
@@ -225,13 +218,11 @@ end
 # ## Base models
 
 base_files = filter((s) -> startswith(s, "base_model_"), readdir(tIG.MODEL_PROCESSED_DATA_DIR))
-base_files = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, base_files);
 @everywhere obj_ider = "biomass_human"
 
 for base_file in base_files
-    
     # prepare epoch
-    dat = deserialize(base_file);
+    dat = deserialize(joinpath(tIG.MODEL_PROCESSED_DATA_DIR, base_file));
     build_model = dat.metnet
     obj_idx = Ch.Utils.rxnindex(build_model, obj_ider)
     model_id = dat.id
@@ -249,7 +240,7 @@ for base_file in base_files
 
     # This is parallizable
     println("\nParallel processing")
-    states = Iterators.product(1:epoch_len:n, epoch_len, [relpath(base_file)], obj_val)
+    states = Iterators.product(1:epoch_len:n, epoch_len, [base_file])
     fva_res = pmap(process_epoch, states);
 
     # joining fva_res
@@ -266,7 +257,6 @@ for base_file in base_files
 
     build_model.lb[non_ignored] = lb_[non_ignored]
     build_model.ub[non_ignored] = ub_[non_ignored]
-    build_model.lb[obj_idx] = 0.0 # open obj again
 
     # deleting blocked
     fva_pp_model = Ch.Utils.del_blocked(build_model; protected = ignored);
@@ -285,5 +275,3 @@ for base_file in base_files
     
     println("\n\n ------------------- Finished $model_id -------------------\n")
 end
-
-
