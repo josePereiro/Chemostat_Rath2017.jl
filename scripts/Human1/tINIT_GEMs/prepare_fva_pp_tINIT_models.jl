@@ -233,12 +233,14 @@ for base_file in base_files
     # prepare epoch
     dat = deserialize(base_file);
     build_model = dat.metnet
+    obj_idx = Ch.Utils.rxnindex(build_model, obj_ider)
     model_id = dat.id
     
     println("\n\n ------------------- Processing $model_id -------------------\n")
     println("\nBuild model summary")
     Ch.Utils.summary(build_model)
-    fbaout = Ch.LP.fba(build_model, obj_ider);
+    fbaout = Ch.LP.fba(build_model, obj_idx);
+    
     obj_val = fbaout.obj_val
     obj_val <= 0.0 && @warn "fbaout.obj_val ($(obj_val)) <= 0.0"
     m, n = size(build_model)
@@ -264,6 +266,7 @@ for base_file in base_files
 
     build_model.lb[non_ignored] = lb_[non_ignored]
     build_model.ub[non_ignored] = ub_[non_ignored]
+    build_model.ib[obj_idx] = 0.0 # open obj again
 
     # deleting blocked
     fva_pp_model = Ch.Utils.del_blocked(build_model; protected = ignored);

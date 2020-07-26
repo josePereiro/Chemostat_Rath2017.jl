@@ -187,8 +187,9 @@ end
 
 # +
 # prepare epoch
-model = deserialize(HG.BASE_MODEL_FILE);
-m, n = size(model)
+build_model = deserialize(HG.BASE_MODEL_FILE);
+obj_idx = Ch.Utils.rxnindex(build_model, obj_ider)
+m, n = size(build_model)
 epoch_len = floor(Int, 100)
 @assert epoch_len > 0
 
@@ -198,26 +199,27 @@ fva_res = pmap(process_epoch, states);
 
 # +
 # joining fva_res
-lb_, ub_ = (model.lb, model.ub) .|> copy 
+lb_, ub_ = (build_model.lb, build_model.ub) .|> copy 
 for (epoch, (fva_lb, fva_ub)) in fva_res
     lb_[epoch] .= fva_lb
     ub_[epoch] .= fva_ub
 end
 
 ignored = ["HMR_9136"] # put here the reactions you wants to ignore the process
-ignored_idxs = [Ch.Utils.rxnindex(model, rxn) for rxn in ignored]
+ignored_idxs = [Ch.Utils.rxnindex(build_model, rxn) for rxn in ignored]
 non_ignored = trues(n)
 non_ignored[ignored_idxs] .= false
 
-model.lb[non_ignored] = lb_[non_ignored]
-model.ub[non_ignored] = ub_[non_ignored]
+build_model.lb[non_ignored] = lb_[non_ignored]
+build_model.ub[non_ignored] = ub_[non_ignored]
+build_model.lb[obj_idx] = 0.0 # open biomass again
 
 # deleting blocked
-model = Ch.Utils.del_blocked(model; protected = ignored);
-Ch.Utils.summary(model)
+fva_pp_model = Ch.Utils.del_blocked(build_model; protected = ignored);
+Ch.Utils.summary(fva_pp_model)
 # -
 
-serialize(HG.FVA_PP_BASE_MODEL_FILE, model)
+serialize(HG.FVA_PP_BASE_MODEL_FILE, fva_pp_model)
 println("$(relpath(HG.FVA_PP_BASE_MODEL_FILE)) created")
 
 delete_temp_caches()
