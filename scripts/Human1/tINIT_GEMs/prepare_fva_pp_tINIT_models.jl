@@ -266,7 +266,7 @@ for base_file in base_files
 
     build_model.lb[non_ignored] = lb_[non_ignored]
     build_model.ub[non_ignored] = ub_[non_ignored]
-    build_model.ib[obj_idx] = 0.0 # open obj again
+    build_model.lb[obj_idx] = 0.0 # open obj again
 
     # deleting blocked
     fva_pp_model = Ch.Utils.del_blocked(build_model; protected = ignored);
