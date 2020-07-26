@@ -128,6 +128,12 @@ end
     end
 end
 
+@everywhere begin
+    obj_ider = "biomass_human"
+    obj_val = Ch.LP.fba(deserialize(HG.BASE_MODEL_FILE), obj_ider).obj_val
+end
+
+
 # ---
 # ## FVA Preprocess
 # ---
@@ -151,8 +157,13 @@ end
     i0, epoch_len = state .|> Int
     
     model = deserialize(HG.BASE_MODEL_FILE);
+    obj_idx = Ch.Utils.rxnindex(model, obj_ider)
     m, n = size(model)
-    
+
+    # fix obj_ider
+    model.lb[obj_idx] = obj_val * 0.98
+    model.ub[obj_idx] = obj_val * 1.02
+
     # epoch
     i1 = i0+epoch_len > n ? n : i0+epoch_len - 1 |> Int
     epoch = i0:i1

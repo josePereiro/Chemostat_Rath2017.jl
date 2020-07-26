@@ -42,7 +42,8 @@ Chemostat_Rath2017.check_env();
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
+NO_WORKERS = NO_CORES - 1
+length(workers()) < NO_WORKERS && addprocs(NO_WORKERS; 
     exeflags = "--project")
 atexit(interrupt)
 println("Working in: ", workers())
@@ -162,12 +163,19 @@ end
     print_action(state, "STARTING EPOCH")
     
     # --------------------  PREPARE  --------------------  
-    i0, epoch_len, model_file = state
+    i0, epoch_len, model_file, obj_val = state
     i0, epoch_len = (i0, epoch_len) .|> Int
 
     dat = deserialize(model_file);
     model = dat.metnet
+    obj_idx = Ch.Utils.rxnindex(model, obj_ider)
     m, n = size(model)
+
+    # fix obj
+    if obj_val >= 0.0
+        model.lb[obj_idx] = obj_val * 0.98
+        model.ub[obj_idx] = obj_val * 1.02
+    end
     
     # epoch
     i1 = (i0+epoch_len > n ? n : i0+epoch_len - 1) |> Int
@@ -218,6 +226,7 @@ end
 
 base_files = filter((s) -> startswith(s, "base_model_"), readdir(tIG.MODEL_PROCESSED_DATA_DIR))
 base_files = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, base_files);
+@everywhere obj_ider = "biomass_human"
 
 for base_file in base_files
     
@@ -229,16 +238,16 @@ for base_file in base_files
     println("\n\n ------------------- Processing $model_id -------------------\n")
     println("\nBuild model summary")
     Ch.Utils.summary(build_model)
-    obj_ider = "biomass_human"
     fbaout = Ch.LP.fba(build_model, obj_ider);
-    fbaout.obj_val <= 0.0 && @warn "fbaout.obj_val ($(fbaout.obj_val)) <= 0.0"
+    obj_val = fbaout.obj_val
+    obj_val <= 0.0 && @warn "fbaout.obj_val ($(obj_val)) <= 0.0"
     m, n = size(build_model)
-    epoch_len = 100 # Cahnge here the size of each epoch
+    epoch_len = 100 # Change here the size of each epoch
     @assert epoch_len > 0
 
     # This is parallizable
     println("\nParallel processing")
-    states = Iterators.product(1:epoch_len:n, epoch_len, [relpath(base_file)])
+    states = Iterators.product(1:epoch_len:n, epoch_len, [relpath(base_file)], obj_val)
     fva_res = pmap(process_epoch, states);
 
     # joining fva_res
