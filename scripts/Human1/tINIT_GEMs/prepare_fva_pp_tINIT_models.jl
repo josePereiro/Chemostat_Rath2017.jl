@@ -166,7 +166,7 @@ end
     i0, epoch_len, model_file = state
     i0, epoch_len = (i0, epoch_len) .|> Int
 
-    dat = deserialize(joinpath(tIG.MODEL_PROCESSED_DATA_DIR, base_file));
+    dat = deserialize(joinpath(tIG.MODEL_PROCESSED_DATA_DIR, model_file));
     model = dat.metnet
     m, n = size(model)
 
