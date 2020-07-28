@@ -22,9 +22,10 @@ set = ArgParseSettings()
         help = "possible values: \"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
                                 "\"maxent_ep\" (clear only the maxent_ep boundles), " *
-                                "\"fva_pp\" (clear only the fva preprocess models)"
+                                "\"fva_pp\" (clear only the fva preprocess models)" *
+                                "\"cache\" (clear the cache forder)"
         required = false
-        range_tester = (x -> x in ["all", "base", "maxent_ep", "fva_pp"])
+        range_tester = (x -> x in ["all", "base", "maxent_ep", "fva_pp", "cache"])
 end
 parsed_args = parse_args(set)
 dry_run_flag = parsed_args["dry-run"]
@@ -72,6 +73,13 @@ all_scripts = [
             "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles.jls"])
     )
 ]
+
+cache = (
+    name = "cache",
+    targets = joinpath.(tIG.MODEL_CACHE_DATA_DIR, 
+        readdir(tIG.MODEL_CACHE_DATA_DIR))
+)
+
 get_names(scripts) = [basename(script.name) for script in scripts]
 get_script(name) = all_scripts[get_names(all_scripts) .== name]
 
@@ -83,7 +91,8 @@ if !isnothing(clear_arg)
     to_clear =  clear_arg == "all" ? all_scripts :
                 clear_arg == "base" ? base_scripts : 
                 clear_arg == "maxent_ep" ? get_script("fva_pp_tINIT_models_maxent_ep.jl") :
-                clear_arg == "fva_pp" ? get_script("prepare_fva_pp_tINIT_models.jl") : []
+                clear_arg == "fva_pp" ? get_script("prepare_fva_pp_tINIT_models.jl") : 
+                clear_arg == "cache" ? get_script("cache") : []
     
     println("\nTo clear: ", get_names(to_clear))
     for (script, targets) in to_clear 
