@@ -42,8 +42,8 @@ Chemostat_Rath2017.check_env();
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
-    exeflags = "--project")
+# length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
+#     exeflags = "--project")
 println("Working in: ", workers())
 
 # +
@@ -217,8 +217,6 @@ end
     
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
-    # ξs = range(10, 210, length = 3)
-    # ξs = [ξs; Rd.val("ξ", Rd.ststs)] |> collect |> unique |> sort |> reverse
     ξs = [Rd.val("ξ", stst)]
     ξs = testing ? [Rd.val("ξ", stst)] : ξs
     
@@ -226,8 +224,7 @@ end
     # --------------------  MAXENT PARAMETER BETA --------------------  
     # Change here how many betas to model
     # The beta range is set up by trial and error
-    # βs = 10.0 .^ range(2, 4, length = 19) |> collect |> unique |> sort #|> reverse
-    βs = range(1e4, 1e5, length = 19)
+    βs = range(5e3, 5e4, length = 25)
     βs = [0.0; βs]
     βs = testing ? collect(1:5) : βs
 
