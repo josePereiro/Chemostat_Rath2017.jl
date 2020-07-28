@@ -21,7 +21,7 @@ set = ArgParseSettings()
     "--clear", "-c"
         help = "possible values: \"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
-                                "\"maxent_ep\" (clear only the maxent_ep bondles), " *
+                                "\"maxent_ep\" (clear only the maxent_ep boundles), " *
                                 "\"fva_pp\" (clear only the fva preprocess models)"
         required = false
         range_tester = (x -> x in ["all", "base", "maxent_ep", "fva_pp"])
@@ -61,10 +61,15 @@ all_scripts = [
             "fva_pp_model_TCGA-GBM TP-1.jls", "fva_pp_model_TCGA-GBM TR-1.jls", 
             "fva_pp_model_TCGA-LGG TP-1.jls", "fva_pp_model_TCGA-LGG TR-1.jls"])
     );
-    # TODO: set this targets
     (
         name = "fva_pp_tINIT_models_maxent_ep.jl",
-        targets = []
+        targets = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, 
+            ["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___boundles.jls",
+            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles.jls",
+            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles.jls",
+            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles.jls",
+            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles.jls",
+            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles.jls"])
     )
 ]
 get_names(scripts) = [basename(script.name) for script in scripts]

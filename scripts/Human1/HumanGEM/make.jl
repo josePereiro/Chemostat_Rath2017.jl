@@ -22,7 +22,7 @@ set = ArgParseSettings()
     "--clear", "-c"
         help = "possible values: \"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
-                                "\"maxent_ep\" (clear only the maxent_ep bondles), " *
+                                "\"maxent_ep\" (clear only the maxent_ep boundles), " *
                                 "\"fva_pp\" (clear only the fva preprocess models)"
         required = false
         range_tester = (x -> x in ["all", "base", "maxent_ep", "fva_pp"])
