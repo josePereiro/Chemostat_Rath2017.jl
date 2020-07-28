@@ -42,8 +42,8 @@ Chemostat_Rath2017.check_env();
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-# length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
-#     exeflags = "--project")
+length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
+    exeflags = "--project")
 println("Working in: ", workers())
 
 # +
@@ -131,6 +131,11 @@ end
         stst, ξi, ξs, ξ,  βi, βs, β, exp_av, fba_av, ep_av, 
         ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, min_err, mean_err, max_err, elapsed)
 
+@everywhere function string_err(err; max_len = 1000)
+    s = sprint(showerror, err, catch_backtrace())
+    return length(s) > max_len ? s[1:max_len] * "\n..." : s
+end
+
 # ---
 # ## temp caching
 # ---
@@ -149,7 +154,7 @@ end
         catch err
             print_action(state, "ERROR LOADING CACHE", 
                 "cache_file: $tcache_file", 
-                "err:        $(err)")
+                "err:        $(string_err(err))")
         end
         print_action(state, "CACHE LOADED", "cache_file: $tcache_file")
     end
@@ -161,9 +166,10 @@ end
     try
         serialize(tcache_file, data)
     catch err
-         print_action(state, "ERROR SAVING CACHE", 
+        err = sprint(showerror(stderr, err, catch_backtrace()))
+        print_action(state, "ERROR SAVING CACHE", 
                 "cache_file: $tcache_file", 
-                "err:        $(err)")
+                "err:        $(string_err(err))")
     end
     print_action(state, "CACHE SAVED", "cache_file: $tcache_file")
 end
@@ -391,7 +397,7 @@ end
 
         catch err
             # Print error in 1
-            print_action(beta_state, "ERROR DURING EP", "err: $(err)")
+            print_action(beta_state, "ERROR DURING EP", "err: $(string_err(err))")
 
             # storing error
             xi_data[(ξ, β, :ep)] = err
@@ -432,6 +438,7 @@ for model_file in fva_pp_files
     model_file = relpath(model_file)
     dat = deserialize(model_file)
     model_id = dat.id
+
     boundle_file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___$(model_id)___boundles.jls")
     if isfile(boundle_file)
         println("\n skipping $model_id, $(basename(boundle_file)) exist!!!\n")
@@ -448,7 +455,7 @@ for model_file in fva_pp_files
     ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
     println("Ststs: ", ststs_)
 
-    remote_results = map((stst) -> process_exp(stst, model_file), ststs_);
+    remote_results = pmap((stst) -> process_exp(stst, model_file), ststs_);
 
     # ### Saving
 

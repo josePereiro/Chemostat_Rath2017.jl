@@ -20,3 +20,4 @@ data/*
 /test/cache
 data/raw/Human1_Publication_Data_Scripts
 data/raw/Human1_Publication_Data_Scripts.zip
+*log.txt
