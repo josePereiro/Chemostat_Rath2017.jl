@@ -10,10 +10,9 @@ set = ArgParseSettings()
     "--dry-run"
         help = "run without consecuences, just printing"
         action = :store_true
-    "--run", "-r", "-x"
-        help = "run all the scripts"
+    "--not-run", "-n"
+        help = "run any script"
         action = :store_true
-        default = true
     "--clear", "-c"
         help = "Clear first all the scripts target files"
         action = :store_true
@@ -21,7 +20,7 @@ end
 parsed_args = parse_args(set)
 dry_run_flag = parsed_args["dry-run"]
 clear_arg = parsed_args["clear"]
-run_arg = parsed_args["run"]
+not_run_arg = parsed_args["not-run"]
 
 cd(dirname(@__FILE__)) # move to this folder
 println("\nNow at: ", pwd())
@@ -91,7 +90,7 @@ function check_targets(targets)
     return true
 end
 
-if run_arg
+if !not_run_arg
     to_run = all_scripts
     julia = Base.julia_cmd()
     println("\nTo run: ", get_names(to_run))
