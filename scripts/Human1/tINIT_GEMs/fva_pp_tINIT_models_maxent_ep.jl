@@ -434,7 +434,7 @@ for model_file in fva_pp_files
     model_id = dat.id
     boundle_file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___$(model_id)___boundles.jls")
     if isfile(boundle_file)
-        println("\n skipping $model_id, $(basename(model_file)) exist!!!\n")
+        println("\n skipping $model_id, $(basename(boundle_file)) exist!!!\n")
         continue
     end
 
