@@ -18,7 +18,6 @@
 using DataFrames
 using Serialization
 using Dates
-import StatsBase: mean
 
 # ### Precompaling in master worker first
 
@@ -53,6 +52,7 @@ using DataFrames
 using Distributed
 using Serialization
 using Dates
+import StatsBase: mean
 
 import Chemostat
 Ch = Chemostat
@@ -131,7 +131,7 @@ end
         stst, ξi, ξs, ξ,  βi, βs, β, exp_av, fba_av, ep_av, 
         ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, min_err, mean_err, max_err, elapsed)
 
-@everywhere function string_err(err; max_len = 1000)
+@everywhere function string_err(err; max_len = 10000)
     s = sprint(showerror, err, catch_backtrace())
     return length(s) > max_len ? s[1:max_len] * "\n..." : s
 end
