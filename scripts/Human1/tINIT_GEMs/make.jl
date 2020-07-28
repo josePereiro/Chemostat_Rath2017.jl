@@ -92,7 +92,7 @@ if !isnothing(clear_arg)
                 clear_arg == "base" ? base_scripts : 
                 clear_arg == "maxent_ep" ? get_script("fva_pp_tINIT_models_maxent_ep.jl") :
                 clear_arg == "fva_pp" ? get_script("prepare_fva_pp_tINIT_models.jl") : 
-                clear_arg == "cache" ? get_script("cache") : []
+                clear_arg == "cache" ? cache : []
     
     println("\nTo clear: ", get_names(to_clear))
     for (script, targets) in to_clear 
