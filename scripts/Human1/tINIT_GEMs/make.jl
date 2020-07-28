@@ -74,11 +74,11 @@ all_scripts = [
     )
 ]
 
-cache = (
+cache = [(
     name = "cache",
     targets = joinpath.(tIG.MODEL_CACHE_DATA_DIR, 
         readdir(tIG.MODEL_CACHE_DATA_DIR))
-)
+)]
 
 get_names(scripts) = [basename(script.name) for script in scripts]
 get_script(name) = all_scripts[get_names(all_scripts) .== name]
