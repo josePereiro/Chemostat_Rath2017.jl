@@ -38,7 +38,8 @@ set = ArgParseSettings()
 end
 parsed_args = parse_args(set)
 dry_run_flag = parsed_args["dry-run"]
-clear_args = split(parsed_args["clear"], ",")
+clear_args = parsed_args["clear"]
+clear_args = isnothing(clear_args) ? nothing : split(clear_args, ",")
 run_arg = parsed_args["run"]
 
 cd(dirname(@__FILE__)) # move to this folder
