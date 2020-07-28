@@ -377,13 +377,13 @@ end
                         elapsed)
                 end
                 
-                # save for the next beta
-                beta_seed = epout
-                
                 # caching
                 save_cache(beta_state, epout)
                 
             end # EP While loop
+
+            # save for the next beta
+            beta_seed = epout
 
             # storing
             xi_data[(ξ, β, :ep)] = epout
