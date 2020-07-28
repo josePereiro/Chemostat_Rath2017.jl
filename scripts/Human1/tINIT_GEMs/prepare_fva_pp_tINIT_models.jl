@@ -226,6 +226,12 @@ for base_file in base_files
     build_model = dat.metnet
     obj_idx = Ch.Utils.rxnindex(build_model, obj_ider)
     model_id = dat.id
+
+    fva_pp_model_file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "fva_pp_model_$model_id.jls")
+    if isfile(fva_pp_model_file)
+        println("skipping ", model_id, ", ", relpath(fva_pp_model_file), " exist!")
+        continue
+    end
     
     println("\n\n ------------------- Processing $model_id -------------------\n")
     println("\nBuild model summary")
@@ -266,9 +272,8 @@ for base_file in base_files
     run_fba_test(fva_pp_model, obj_ider)
 
     println("\nSaving")
-    file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "fva_pp_model_$model_id.jls")
-    serialize(file, (id = model_id, metnet = fva_pp_model, src = dat.src))
-    println("$(relpath(file)) created")
+    serialize(fva_pp_model_file, (id = model_id, metnet = fva_pp_model, src = dat.src))
+    println("$(relpath(fva_pp_model_file)) created")
 
     println("\nDeleting caches")
     delete_temp_caches()
