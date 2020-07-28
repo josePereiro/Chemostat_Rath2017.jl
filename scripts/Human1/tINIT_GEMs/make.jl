@@ -2,26 +2,37 @@
 #=
     This script just run all the other scripts in the correct order.
 =#
-cd(dirname(@__FILE__)) # move to this folder
-println("\nNow at: ", pwd())
-
 #######################################################
 ## SET UP
 #######################################################
 using ArgParse
 set = ArgParseSettings()
 @add_arg_table! set begin
+    "--dry-run"
+        help = "run without consecuences, just printing"
+        action = :store_true
     "--run", "-r", "-x"
-        help = "either \"all\" (run all the scripts) or \"base\" (run only the base model scripts)"
+        help = "possible values: \"all\" (run all the scripts),  " *
+                                 "\"base\" (run only the base model scripts), " *
+                                 "\"none\" (run nothing)"
         default = "base"
         required = false
-        range_tester = (x -> x == "all" || x == "base")
+        range_tester = (x -> x in ["all", "base", "none"])
     "--clear", "-c"
-        help = "either \"all\" (clear all the scripts targets) or \"base\" (clear only the base model scripts targets)"
+        help = "possible values: \"all\" (clear all the scripts targets), " *
+                                "\"base\" (clear only the base model scripts targets), " *
+                                "\"maxent_ep\" (clear only the maxent_ep bondles), " *
+                                "\"fva_pp\" (clear only the fva preprocess models)"
         required = false
-        range_tester = (x -> x == "all" || x == "base")
+        range_tester = (x -> x in ["all", "base", "maxent_ep", "fva_pp"])
 end
 parsed_args = parse_args(set)
+dry_run_flag = parsed_args["dry-run"]
+clear_arg = parsed_args["clear"]
+run_arg = parsed_args["run"]
+
+cd(dirname(@__FILE__)) # move to this folder
+println("\nNow at: ", pwd())
 
 import Chemostat_Rath2017
 tIG = Chemostat_Rath2017.tINIT_GEMs;
@@ -56,22 +67,28 @@ all_scripts = [
         targets = []
     )
 ]
+get_names(scripts) = [basename(script.name) for script in scripts]
+get_script(name) = all_scripts[get_names(all_scripts) .== name]
 
 #######################################################
-## Clear
+## CLEAR
 #######################################################
-if !isnothing(parsed_args["clear"])
-    to_clear = parsed_args["clear"] == "all" ? all_scripts : base_scripts
-    println("\nTo clear: ", [basename(script.name) for script in to_clear])
+if !isnothing(clear_arg)
+
+    to_clear =  clear_arg == "all" ? all_scripts :
+                clear_arg == "base" ? base_scripts : 
+                clear_arg == "maxent_ep" ? get_script("fva_pp_tINIT_models_maxent_ep.jl") :
+                clear_arg == "fva_pp" ? get_script("prepare_fva_pp_tINIT_models.jl") : []
+    
+    println("\nTo clear: ", get_names(to_clear))
     for (script, targets) in to_clear 
         for target in targets
             if isfile(target) || isdir(target)
-                rm(target, force = true, recursive = true)
+                !dry_run_flag && rm(target, force = true, recursive = true)
                 println(basename(target), " deleted!!!")
             end
         end
     end
-    println()
     flush(stdout); flush(stderr)
 end
 
@@ -94,14 +111,16 @@ function check_targets(targets)
     return true
 end
 
-to_run = parsed_args["run"] == "all" ? all_scripts : base_scripts
+to_run = run_arg == "all" ? all_scripts : 
+        run_arg == "base" ? base_scripts : 
+        #= none =# []
 
 julia = Base.julia_cmd()
-println("To run: ", [basename(script.name) for script in to_run])
+println("\nTo run: ", get_names(to_run))
 for (script, targets) in to_run
     println("\n\n----------------- Script $script -----------------\n")
     check_targets(targets) && continue
     flush(stdout); flush(stderr)
-    run(`$julia --project $script`) # Change this to point to your julia executable, do not forget the flag
+    !dry_run_flag && run(`$julia --project $script`)
     flush(stdout); flush(stderr)
 end
