@@ -338,8 +338,9 @@ end
             # I break down ep in several epoch to be able to cache partial results
             βv[obj_idx] = β
             curr_iter = 0
-            while (ep_maxiter > curr_iter) && # Till maxiter 
-                (isnothing(epout) || epout.status != :converged) # Or converged
+            while (curr_iter == 0 || isnothing(epout)) || # First time
+                (ep_maxiter > curr_iter && # Till maxiter 
+                    epout.status != :converged) # Or converged
                 
                 epout = testing ? Ch.Test.empty_epout(model) :
                     Ch.MaxEntEP.maxent_ep(model, 
