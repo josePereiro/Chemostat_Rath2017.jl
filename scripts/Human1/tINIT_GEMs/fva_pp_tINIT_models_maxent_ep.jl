@@ -320,6 +320,7 @@ end
     # THIS CAN TAKE A WHILE!!!
     βv = zeros(n)
     show_t = time()
+    beta_seed = nothing
     for (βi, β) in βs |> enumerate
         
         # --------------------  TEMP CACHE  --------------------  
@@ -327,7 +328,8 @@ end
         # dont trust them
         # currrent state
         beta_state = (stst, ξ, β)
-        epout = load_cached(beta_state)
+        cached = load_cached(beta_state)
+        epout = isnothing(cached) ? beta_seed : cached
         
         # --------------------  TRY MAXENT-EP  --------------------  
         try
@@ -374,6 +376,9 @@ end
                         min_err, mean_err, max_err,
                         elapsed)
                 end
+                
+                # save for the next beta
+                beta_seed = epout
                 
                 # caching
                 save_cache(beta_state, epout)
