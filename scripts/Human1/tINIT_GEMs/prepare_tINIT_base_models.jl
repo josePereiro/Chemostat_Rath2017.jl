@@ -15,7 +15,6 @@ HG.load_all_data()
 tIG = Chemostat_Rath2017.tINIT_GEMs
 
 Rd = Chemostat_Rath2017.RathData
-# Rd.load_all_data()
 # This just check that the script is run in the
 # package enviroment
 Chemostat_Rath2017.check_env();
