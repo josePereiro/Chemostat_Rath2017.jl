@@ -7,13 +7,6 @@
 #######################################################
 using ArgParse
 
-function check_clear_args(args)
-    for arg in split(args, ",")
-        !(arg in ["all", "base", "maxent_ep", "fva_pp", "cache"]) && return false
-    end
-    return true
-end
-
 set = ArgParseSettings()
 @add_arg_table! set begin
     "--dry-run"
@@ -22,19 +15,19 @@ set = ArgParseSettings()
     "--run", "-r", "-x"
         help = "possible values: \"all\" (run all the scripts),  " *
                                  "\"base\" (run only the base model scripts), " *
-                                 "\"none\" (run nothing)"
+                                 "\"none\" (run nothing)" * 
+                                 "The name of any script can be also passed. "
         default = "base"
         required = false
-        range_tester = (x -> x in ["all", "base", "none"])
     "--clear", "-c"
         help = "possible values: \"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
                                 "\"maxent_ep\" (clear only the maxent_ep boundles), " *
-                                "\"fva_pp\" (clear only the fva preprocess models)" *
-                                "\"cache\" (clear the cache forder)" * 
+                                "\"fva_pp\" (clear only the fva preprocess models), " *
+                                "\"cache\" (clear the cache forder). " * 
+                                "The name of any script can be also passed. " *
                                 "You can pass several using comma Ex: --clear=cache,maxent"
         required = false
-        range_tester = check_clear_args
 end
 parsed_args = parse_args(set)
 dry_run_flag = parsed_args["dry-run"]
@@ -51,6 +44,13 @@ tIG = Chemostat_Rath2017.tINIT_GEMs;
 # This just check that the script is run in the
 # package enviroment
 Chemostat_Rath2017.check_env();
+
+["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___boundles___extracted_data.json",
+"fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles___extracted_data.json",
+"fva_pp_tINIT_models_maxent_ep___TCGA-GBM TP-1___boundles___extracted_data.json",
+"fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles___extracted_data.json",
+"fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles___extracted_data.json",
+"fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles___extracted_data.json"]
 
 # name-targets
 targets_dict = Dict()
@@ -69,11 +69,20 @@ targets_dict["fva_pp_tINIT_models_maxent_ep.jl"] = joinpath.(tIG.MODEL_PROCESSED
                                                             "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles.jls",
                                                             "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles.jls",
                                                             "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles.jls"])
+targets_dict["maxent_ep___extract_data.jl"] = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, 
+                                                            ["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___boundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TP-1___boundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles___extracted_data.json"])
+
+
 targets_dict["cache"] = joinpath.(tIG.MODEL_CACHE_DATA_DIR, readdir(tIG.MODEL_CACHE_DATA_DIR))
 
 # Scripts-targets in order
 base_scripts = ["prepare_tINIT_base_models.jl"] 
-all_scripts = [base_scripts; "prepare_fva_pp_tINIT_models.jl"; "fva_pp_tINIT_models_maxent_ep.jl"]
+all_scripts = [base_scripts; "prepare_fva_pp_tINIT_models.jl"; "fva_pp_tINIT_models_maxent_ep.jl"; "maxent_ep___extract_data.jl"]
 
 #######################################################
 ## CLEAR
@@ -83,9 +92,10 @@ if !isnothing(clear_args)
     for clear_arg in clear_args
         s =  clear_arg == "all" ? [all_scripts; "cache"] :
             clear_arg == "base" ? base_scripts : 
-            clear_arg == "maxent_ep" ? ["fva_pp_tINIT_models_maxent_ep.jl"] :
+            clear_arg == "maxent_ep" ? ["fva_pp_tINIT_models_maxent_ep.jl", "maxent_ep___extract_data.jl"] :
             clear_arg == "fva_pp" ? ["prepare_fva_pp_tINIT_models.jl"] : 
-            clear_arg == "cache" ? ["cache"] : []
+            clear_arg == "cache" ? ["cache"] : 
+            haskey(targets_dict, clear_arg) ? [clear_arg] : []
         push!(to_clear, s...)
     end
 
@@ -122,7 +132,8 @@ end
 
 to_run = run_arg == "all" ? all_scripts : 
         run_arg == "base" ? base_scripts : 
-        #= none =# []
+        run_arg == "none" ? [] :
+        haskey(targets_dict, run_arg) ? [run_arg] : []
 
 julia = Base.julia_cmd()
 println("\nTo run: ", to_run)
