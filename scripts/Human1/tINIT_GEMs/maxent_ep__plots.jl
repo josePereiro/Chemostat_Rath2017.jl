@@ -3,7 +3,7 @@
 # jupyter:
 #   jupytext:
 #     cell_metadata_filter: -all
-#     formats: jl,ipynb
+#     formats: jl:light
 #     text_representation:
 #       extension: .jl
 #       format_name: light
@@ -72,6 +72,41 @@ models_dat |> keys  .|> basename .|>  println;
 
 colors = [:red, :yellow, :blue, :green, :orange, :black];
 
+# ## growth vs beta
+
+function plot_growth_vs_beta(dat_id, rath_id = "μ"; kwargs...)
+    dat = models_dat[dat_id]
+    p = plot(title = "$dat_id\n$rath_id", xlabel = "beta", ylabel = rath_id)
+    for (i, stst) in Rd.ststs |> enumerate
+        βs = dat[stst]["βs"] |> sort
+        ξ = dat[stst]["ξs"] |> first
+        
+        for β in βs
+            ep_dat = dat[stst]["""($ξ, $β, :ep, "$rath_id")"""]
+            ep_q = ep_dat["av"] 
+            ep_err = sqrt(ep_dat["va"])
+            scatter!(p, [β], [ep_q], 
+                yerr = [ep_err], 
+                label = "", color = colors[i], ms = 10)
+        end
+        scatter!(p, [],[], label = stst, marker = :square, ms = 30, color = colors[i])
+        
+    end
+    return plot!(p; kwargs...)
+end
+
+ps = []
+for model_id in models_ids
+    ps_ = []
+    for rath_id in ["μ"; Rd.msd_mets]
+        p = plot_growth_vs_beta(models_ids[2], rath_id)
+        push!(ps_, p)
+    end
+    p = plot(ps_..., size = (length(ps_) * 300, 300), layout = grid(1, length(ps_)))
+    push!(ps, p)
+end
+p = plot(ps...,  size = (2500, length(ps_) * 300), layout = grid(length(ps), 1))
+
 # ## Stoi err
 
 function plot_norm_stoi_err(dat_id; kwargs...)
@@ -81,14 +116,14 @@ function plot_norm_stoi_err(dat_id; kwargs...)
         βs = dat[stst]["βs"] |> sort
         exp_β = dat[stst]["exp_β"]
         vline!([exp_β], ls = :dot, lw = 2, color = colors[i], label = "")
-
-        for ξ in dat[stst]["ξs"]
+        ξ = dat[stst]["ξs"] |> first
+#         for ξ in dat[stst]["ξs"]
             mean_err = dat[stst]["""($ξ, "mean_ep_norm_stoi_err")"""]
             plot!(βs, mean_err, label = "", color = colors[i], lw = 2, ls = :dash)
             max_err = dat[stst]["""($ξ, "max_ep_norm_stoi_err")"""]
             plot!(βs, max_err, label = "", color = colors[i], lw = 2)
             scatter!(p, [],[], label = stst, marker = :square, ms = 30, color = colors[i])
-        end
+#         end
     end
 
     plot!(p, [],[], ls = :dash, color = :black, label = "mean")
@@ -110,13 +145,6 @@ p = plot(ps..., size = (500 * length(ps), 400), layout = grid(1, length(ps)))
 # savefig(p, file);
 # println(relpath(file), " created!!!")
 # -
-
-
-
-dat["A"] |> keys |> collect .|> println;
-
-dat["A"] |> keys |> collect |> first
-
 # ## correlations at exp_beta
 
 # fluxs = [obj_ider; [HG.exch_met_map[HG.mets_map[rath_met]] for rath_met in Rd.msd_mets]];
@@ -170,14 +198,12 @@ function plot_exp_β_corrs(dat_id; kwargs...)
     plot!(p; kwargs...)
 end
 
-# +
-# ps = []
-# for models_id in models_ids
-#     p = plot_exp_β_corrs(models_id, titlefont = 10)
-#     push!(ps, p)
-# end
-# p = plot(ps..., size = (1000, 300 * length(ps)), layout = grid(length(ps), 1))
-# -
+ps = []
+for models_id in models_ids
+    p = plot_exp_β_corrs(models_id, titlefont = 10)
+    push!(ps, p)
+end
+p = plot(ps..., size = (1000, 300 * length(ps)), layout = grid(length(ps), 1))
 
 # ## correlation as function of beta
 
@@ -220,9 +246,17 @@ function get_ep_βs_corrs(dat_id)
     return ep_ps
 end
 
-ps_ = get_ep_βs_corrs(models_ids[1])
-ps_ = ps_[1:3:end]
-p = plot(ps_..., size = (3000,300), layout = (1, length(ps_)))
+# ps_ = get_ep_βs_corrs(models_ids[1])
+# ps_ = ps_[1:3:end]
+# p = plot(ps_..., size = (3000,300), layout = (1, length(ps_)))
+ps = []
+for models_id in models_ids
+    ps_ = get_ep_βs_corrs(models_id)
+    ps_ = ps_[1:3:end]
+    p = plot(ps_..., size = (3000,300), layout = (1, length(ps_)))
+    push!(ps, p)
+end
+p = plot(ps..., size = (3000, 300 * length(ps)), layout = grid(length(ps), 1))
 
 #Marginals
 function plot_marginals(dat_id, rath_id; kwargs...)

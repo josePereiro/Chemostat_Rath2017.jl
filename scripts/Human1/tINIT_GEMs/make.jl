@@ -82,7 +82,8 @@ targets_dict["cache"] = joinpath.(tIG.MODEL_CACHE_DATA_DIR, readdir(tIG.MODEL_CA
 
 # Scripts-targets in order
 base_scripts = ["prepare_tINIT_base_models.jl"] 
-all_scripts = [base_scripts; "prepare_fva_pp_tINIT_models.jl"; "fva_pp_tINIT_models_maxent_ep.jl"; "maxent_ep___extract_data.jl"]
+all_scripts = [base_scripts; "prepare_fva_pp_tINIT_models.jl"; 
+                "fva_pp_tINIT_models_maxent_ep.jl"; "maxent_ep___extract_data.jl"]
 
 #######################################################
 ## CLEAR
