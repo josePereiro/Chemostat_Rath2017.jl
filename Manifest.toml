@@ -100,12 +100,12 @@ uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 version = "0.8.1"
 
 [[Chemostat]]
-deps = ["Clp", "DataFrames", "Distributed", "Distributions", "ExtractMacro", "Gadfly", "HTMLSanitizer", "HTTP", "HTTPClient", "JuMP", "JuliaFormatter", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "Random", "SparseArrays", "SpecialFunctions", "StatsBase"]
-git-tree-sha1 = "59c7d39e4967ca6a75f06642d8d75381e5a7490f"
+deps = ["Clp", "DataFrames", "Distributed", "Distributions", "ExtractMacro", "Gadfly", "HTMLSanitizer", "HTTP", "HTTPClient", "JuMP", "JuliaFormatter", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "Random", "Requires", "SparseArrays", "SpecialFunctions", "StatsBase"]
+git-tree-sha1 = "1a621e57dd4065660309df406dba247180e4acd0"
 repo-rev = "develop"
 repo-url = "https://github.com/josePereiro/Chemostat"
 uuid = "c5987326-81b3-11ea-28dd-b531745de20f"
-version = "0.3.6"
+version = "0.5.0"
 
 [[Clp]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "MathOptInterface", "MathProgBase", "SparseArrays"]
@@ -239,9 +239,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "21fe8727469b4eeb5a006e0399588180f5dc9db4"
+git-tree-sha1 = "536ae0f40b0f6ed8cf5300f491a243fcf88b5ae4"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.23.5"
+version = "0.23.6"
 
 [[DocStringExtensions]]
 deps = ["LibGit2", "Markdown", "Pkg", "Test"]
@@ -393,9 +393,9 @@ version = "0.21.0"
 
 [[JSONSchema]]
 deps = ["HTTP", "JSON", "ZipFile"]
-git-tree-sha1 = "832a4d327d9dafdae55a6ecae04f9997c83615cc"
+git-tree-sha1 = "2646fb3efdb60f35a8c053250a2647358ae0629f"
 uuid = "7d188eb4-7ad8-530c-ae41-71a32a6d4692"
-version = "0.3.0"
+version = "0.3.1"
 
 [[JuMP]]
 deps = ["Calculus", "DataStructures", "ForwardDiff", "LinearAlgebra", "MathOptInterface", "MutableArithmetics", "NaNMath", "Random", "SparseArrays", "Statistics"]
