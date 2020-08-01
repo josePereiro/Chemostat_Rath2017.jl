@@ -200,6 +200,12 @@ git-tree-sha1 = "256485945b158f5351e28dd71f178f4ca59abcaf"
 uuid = "497a8b3b-efae-58df-a0af-a86822472b78"
 version = "1.1.13"
 
+[[DrWatson]]
+deps = ["Dates", "FileIO", "LibGit2", "Pkg", "Random", "Requires", "UnPack"]
+git-tree-sha1 = "8647f70f2eca7ebab5dd67e13539cb18d0ffc21c"
+uuid = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+version = "1.14.7"
+
 [[ExprTools]]
 git-tree-sha1 = "6f0517056812fd6aa3af23d4b70d5325a2ae4e95"
 uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
