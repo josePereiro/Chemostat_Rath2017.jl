@@ -6,8 +6,8 @@
 
 module MODEL1105100000
     import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
-    import Chemostat
-    Ch = Chemostat
+    # import Chemostat
+    # Ch = Chemostat
     import CSV
     import Serialization: deserialize
     import DataFrames: DataFrame
