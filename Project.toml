@@ -4,7 +4,9 @@ authors = ["josePereiro"]
 version = "0.2.0"
 
 [deps]
+BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+CSVFiles = "5d742f6a-9f54-50ce-8119-2520741973ca"
 Chemostat = "c5987326-81b3-11ea-28dd-b531745de20f"
 Clp = "e2554f3b-3117-50c0-817c-e040a3ddf72d"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
