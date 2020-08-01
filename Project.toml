@@ -4,7 +4,6 @@ authors = ["josePereiro"]
 version = "0.2.0"
 
 [deps]
-ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 Chemostat = "c5987326-81b3-11ea-28dd-b531745de20f"
 Clp = "e2554f3b-3117-50c0-817c-e040a3ddf72d"
