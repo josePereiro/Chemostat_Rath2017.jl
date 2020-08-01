@@ -47,26 +47,28 @@ load_rath_bundle()
 
 
 # interface
-for fun in ["val", "err", "unit"]      
+_parse_id(prefix, id) = (string(prefix) == "q" && string(id) == "μ") ? "μ" : string(prefix, id) # handle biomass
+for base_fun in [:val, :err, :unit]      
+    key = string(base_fun)
+    @eval begin
+        $base_fun(id, exp::AbstractString) = rath_bundle[exp][string(id)][$key]
+        function $base_fun(id, exp::AbstractString, deflt)
+            try 
+                $base_fun(id, exp); 
+            catch err
+                err isa KeyError && return deflt
+                rethrow(err)
+            end
+        end
+        $base_fun(id, exps::Vector) = [$base_fun(id, exp) for exp in exps]
+    end 
 
-    eval(Meta.parse("""
-        $(fun)(id, exp::AbstractString) = rath_bundle[exp][string(id)]["$(fun)"]"""))
-
-    eval(Meta.parse("""
-        $(fun)(id, exps::Vector) = 
-                [$(fun)(id, exp) for exp in exps]"""))
-
-    eval(Meta.parse("""
-        function $(fun)(id, exp::AbstractString, deflt)
-                try
-                      return $(fun)(id, exp)
-                catch KeyError
-                      return deflt
-                end
-        end """))
-    
-    eval(Meta.parse("""
-        $(fun)(id, exps::Vector, deflt) =
-                [$(fun)(id, exp, deflt) for exp in exps]"""))
-    
+    for prefix in ["q", "c", "s"]
+        fun = Symbol(string(prefix, base_fun))
+        @eval begin
+            $fun(id, exp::AbstractString) = $base_fun(_parse_id($prefix, id), exp)
+            $fun(id, exp::Vector, deflt) = $base_fun(_parse_id($prefix, id), exp, deflt)
+            $fun(id, exps::Vector) = $base_fun(_parse_id($prefix, id), exps)     
+        end
+    end
 end
