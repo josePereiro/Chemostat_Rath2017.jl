@@ -43,8 +43,11 @@ clear_args = parsed_args["clear"]
 clear_args = isnothing(clear_args) ? nothing : split(clear_args, ",")
 run_arg = parsed_args["run"]
 
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
+using DrWatson
+@quickactivate "Chemostat_Rath2017"
+
+import Chemostat_Rath2017: HumanGEM, RAW_DATA_DIR
+const HG = HumanGEM
 
 cd(dirname(@__FILE__)) # move to this folder
 println("\nNow at: ", pwd())
@@ -55,14 +58,15 @@ Chemostat_Rath2017.check_env();
 
 # name-targets
 targets_dict = Dict()
-targets_dict["download_raws.jl"] = joinpath.(Chemostat_Rath2017.RAW_DATA_DIR, 
+targets_dict["download_raws.jl"] = joinpath.(RAW_DATA_DIR, 
                                     ["Human1_Publication_Data_Scripts", "Human1_Publication_Data_Scripts.zip"])
-targets_dict["Hams_medium.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, ["ham_medium.csv"])
-targets_dict["mets_map.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, ["mets_map.csv"])
-targets_dict["niklas_biomass.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, ["niklas_biomass.csv"])
+targets_dict["Hams_medium.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.HAM_MEDIUM_FILE])
+targets_dict["mets_map.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.METS_MAP_FILE])
+targets_dict["niklas_biomass.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.NIKLAS_BIOMASS_FILE])
 targets_dict["prepare_base_model.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, 
-                                    ["base_model.jls", "base_intake_info.csv", "exch_met_map.csv", "readable_met_ids.csv"])
-targets_dict["prepare_fva_pp_model.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, ["fva_preprocessed_base_model.jls"])
+                                    [HG.BASE_MODEL_FILE, HG.BASE_INTAKE_INFO_FILE, 
+                                    HG.EXCH_MET_MAP_FILE, HG.BASE_READABLE_MET_IDS_FILE])
+targets_dict["prepare_fva_pp_model.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.FVA_PP_BASE_MODEL_FILE])
 targets_dict["fva_pp_base_model_maxent_ep.jl"] = []
 targets_dict["fva_pp_base_model_maxent_ep_plots.jl"] = []
 targets_dict["cache"] = joinpath.(HG.MODEL_CACHE_DATA_DIR, readdir(HG.MODEL_CACHE_DATA_DIR))
