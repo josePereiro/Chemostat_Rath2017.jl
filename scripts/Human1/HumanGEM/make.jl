@@ -52,28 +52,23 @@ const HG = HumanGEM
 cd(dirname(@__FILE__)) # move to this folder
 println("\nNow at: ", pwd())
 
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
-
 # name-targets
 targets_dict = Dict()
 targets_dict["download_raws.jl"] = joinpath.(RAW_DATA_DIR, 
                                     ["Human1_Publication_Data_Scripts", "Human1_Publication_Data_Scripts.zip"])
-targets_dict["Hams_medium.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.HAM_MEDIUM_FILE])
-targets_dict["mets_map.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.METS_MAP_FILE])
-targets_dict["niklas_biomass.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.NIKLAS_BIOMASS_FILE])
-targets_dict["prepare_base_model.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, 
-                                    [HG.BASE_MODEL_FILE, HG.BASE_INTAKE_INFO_FILE, 
-                                    HG.EXCH_MET_MAP_FILE, HG.BASE_READABLE_MET_IDS_FILE])
-targets_dict["prepare_fva_pp_model.jl"] = joinpath.(HG.MODEL_PROCESSED_DATA_DIR, [HG.FVA_PP_BASE_MODEL_FILE])
+targets_dict["Hams_medium.jl"] = [HG.HAM_MEDIUM_FILE]
+targets_dict["mets_map.jl"] = [HG.METS_MAP_FILE]
+targets_dict["niklas_biomass.jl"] = [HG.NIKLAS_BIOMASS_FILE]
+targets_dict["prepare_base_model.jl"] = [HG.BASE_MODEL_FILE, HG.BASE_INTAKE_INFO_FILE, 
+                                    HG.EXCH_MET_MAP_FILE, HG.BASE_READABLE_MET_IDS_FILE]
+targets_dict["prepare_fva_pp_model.jl"] = [HG.FVA_PP_BASE_MODEL_FILE]
 targets_dict["fva_pp_base_model_maxent_ep.jl"] = []
 targets_dict["fva_pp_base_model_maxent_ep_plots.jl"] = []
 targets_dict["cache"] = joinpath.(HG.MODEL_CACHE_DATA_DIR, readdir(HG.MODEL_CACHE_DATA_DIR))
 
 
 # scripts in order
-base_scripts = ["download_raws.jl", "Hams_medium.jl", "niklas_biomass.jl", "prepare_base_model.jl"]
+base_scripts = ["download_raws.jl", "mets_map.jl", "Hams_medium.jl", "niklas_biomass.jl", "prepare_base_model.jl"]
 all_scripts = [base_scripts; "fva_pp_base_model_maxent_ep.jl"; "fva_pp_base_model_maxent_ep_plots.jl"]
 
 #######################################################
