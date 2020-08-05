@@ -1,16 +1,12 @@
 # +
-import CSV
-import DataFrames: DataFrame
-import MAT
-import JSON
+using DrWatson
+@quickactivate "Chemostat_Rath2017"
 
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
+import JSON # for pretty printing
+
+import Chemostat_Rath2017: DATA_KEY, HumanGEM
+const HG = HumanGEM
 # -
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # This create a map between the metabolites ids of the Human1 model 
 # and the ids used in Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
@@ -57,9 +53,9 @@ for (k, v) in mets_map
 end
 
 # Saving
-df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
-CSV.write(HG.METS_MAP_FILE, df)
-println("created $(relpath(HG.METS_MAP_FILE))")
+file = HG.METS_MAP_FILE
+tagsave(file, Dict(DATA_KEY => mets_map))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 
 
 
