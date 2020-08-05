@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-
 # +
+using DrWatson
+@quickactivate "Chemostat_Rath2017"
+
 import DataFrames: DataFrame
 import MAT
 import CSV
 import JSON
-import Serialization: serialize, deserialize
 
 import Chemostat
 Ch = Chemostat
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
-Rd = Chemostat_Rath2017.RathData
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
-# -
-# This file is the primary input to the processing
-if !isfile(HG.MODEL_RAW_MAT_FILE)
-    error("$(HG.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
-end
-HG.load_all_data();
+import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData
+const HG = HumanGEM
+const Rd = RathData
 
 # ---
 # ## Description
@@ -53,6 +46,7 @@ atpm_ider = "HMR_3964";
 
 # +
 # we build a more human readable met ids
+println("\nMet readable ids")
 met_readable_ids = Dict()
 for i in 1:M
     readable_id = mat_model["metNames"][i] * "[" * mat_model["comps"][mat_model["metComps"][i]] * "]";
@@ -61,10 +55,9 @@ for i in 1:M
 end
 
 # Saving
-df = DataFrame(collect.([keys(met_readable_ids), values(met_readable_ids)]));
-CSV.write(HG.BASE_READABLE_MET_IDS_FILE, df)
-println("\nMet readable ids")
-println("created $(relpath(HG.BASE_READABLE_MET_IDS_FILE))")
+file = HG.BASE_READABLE_MET_IDS_FILE
+tagsave(file, Dict(DATA_KEY => met_readable_ids))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 # -
 
 # ### Exchanges
@@ -139,9 +132,10 @@ end
 println("\nExchanges met map: ", exch_met_map |> length)
 
 # Saving
-df = DataFrame([collect(keys(exch_met_map)), collect(values(exch_met_map))])
-CSV.write(HG.EXCH_MET_MAP_FILE, df)
-println("created $(relpath(HG.EXCH_MET_MAP_FILE))")
+file = HG.EXCH_MET_MAP_FILE
+tagsave(file, Dict(DATA_KEY => exch_met_map))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+
 # -
 
 # ### Base intake info
@@ -152,8 +146,6 @@ base_intake_info = Dict()
 
 # From 42_MAX_UB standard medium
 for rath_met in Rd.all_mets
-    # Rath ids
-    conc_met_id = "c$rath_met" # Feed medium conc id
     
     # base_model id
     model_met = HG.mets_map[rath_met]   
@@ -162,16 +154,12 @@ for rath_met in Rd.all_mets
     # 42_MAX_UB standard medium
     # we take the openest version of the intakes for building the
     # base model
-    conc = maximum(Rd.val(conc_met_id, Rd.ststs, 0.0)) 
+    conc = maximum(Rd.cval(rath_met, Rd.ststs, 0.0)) 
     lb = -bound_max_dflt # intake bound
     base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
 end
 
-println("\nBase intake info: ")
-JSON.print(base_intake_info, 4)
-println()
-
-# From ham's medium
+# From ham's medium see Ham_medium.jl
 for (Ham_id, conc) in HG.ham_medium
     model_met = met_readable_ids[Ham_id]
     exch_rxn = exch_met_map[model_met]
@@ -181,18 +169,15 @@ for (Ham_id, conc) in HG.ham_medium
     base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
 end
 
-println("\nHams medium: ")
-JSON.print(HG.ham_medium, 4)
+println("\nBase intake info: ")
+JSON.print(base_intake_info, 4)
 println()
 
 # # Saving
 println("\nSaving")
-ids = base_intake_info |> keys |> collect |> sort;
-cs = [base_intake_info[id]["c"] for id in ids];
-lbs = [base_intake_info[id]["lb"] for id in ids];
-df = DataFrame(id = ids, c = cs, lb = lbs)
-CSV.write(HG.BASE_INTAKE_INFO_FILE, df)
-println("created $(relpath(HG.BASE_INTAKE_INFO_FILE))")
+file = HG.BASE_INTAKE_INFO_FILE
+tagsave(file, Dict(DATA_KEY => base_intake_info))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 # -
 
 # ### Apply medium
@@ -252,8 +237,8 @@ Ch.Utils.summary(base_model, fbaout)
 
 # +
 println("\nComparing with experiments")
-model = deepcopy(base_model)
 for stst in Rd.ststs
+    model = deepcopy(base_model)
     println("\nStst: $stst")
     ξ = Rd.val(:ξ, stst)
     println("exp xi: $ξ")
@@ -268,7 +253,6 @@ end
 
 # Saving base_model
 println("\nSaving")
-serialize(HG.BASE_MODEL_FILE, base_model)
-println("created $(relpath(HG.BASE_MODEL_FILE))!!!")
-
-
+file = HG.BASE_MODEL_FILE
+tagsave(file, Dict(DATA_KEY => base_model))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
