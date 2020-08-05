@@ -1,9 +1,8 @@
-#= Model from Robinson, Jonathan L., Pınar Kocabaş, 
-Hao Wang, Pierre-Etienne Cholley, Daniel Cook, Avlant Nilsson, Mihail Anton, et al. 
-“An Atlas of Human Metabolism.” Science Signaling 13, no. 624 (March 24, 2020). 
-https://doi.org/10.1126/scisignal.aaz1482.
-=#
-# Downloaded from https://github.com/SysBioChalmers/Human-GEM v1.4.0
+# Raw data
+# The Human1 GEM-PRO, as well as all cell-specific GEMs and
+# enzyme-constrained ecGEMs described in this study, and the datasets and scripts necessary
+# to reproduce the models, analyses, and figures are available on Zenodo (https://doi.org/10.5281/zenodo.3577466). 
+
 
 module HumanGEM
     import BSON
