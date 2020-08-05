@@ -18,4 +18,8 @@ module MODEL1105100000
     include("load_data.jl")
     include("base_intake_info.jl")
     include("add_a1at_syntesis.jl")
+
+    function __init__()
+        _load_all_data()
+    end
 end

@@ -2,7 +2,7 @@ base_intake_info = nothing
 function load_base_intake_info()
     !isfile(BASE_INTAKE_INFO_FILE) && return nothing
     global base_intake_info = Dict{String, Dict}()
-    df = DataFrame(CSV.read(BASE_INTAKE_INFO_FILE))
+    df = CSV.read(BASE_INTAKE_INFO_FILE, DataFrame)
     for (id, c, lb) in zip(df[!,1], df[!,2], df[!,3])
         base_intake_info[id] = Dict("c" => c, "lb" => lb)
     end
