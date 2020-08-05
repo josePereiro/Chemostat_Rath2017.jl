@@ -35,7 +35,7 @@ end
 
 # Standard medium original file
 # This is the base of the feed medium
-stdm_orig = DataFrame(CSV.read(Rd.RATH_STDM_ORIG_FILE, delim = "\t"));
+stdm_orig = CSV.read(Rd.RATH_STDM_ORIG_FILE, DataFrame; delim = "\t");
 
 # +
 # Converting all conc to mM
@@ -90,7 +90,7 @@ for exp in Rd.exps
     end
     
     # Original data
-    orig_data = DataFrame(CSV.read(orig_file_path, delim = "\t"))
+    orig_data = CSV.read(orig_file_path, DataFrame; delim = "\t")
     
     # Converted Data
     conv_data = DataFrame([String, Float64, Float64, String], [:id, :val, :err, :unit])
@@ -161,7 +161,7 @@ end
 # invitro max fluxes
 
 
-max_flux_data_orig = DataFrame(CSV.read(Rd.RATH_MAX_FLUX_ORIG_FILE, delim = "\t"))
+max_flux_data_orig = CSV.read(Rd.RATH_MAX_FLUX_ORIG_FILE, DataFrame; delim = "\t")
 max_flux_data_conv = DataFrame(max_flux_data_orig)
 
 # Converting fluxes (nmol/ μL hr) to (mmol/ gDW hr)

@@ -13,7 +13,7 @@ function load_rath_bundle()
         data = Dict()
         
         # std medium
-        stdm_conv = DataFrame(CSV.read(RATH_STDM_CONV_FILE));
+        stdm_conv = CSV.read(RATH_STDM_CONV_FILE, DataFrame);
         for (i, met) in enumerate(stdm_conv[!, :id])
             val = stdm_conv[i, :conc]
             err = 0.0
@@ -23,7 +23,7 @@ function load_rath_bundle()
         end
         
         #cont cul data
-        cul_data_convs = DataFrame(CSV.read(RATH_CONT_CUL_DATA_CONV_FILES[exp]))
+        cul_data_convs = CSV.read(RATH_CONT_CUL_DATA_CONV_FILES[exp], DataFrame)
         for (i, id) in enumerate(cul_data_convs[!, :id])
             val = cul_data_convs[i, :val]
             err = cul_data_convs[i, :err]
@@ -60,15 +60,11 @@ for base_fun in [:val, :err, :unit]
                 rethrow(err)
             end
         end
-        $base_fun(id, exps::Vector) = [$base_fun(id, exp) for exp in exps]
+        $base_fun(id, exps::Vector, args...) = [$base_fun(id, exp, args...) for exp in exps]
     end 
 
     for prefix in ["q", "c", "s"]
         fun = Symbol(string(prefix, base_fun))
-        @eval begin
-            $fun(id, exp::AbstractString) = $base_fun(_parse_id($prefix, id), exp)
-            $fun(id, exp::Vector, deflt) = $base_fun(_parse_id($prefix, id), exp, deflt)
-            $fun(id, exps::Vector) = $base_fun(_parse_id($prefix, id), exps)     
-        end
+        @eval $fun(id, args...) = $base_fun(_parse_id($prefix, id), args...)
     end
 end
