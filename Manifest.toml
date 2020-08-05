@@ -82,7 +82,7 @@ version = "0.8.1"
 
 [[Chemostat]]
 deps = ["Clp", "DataFrames", "Distributed", "Distributions", "ExtractMacro", "JuMP", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "Random", "Requires", "SparseArrays", "SpecialFunctions", "StatsBase"]
-git-tree-sha1 = "9e83834ce946bb81060cca742b6619881980481c"
+git-tree-sha1 = "ca5814675a9a696b5dd47988102fa97b0efe7d91"
 repo-rev = "develop"
 repo-url = "https://github.com/josePereiro/Chemostat"
 uuid = "c5987326-81b3-11ea-28dd-b531745de20f"
@@ -196,9 +196,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "78eab326cfa3232655df059312b23227404894b7"
+git-tree-sha1 = "9c41285c57c6e0d73a21ed4b65f6eec34805f937"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.23.7"
+version = "0.23.8"
 
 [[DoubleFloats]]
 deps = ["GenericSVD", "GenericSchur", "LinearAlgebra", "Polynomials", "Printf", "Quadmath", "Random", "Requires", "SpecialFunctions"]
