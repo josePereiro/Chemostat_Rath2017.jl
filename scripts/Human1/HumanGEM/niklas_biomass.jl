@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
+using DrWatson
+@quickactivate "Chemostat_Rath2017"
+
 import DataFrames: DataFrame
 import MAT
 import CSV
 import JSON
 
 import Chemostat
-Ch = Chemostat
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
-Rd = Chemostat_Rath2017.RathData
-
-# -
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
+const Ch = Chemostat
+import Chemostat_Rath2017: HumanGEM, RathData, DATA_KEY
+const HG = HumanGEM
+const Rd = RathData
 
 # This file is the primary input to the processing
 if !isfile(HG.MODEL_RAW_MAT_FILE)
@@ -137,8 +135,8 @@ println()
 
 # ### Saving
 
-df = DataFrame([collect(keys(biomass)), collect(values(biomass))])
-CSV.write(HG.NIKLAS_BIOMASS_FILE, df)
-println("created $(relpath(HG.NIKLAS_BIOMASS_FILE))")
+file = HG.NIKLAS_BIOMASS_FILE
+tagsave(file, Dict(DATA_KEY => biomass))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 
 
