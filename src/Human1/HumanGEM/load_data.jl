@@ -1,18 +1,11 @@
-function load_data(datafile)
-    !isfile(datafile) && return nothing
-    dat = Dict()
-    df = DataFrame(CSV.read(datafile))
-    for (k, v) in zip(df[!,1], df[!,2])
-        dat[k] = v
-    end
-    return dat
-end
+function _load_all_data()
+    for (var, file) in [(:mets_map, METS_MAP_FILE), 
+                        (:exch_met_map, EXCH_MET_MAP_FILE),
+                        (:niklas_biomass, NIKLAS_BIOMASS_FILE),
+                        (:readable_met_ids_map, BASE_READABLE_MET_IDS_FILE), 
+                        (:ham_medium, HAM_MEDIUM_FILE), 
+                        (:base_intake_info, BASE_INTAKE_INFO_FILE)]
 
-function load_all_data()
-    global mets_map = load_data(METS_MAP_FILE)
-    global exch_met_map = load_data(EXCH_MET_MAP_FILE)
-    global niklas_biomass = load_data(NIKLAS_BIOMASS_FILE)
-    global readable_met_ids_map = load_data(BASE_READABLE_MET_IDS_FILE)
-    global ham_medium = load_data(HAM_MEDIUM_FILE)
+        @eval global $var = isfile($file) ? wload($file)[$DATA_KEY] : nothing
+    end
 end
-load_all_data()

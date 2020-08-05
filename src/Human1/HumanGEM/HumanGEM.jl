@@ -6,7 +6,9 @@ https://doi.org/10.1126/scisignal.aaz1482.
 # Downloaded from https://github.com/SysBioChalmers/Human-GEM v1.4.0
 
 module HumanGEM
-    import ..Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
+    import BSON
+    import DrWatson: wload
+    import ..Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData, DATA_KEY
     import CSV
     import Serialization: deserialize
     import DataFrames: DataFrame
@@ -15,4 +17,9 @@ module HumanGEM
     include("dir_and_files.jl")
     include("load_data.jl")
     include("base_intake_info.jl")
+
+    function __init__()
+        _load_all_data()
+        _create_dirs()
+    end
 end
