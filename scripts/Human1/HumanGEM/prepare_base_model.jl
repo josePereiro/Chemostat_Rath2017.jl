@@ -29,6 +29,7 @@ const Rd = RathData
 mat_model = MAT.matread(HG.MODEL_RAW_MAT_FILE)["ihuman"];
 Ch.Utils.reshape_mat_dict!(mat_model)
 base_model = Ch.Utils.read_mat(HG.MODEL_RAW_MAT_FILE);
+base_model = Ch.Utils.uncompress_model(base_model)
 M, N = size(base_model)
 println("\nLoaded Mat model: ", relpath(HG.MODEL_RAW_MAT_FILE))
 println("Base Model: ", (M, N))
@@ -254,5 +255,8 @@ end
 # Saving base_model
 println("\nSaving")
 file = HG.BASE_MODEL_FILE
+base_model = Ch.Utils.compress_model(base_model)
 tagsave(file, Dict(DATA_KEY => base_model))
 println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+
+
