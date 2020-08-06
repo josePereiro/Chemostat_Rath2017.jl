@@ -28,7 +28,8 @@ set = ArgParseSettings()
         required = false
         range_tester = (x -> x in ["all", "base", "none"])
     "--clear", "-c"
-        help = "possible values: \"all\" (clear all the scripts targets), " *
+        help = "possible values: \"raw\" (clear raw data folder), " *
+                                "\"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
                                 "\"maxent_ep\" (clear only the maxent_ep boundles), " *
                                 "\"fva_pp\" (clear only the fva preprocess models)" *
@@ -68,7 +69,7 @@ targets_dict["cache"] = joinpath.(HG.MODEL_CACHE_DATA_DIR, readdir(HG.MODEL_CACH
 
 
 # scripts in order
-base_scripts = ["download_raws.jl", "mets_map.jl", "Hams_medium.jl", "niklas_biomass.jl", "prepare_base_model.jl"]
+base_scripts = ["mets_map.jl", "Hams_medium.jl", "niklas_biomass.jl", "prepare_base_model.jl"]
 all_scripts = [base_scripts; "fva_pp_base_model_maxent_ep.jl"; "fva_pp_base_model_maxent_ep_plots.jl"]
 
 #######################################################
@@ -77,7 +78,8 @@ all_scripts = [base_scripts; "fva_pp_base_model_maxent_ep.jl"; "fva_pp_base_mode
 if !isnothing(clear_args)
     to_clear = []
     for clear_arg in clear_args
-        s =  clear_arg == "all" ? [all_scripts; "cache"] :
+        s =  clear_arg == "raw" ? ["download_raws.jl"] :
+            clear_arg == "all" ? [all_scripts; "cache"] :
             clear_arg == "base" ? base_scripts : 
             clear_arg == "maxent_ep" ? ["fva_pp_base_model_maxent_ep.jl", "fva_pp_base_model_maxent_ep_plots.jl"] :
             clear_arg == "fva_pp" ? ["prepare_fva_pp_model.jl"] : 
