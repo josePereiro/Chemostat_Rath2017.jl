@@ -204,6 +204,7 @@ for var in [:orig_model, :ec_model]
 end
 
 ## Saving input
+println("\nSaving")
 file = RepH1.COMP_FVA_HG_INPUT_FILE
 tagsave(file, Dict( 
     "orig_model" => Ch.Utils.compress_model(orig_model),
