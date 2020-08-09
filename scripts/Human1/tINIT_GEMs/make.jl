@@ -41,16 +41,8 @@ println("\nNow at: ", pwd())
 import Chemostat_Rath2017
 tIG = Chemostat_Rath2017.tINIT_GEMs;
 
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
-
-["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___boundles___extracted_data.json",
-"fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles___extracted_data.json",
-"fva_pp_tINIT_models_maxent_ep___TCGA-GBM TP-1___boundles___extracted_data.json",
-"fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles___extracted_data.json",
-"fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles___extracted_data.json",
-"fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles___extracted_data.json"]
+using DrWatson
+@quickactivate "Chemostat_Rath2017"
 
 # name-targets
 targets_dict = Dict()

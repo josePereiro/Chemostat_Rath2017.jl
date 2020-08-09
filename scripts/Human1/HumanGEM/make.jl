@@ -32,8 +32,8 @@ set = ArgParseSettings()
                                 "\"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
                                 "\"maxent_ep\" (clear only the maxent_ep boundles), " *
-                                "\"fva_pp\" (clear only the fva preprocess models)" *
-                                "\"cache\" (clear the cache forder)" *
+                                "\"fva_pp\" (clear only the fva preprocess models), " *
+                                "\"cache\" (clear the cache forder). " *
                                 "You can pass several using comma Ex: --clear=cache,maxent"
         required = false
         range_tester = check_clear_args
