@@ -26,12 +26,18 @@ end
 # ---
 
 const TEMP_CACHE_FILE_PREFIX = "temp_cache"
+CACHE_DIR = pwd()
 
-temp_cache_file(state, cache_dir = pwd()) = 
-    joinpath(cache_dir, "$(TEMP_CACHE_FILE_PREFIX)___state_$(hash(state)).jls")
+function set_cache_dir(cache_dir)
+    !isdir(cache_dir) && error(cache_dir, " not found!!!")
+    global CACHE_DIR = cache_dir
+end
+
+temp_cache_file(state, cache_dir = CACHE_DIR) = 
+    joinpath(cache_dir, "$(TEMP_CACHE_FILE_PREFIX)___$(hash(state)).jls")
 
 
-function save_cache(data, state, cache_dir = pwd())
+function save_cache(data, state, cache_dir = CACHE_DIR)
     tcache_file = temp_cache_file(state, cache_dir) |> relpath
     try
         serialize(tcache_file, data)
@@ -43,7 +49,7 @@ function save_cache(data, state, cache_dir = pwd())
     print_action(state, "CACHE SAVED", "cache_file: $tcache_file")
 end    
 
-function load_cached(state, cache_dir = pwd())
+function load_cached(state, cache_dir = CACHE_DIR)
     
     tcache_file = temp_cache_file(state, cache_dir) |> relpath
     data = nothing
@@ -60,8 +66,8 @@ function load_cached(state, cache_dir = pwd())
     return data
 end
 
-function delete_temp_caches(cache_dir = pwd(), verbose = true)
-    tcaches = filter(file -> startswith(TEMP_CACHE_FILE_PREFIX, file), readdir(cache_dir))
+function delete_temp_caches(cache_dir = CACHE_DIR; verbose = true)
+    tcaches = filter(file -> startswith(file, TEMP_CACHE_FILE_PREFIX), readdir(cache_dir))
     for tc in tcaches
         tc = joinpath(cache_dir, tc)
         rm(tc, force = true)
