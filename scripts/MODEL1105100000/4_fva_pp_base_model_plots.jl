@@ -15,12 +15,13 @@
 #     name: julia-1.1
 # ---
 
-using Revise
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 using DataFrames
 using Serialization
 using StatsBase
 using Statistics
-using JLD
 using Measures
 using Plots
 pyplot()
@@ -32,10 +33,6 @@ using Revise
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
 M = Chemostat_Rath2017.MODEL1105100000;
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # ---
 # ## Meta

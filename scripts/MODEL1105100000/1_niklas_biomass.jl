@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 import DataFrames: DataFrame
 import MAT
 import CSV
-# import Serialization: serialize, deserialize
 
 import Chemostat
 Ch = Chemostat
@@ -11,9 +14,6 @@ M = Chemostat_Rath2017.MODEL1105100000
 Rd = Chemostat_Rath2017.RathData
 
 # -
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # This file is the primary input to the processing
 if !isfile(M.MODEL_RAW_MAT_FILE)

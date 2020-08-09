@@ -15,6 +15,9 @@
 #     name: julia-1.1
 # ---
 
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 using DataFrames
 using Serialization
 using Dates
@@ -29,10 +32,6 @@ Ch = Chemostat
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
 M = Chemostat_Rath2017.MODEL1105100000;
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # ### Loading everywhere
 

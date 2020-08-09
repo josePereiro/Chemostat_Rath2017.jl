@@ -14,6 +14,8 @@
 #     language: julia
 #     name: julia-1.1
 # ---
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 using DataFrames
 using Serialization
@@ -30,10 +32,6 @@ import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
 HG = Chemostat_Rath2017.HumanGEM
 tIG = Chemostat_Rath2017.tINIT_GEMs
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # ### Loading everywhere
 

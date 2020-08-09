@@ -1,4 +1,7 @@
 # +
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 import CSV
 import DataFrames: DataFrame
 import MAT
@@ -6,10 +9,6 @@ import MAT
 import Chemostat_Rath2017
 HG = Chemostat_Rath2017.HumanGEM
 # -
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 zenodo_download_link = "https://zenodo.org/record/3583004/files/Human1_Publication_Data_Scripts.zip?download=1"
 

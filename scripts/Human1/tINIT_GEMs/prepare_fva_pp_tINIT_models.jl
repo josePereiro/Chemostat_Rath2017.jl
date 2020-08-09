@@ -18,6 +18,9 @@
 # ### Precompaling in master worker first
 
 # +
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 import DataFrames: DataFrame
 import MAT
 import CSV
@@ -32,9 +35,6 @@ HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 tIG = Chemostat_Rath2017.tINIT_GEMs
 
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 # -
 # ## Loading everywhere
 
@@ -50,6 +50,9 @@ println("Working in: ", workers())
 
 # +
 @everywhere begin
+
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
     
 import DataFrames: DataFrame
 import MAT
@@ -64,10 +67,6 @@ import Chemostat_Rath2017
 HG = Chemostat_Rath2017.HumanGEM
 Rd = Chemostat_Rath2017.RathData
 tIG = Chemostat_Rath2017.tINIT_GEMs
-    
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
     
 end
 

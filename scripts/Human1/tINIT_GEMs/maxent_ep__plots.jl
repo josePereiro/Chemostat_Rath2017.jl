@@ -20,6 +20,9 @@
 
 # This script produce plots from the exctracted data in [maxent_ep___extract_data](./maxent_ep___extract_data.jl).
 
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 using DataFrames
 using Serialization
 using Dates
@@ -38,10 +41,6 @@ const ChR = Chemostat_Rath2017
 const Rd = ChR.RathData
 const HG = ChR.HumanGEM
 const tIG = ChR.tINIT_GEMs;
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # ---
 # ## Load data

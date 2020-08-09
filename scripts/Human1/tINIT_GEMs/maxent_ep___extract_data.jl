@@ -20,6 +20,9 @@
 
 # This script produce data to be used for reporting. It uses the data generated from [fva_pp_tINIT_models_maxent_ep](./fva_pp_tINIT_models_maxent_ep.jl).
 
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 using DataFrames
 using Serialization
 using Dates
@@ -36,10 +39,6 @@ const ChR = Chemostat_Rath2017
 const Rd = ChR.RathData
 const HG = ChR.HumanGEM
 const tIG = ChR.tINIT_GEMs;
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # ## Tools
 

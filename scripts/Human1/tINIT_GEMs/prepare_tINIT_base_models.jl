@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # +
+
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 import JSON
 import DataFrames: DataFrame
 import MAT
@@ -15,9 +19,7 @@ HG.load_all_data()
 tIG = Chemostat_Rath2017.tINIT_GEMs
 
 Rd = Chemostat_Rath2017.RathData
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
+
 # -
 
 # ---

@@ -22,15 +22,14 @@ dry_run_flag = parsed_args["dry-run"]
 clear_arg = parsed_args["clear"]
 not_run_arg = parsed_args["not-run"]
 
-cd(dirname(@__FILE__)) # move to this folder
+cd(@__DIR__) # move to this folder
 println("\nNow at: ", pwd())
+
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData;
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # Scripts-targets in order
 all_scripts = [

@@ -1,14 +1,13 @@
 # +
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 import CSV
 import DataFrames: DataFrame
 
 import Chemostat_Rath2017
 M = Chemostat_Rath2017.MODEL1105100000
 # -
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
 
 # This create a map between the metabolites ids of the MODEL1105100000_url model 
 # and the ids used in Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
