@@ -29,7 +29,7 @@ This scripts reproduce this analysis
 
 # +
 using DrWatson
-quickactivate(@__DIR__, "Chemostat_Rath2017")
+@quickactivate "Chemostat_Rath2017"
 
 import MAT
 using StatsBase
