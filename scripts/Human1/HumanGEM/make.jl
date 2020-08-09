@@ -69,8 +69,8 @@ targets_dict["cache"] = joinpath.(HG.MODEL_CACHE_DATA_DIR, readdir(HG.MODEL_CACH
 
 
 # scripts in order
-base_scripts = ["mets_map.jl", "Hams_medium.jl", "niklas_biomass.jl", "prepare_base_model.jl", "prepare_fva_pp_model.jl"]
-all_scripts = [base_scripts; "fva_pp_base_model_maxent_ep.jl"; "fva_pp_base_model_maxent_ep_plots.jl"]
+base_scripts = ["mets_map.jl", "Hams_medium.jl", "niklas_biomass.jl", "prepare_base_model.jl"]
+all_scripts = [base_scripts; "prepare_fva_pp_model.jl", "fva_pp_base_model_maxent_ep.jl"; "fva_pp_base_model_maxent_ep_plots.jl"]
 
 #######################################################
 ## CLEAR
