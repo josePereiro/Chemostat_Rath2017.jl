@@ -21,6 +21,9 @@ using Dates
 import StatsBase: mean
 
 # ### Precompaling in master worker first
+using DrWatson
+@quickactivate "Chemostat_Rath2017"
+
 
 # run add "https://github.com/josePereiro/Chemostat" in the 
 # julia Pkg REPL for installing the package
@@ -30,11 +33,6 @@ Ch = Chemostat
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData
 HG = Chemostat_Rath2017.HumanGEM
-
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
-
 # ### Loading everywhere
 
 # +

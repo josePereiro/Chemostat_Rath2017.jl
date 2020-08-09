@@ -1,24 +1,19 @@
 # -*- coding: utf-8 -*-
-# ### Precompaling in master worker first
-
-# +
-import DataFrames: DataFrame
-import MAT
-import CSV
-using Distributed
-using Dates
-import Serialization: serialize, deserialize
-
-import Chemostat
-Ch = Chemostat
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
-Rd = Chemostat_Rath2017.RathData
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
-# -
-# ### Loading everywhere
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: jl:light
+#     text_representation:
+#       extension: .jl
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.3.2
+#   kernelspec:
+#     display_name: Julia 1.1.0
+#     language: julia
+#     name: julia-1.1
+# ---
 
 # +
 using Distributed
@@ -32,21 +27,19 @@ println("Working in: ", workers())
 # +
 @everywhere begin
     
+import DrWatson: quickactivate
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 import DataFrames: DataFrame
-import MAT
-import CSV
 using Dates
-using Distributed
 import Serialization: serialize, deserialize
 
 import Chemostat
-Ch = Chemostat
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
-Rd = Chemostat_Rath2017.RathData
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env();
+const Ch = Chemostat
+import Chemostat_Rath2017: HumanGEM, RathData, print_action, temp_cache_file, 
+                            save_cache, load_cached, delete_temp_caches
+const HG = HumanGEM
+const Rd = RathData
     
 end
 # -
@@ -62,71 +55,8 @@ end
 
 # This script create a new model from the one generated in [2_prepare_base_model](./2_prepare_base_model.jl) (see its description for more details). It use fva to set the bounds of the model to the closer possible state. The reaction that are fixxed are deleted and modeled as a exchange/demand (except the ones protected). 
 
-@everywhere notebook_name = "2_prepare_fva_pp_model";
+@everywhere notebook_name = "prepare_fva_pp_model";
 
-# ---
-# ## Print functions
-# ---
-
-@everywhere function print_action(wid, pid, state, head, bodyls...)
-    Core.println("Worker $wid ($pid) $head at $(Time(now())) ----------------------------")
-    Core.println("\tState: ", state)
-    for body in bodyls
-        Core.println("\t$body")
-    end
-    Core.println()
-    flush(stdout);
-end
-@everywhere function print_action(state, head, bodyls...)
-    remotecall_wait(print_action, 1, myid(), getpid(), state, head, bodyls...)
-end
-
-# ---
-# ## temp caching
-# ---
-
-@everywhere temp_cache_file_prefix = "$(notebook_name)___temp_cache"
-@everywhere temp_cache_file(state...) = 
-    joinpath(HG.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
-
-@everywhere function load_cached(state)
-    
-    tcache_file = temp_cache_file(state) |> relpath
-    data = nothing
-    if isfile(tcache_file)
-        try
-            data = deserialize(tcache_file)
-        catch err
-            print_action(state, "ERROR LOADING CACHE", 
-                "cache_file: $tcache_file", 
-                "err:        $(err)")
-        end
-        print_action(state, "CACHE LOADED", "cache_file: $tcache_file")
-    end
-    return data
-end
-
-@everywhere function save_cache(data, state)
-    tcache_file = temp_cache_file(state) |> relpath
-    try
-        serialize(tcache_file, data)
-    catch err
-         print_action(state, "ERROR SAVING CACHE", 
-                "cache_file: $tcache_file", 
-                "err:        $(err)")
-    end
-    print_action(state, "CACHE SAVED", "cache_file: $tcache_file")
-end
-
-@everywhere function delete_temp_caches()
-    cache_dir = dirname(temp_cache_file())
-    tcaches = filter(file -> occursin(temp_cache_file_prefix, file), readdir(cache_dir))
-    for tc in tcaches
-        tc = joinpath(cache_dir, tc)
-        rm(tc, force = true)
-        println(relpath(tc), " deleted!!!")
-    end
-end
 
 @everywhere begin
     obj_ider = "biomass_human"
@@ -148,7 +78,7 @@ end
     # --------------------  TEMP CACHE  --------------------  
     # I do not check any cache consistency, so delete the temporal caches if you
     # dont trust them
-    cached_data = load_cached(state)
+    cached_data = load_cached(state, HG.MODEL_CACHE_DATA_DIR)
     !isnothing(cached_data) && return cached_data
     
     print_action(state, "STARTING EPOCH")
@@ -178,7 +108,7 @@ end
     end
     
     # --------------------  FINISHING  --------------------  
-    save_cache(data, state)
+    save_cache(data, state, HG.MODEL_CACHE_DATA_DIR)
     print_action(state, "EPOCH FINISHED")
     
     return data
@@ -222,4 +152,4 @@ Ch.Utils.summary(fva_pp_model)
 serialize(HG.FVA_PP_BASE_MODEL_FILE, fva_pp_model)
 println("$(relpath(HG.FVA_PP_BASE_MODEL_FILE)) created")
 
-delete_temp_caches()
+delete_temp_caches(HG.MODEL_CACHE_DATA_DIR)

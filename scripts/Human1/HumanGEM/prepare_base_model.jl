@@ -1,4 +1,20 @@
 # -*- coding: utf-8 -*-
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: jl:light
+#     text_representation:
+#       extension: .jl
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.3.2
+#   kernelspec:
+#     display_name: Julia 1.1.0
+#     language: julia
+#     name: julia-1.1
+# ---
+
 # +
 using DrWatson
 @quickactivate "Chemostat_Rath2017"
@@ -9,7 +25,7 @@ import CSV
 import JSON
 
 import Chemostat
-Ch = Chemostat
+const Ch = Chemostat
 import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData
 const HG = HumanGEM
 const Rd = RathData
