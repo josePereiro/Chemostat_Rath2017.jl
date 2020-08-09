@@ -5,6 +5,10 @@
 """
 module Chemostat_Rath2017
 
+    using Distributed
+    using Dates
+    using Serialization
+
     include("Utils/Utils.jl")
     include("RathData/RathData.jl")
     include("MODEL1105100000/MODEL1105100000.jl")
