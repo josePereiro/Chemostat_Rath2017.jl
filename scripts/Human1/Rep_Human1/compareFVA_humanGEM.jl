@@ -107,7 +107,7 @@ function process_model(model_sym)
     
     T = eltype(model.S)
     M, N = size(model);
-    epoch_len = 10 # Change here the size of each epoch
+    epoch_len = 250 # Change here the size of each epoch
     epoch_len = clamp(epoch_len, 1, N)
     epochs = map(1:epoch_len:N) do r0
         r1 = clamp(r0 + epoch_len - 1, 0, N)
