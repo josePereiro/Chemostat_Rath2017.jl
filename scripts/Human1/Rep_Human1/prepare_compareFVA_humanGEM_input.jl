@@ -32,10 +32,7 @@ using DrWatson
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 import MAT
-using Plots
 using StatsBase
-pyplot()
-# import JSON
 
 import Chemostat
 const Ch = Chemostat
