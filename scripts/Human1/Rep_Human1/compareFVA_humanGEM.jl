@@ -59,24 +59,16 @@ end
 # +
 @everywhere begin
     
-COMP_FVA_HG_INPUT_FILE = "compareFVA_humanGEM_input.bson" # TODO: Pakage this
-input_dat = wload(COMP_FVA_HG_INPUT_FILE);
+input_dat = wload(RepH1.COMP_FVA_HG_INPUT_FILE);
 orig_model = Ch.Utils.uncompress_model(input_dat["orig_model"]);
 ec_model = Ch.Utils.uncompress_model(input_dat["ec_model"]);
     
 end
 
-println("\nLoaded Input at: ", relpath(COMP_FVA_HG_INPUT_FILE))
+println("\nLoaded Input at: ", relpath(RepH1.COMP_FVA_HG_INPUT_FILE))
 println("Orig model, size: ", size(orig_model))
 println("Ec model, size: ", size(ec_model))
 # -
-
-# globals
-@everywhere begin
-    obj_ider = "biomass_human"
-    prot_pool_exchange = "prot_pool_exchange"
-    zeroth = 1e-8; # a minimum threshold to not be consider zero
-end
 
 # ---
 # ### Work function
@@ -94,7 +86,10 @@ end
     # Info
     print_action((model_sym, epoch.start, epoch.stop), "START EPOCH")
     
-    lvals, uvals = Ch.LP.fva(model, epoch; verbose = false, on_empty_sol = (x...) -> 0.0)
+    lvals, uvals = Ch.LP.fva(model, epoch; 
+        verbose = false, 
+        on_empty_sol = (x...) -> 0.0,
+        zeroth = 1e-8) # a minimum threshold to not be consider zero
     
     data = (epoch, lvals, uvals)
     save_cache(data, state)
@@ -105,14 +100,13 @@ end
 # ---
 # ### Caller function
 
-function pmap_fva(model_sym)
+function process_model(model_sym)
     
     # models are already in all workers as a global
     model = deepcopy(eval(model_sym))
     
     T = eltype(model.S)
     M, N = size(model);
-    N = 30 # Test
     epoch_len = 10 # Change here the size of each epoch
     epoch_len = clamp(epoch_len, 1, N)
     epochs = map(1:epoch_len:N) do r0
@@ -121,7 +115,7 @@ function pmap_fva(model_sym)
     end;
 
     # parallel fva
-    remote_res = pmap(epochs) do (epoch)
+    remote_res = pmap(epochs) do epoch
         process_epoch(epoch, model_sym)
     end;
     
@@ -140,15 +134,16 @@ end
 compareFVA_res = Dict()
 foreach([:orig_model, :ec_model]) do model_sym
     print_action(model_sym, "STARTING FVA")
-    compareFVA_res[model_sym] = pmap_fva(model_sym)
+    compareFVA_res[model_sym] = process_model(model_sym)
 end
 
 # Saving
 # TODO: package this
-COMP_FVA_HG_OUTPUT_FILE = "compareFVA_humanGEM_output.bson"
-tagsave(COMP_FVA_HG_OUTPUT_FILE, Dict(DATA_KEY => compareFVA_res))
-println(relpath(COMP_FVA_HG_OUTPUT_FILE), " created, size: ", filesize(COMP_FVA_HG_OUTPUT_FILE), " bytes")
+file = RepH1.COMP_FVA_HG_OUTPUT_FILE
+tagsave(file, Dict(DATA_KEY => compareFVA_res))
+println(relpath(file), " created, size: ", filesize(file), " bytes")
 
+println("\nDeleting caches")
 delete_temp_caches()
 
 

@@ -45,8 +45,8 @@ const RepH1 = Rep_Human1
 
 # name-targets
 targets_dict = Dict()
-targets_dict["prepare_compareFVA_humanGEM_input.jl"] = []
-targets_dict["compareFVA_humanGEM.jl"] = []
+targets_dict["prepare_compareFVA_humanGEM_input.jl"] = [RepH1.COMP_FVA_HG_INPUT_FILE]
+targets_dict["compareFVA_humanGEM.jl"] = [RepH1.COMP_FVA_HG_OUTPUT_FILE]
 targets_dict["extract_data_compareFVA_humanGEM.jl"] = []
 
 targets_dict["cache"] = joinpath.(RepH1.MODEL_CACHE_DATA_DIR, readdir(RepH1.MODEL_CACHE_DATA_DIR))
