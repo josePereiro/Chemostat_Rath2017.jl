@@ -101,7 +101,7 @@ end
 
 to_run = []
 for run_arg in run_args
-    s =  run_arg == "all" ? [all_scripts; "cache"] : 
+    s =  run_arg == "all" ? all_scripts : 
         run_arg == "none" ? [] : 
         haskey(targets_dict, run_arg) ? [run_arg] : []
     push!(to_run, s...)
