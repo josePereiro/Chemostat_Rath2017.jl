@@ -6,7 +6,7 @@ import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData, Rep_Human1,
                             print_action, load_cached, save_cache, set_cache_dir,
                             delete_temp_caches, temp_cache_file
 using SparseArrays
-import StatsBase: ecdf
+import StatsBase: ecdf, mean, std
 import Chemostat
 import Chemostat.Utils: MetNet
 
@@ -41,18 +41,18 @@ function nz_ecdf(model, zeroth = 1e-8, n = 300)
     cdf = ecdf(nz_diff)
     
     # range
-    max_ = maximum(model.ub)
+    max_ = min(maximum(model.ub), 1e3)
     min_ = zeroth
     xs = 10.0 .^ range(log10(min_), log10(max_), length = n)
     
-    return (xs, cdf.(xs))
+    return (xs, cdf.(xs), mean(nz_diff), std(nz_diff))
 end
 
-diff_cdf_sym = :diff_sdf
+diff_cdf_sym = :diff_pdf
 for sym in model_syms
     model = dat[sym];
-    xs, ys = nz_ecdf(model);
-    to_extract[sym][diff_cdf_sym] = (xs, ys)
+    xs_, ys_, mean_, std_ = nz_ecdf(model);
+    to_extract[sym][diff_cdf_sym] = (xs = xs_, ys = ys_, mean = mean_, std = std_)
 end;
 
 # ---
