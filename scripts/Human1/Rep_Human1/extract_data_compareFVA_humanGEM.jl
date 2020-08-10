@@ -7,7 +7,6 @@ import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData, Rep_Human1,
                             delete_temp_caches, temp_cache_file
 using SparseArrays
 import StatsBase: ecdf
-import Distributions: pdf
 import Chemostat
 import Chemostat.Utils: MetNet
 
