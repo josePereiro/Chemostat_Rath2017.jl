@@ -19,7 +19,7 @@
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-NO_WORKERS = NO_CORES - 2
+NO_WORKERS = 1 # NO_CORES - 2
 length(workers()) < NO_WORKERS && addprocs(NO_WORKERS; 
     exeflags = "--project")
 atexit(interrupt)
