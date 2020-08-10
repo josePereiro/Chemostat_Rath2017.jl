@@ -41,19 +41,27 @@ function nz_ecdf(model, zeroth = 1e-8, n = 300)
     cdf = ecdf(nz_diff)
     
     # range
-    max_ = min(maximum(model.ub), 1e3)
+    max_ = min(maximum(model.ub), 1e4)
     min_ = zeroth
     xs = 10.0 .^ range(log10(min_), log10(max_), length = n)
     
     return (xs, cdf.(xs), mean(nz_diff), std(nz_diff))
 end
 
-diff_cdf_sym = :diff_pdf
+diff_cdf_sym = :diff_cdf
 for sym in model_syms
     model = dat[sym];
     xs_, ys_, mean_, std_ = nz_ecdf(model);
     to_extract[sym][diff_cdf_sym] = (xs = xs_, ys = ys_, mean = mean_, std = std_)
 end;
+
+# ### All bounds
+bound_sym = :bounds
+for sym in model_syms
+    model = dat[sym];
+    to_extract[sym][bound_sym] = (lb = model.lb, ub = model.ub)
+end;
+
 
 # ---
 # ## Save
