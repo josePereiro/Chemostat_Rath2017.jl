@@ -14,3 +14,4 @@ end
 # FILES
 const COMP_FVA_HG_INPUT_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "compareFVA_humanGEM_input.bson")
 const COMP_FVA_HG_OUTPUT_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "compareFVA_humanGEM_output.bson")
+const COMP_FVA_HG_EXTRACTED_DATA_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "compareFVA_humanGEM_extracted_data.bson")
