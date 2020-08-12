@@ -22,7 +22,7 @@ ecGEMs/README.md
 ## Flux variability analysis
 Flux variability analysis (FVA) (corresponding to the results presented in Fig. 5B) can 
 be run using the `comparativeFVA_humanModels.m` function in the `ComplementaryScripts/Simulation` 
-subdirectory. Specify the name of the model (cell line) for which FVA is to be run; for example:
+subdirectory.
 
 This scripts reproduce this analysis
 =#
@@ -36,9 +36,7 @@ using StatsBase
 
 import Chemostat
 const Ch = Chemostat
-import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData, Rep_Human1, 
-                            print_action, load_cached, save_cache, set_cache_dir,
-                            delete_temp_caches, temp_cache_file
+import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData, Rep_Human1
 const HG = HumanGEM
 const Rd = RathData
 const RepH1 = Rep_Human1;
@@ -70,6 +68,11 @@ println("EC model: ", size(ec_model))
 obj_ider = "biomass_human"
 prot_pool_exchange = "prot_pool_exchange"
 zeroth = 1e-8; # a minimum threshold to not be consider zero
+max_abs_flux = 1000;
+
+# Clamp all model bounds
+Ch.Utils.clamp_bounds!(orig_model, max_abs_flux, zeroth);
+Ch.Utils.clamp_bounds!(ec_model, max_abs_flux, zeroth);
 
 # Remove boundary metabolites
 println("\nRemoving boundary metabolites")
@@ -114,15 +117,15 @@ foreach(exchs) do rxn
 end
 foreach(mediumExcIds) do rxn
     if rxn in orig_model.rxns
-        Ch.Utils.lb!(orig_model, rxn, -1000);
-        Ch.Utils.ub!(orig_model, rxn, 1000);
+        Ch.Utils.lb!(orig_model, rxn, -max_abs_flux);
+        Ch.Utils.ub!(orig_model, rxn, max_abs_flux);
     end
 end
 
 # report unused metabolites
 foreach(mediumExcIds) do rxn
     bounds = Ch.Utils.bounds(orig_model, rxn)
-    if bounds != (-1000, 1000)
+    if bounds != (-max_abs_flux, max_abs_flux)
         @warn(rxn, " not used as medium component!!!")
     end
 end
@@ -152,13 +155,13 @@ for rxni in exchs
         real_id = replace(rxn, "_REV" => "")
         if real_id in mediumExcIds
             Ch.Utils.lb!(ec_model, rxn, 0.0);
-            Ch.Utils.ub!(ec_model, rxn, 1000.0);
+            Ch.Utils.ub!(ec_model, rxn, max_abs_flux);
         end
             
     else # is production
         # Open all production reactions
         Ch.Utils.lb!(ec_model, rxn, 0.0);
-        Ch.Utils.ub!(ec_model, rxn, 1000);
+        Ch.Utils.ub!(ec_model, rxn, max_abs_flux);
     end
 end
 
@@ -166,7 +169,7 @@ end
 foreach(mediumExcIds) do rxn
     model_rxn = rxn * "_REV"
     bounds = Ch.Utils.bounds(ec_model, model_rxn)
-    if bounds != (0.0, 1000)
+    if bounds != (0.0, max_abs_flux)
         @warn(rxn, " not used as medium component!!!")
     end
 end
@@ -178,20 +181,25 @@ println()
 # this for both models
 println("\nFixing objective ($obj_ider)")
 obj_val = Ch.LP.fba(ec_model, obj_ider).obj_val
+relax_factor = 0.01
 println("\tobj_val: ", obj_val)
 for var in [:orig_model, :ec_model]
     model = eval(var)
-    Ch.Utils.bounds!(model, obj_ider, obj_val - zeroth, obj_val + zeroth)
+    Ch.Utils.bounds!(model, obj_ider, 
+        obj_val - relax_factor * obj_val, obj_val + relax_factor * obj_val)
 end
 
 # TODO: implement parsimonious fba
 # Get a parsimonious (in this implementation we do not make it parsimonious) 
 # flux distribution for the ecModel (minimization of
 # total protein usage)
+println("\nFixing objective ($prot_pool_exchange)")
 obj_val = Ch.LP.fba(ec_model, prot_pool_exchange; sense = 1.0).obj_val
-Ch.Utils.bounds!(ec_model, prot_pool_exchange, obj_val - zeroth, obj_val + zeroth)
+println("\tobj_val: ", obj_val)
+Ch.Utils.bounds!(ec_model, prot_pool_exchange, 
+    obj_val - relax_factor * obj_val, obj_val + relax_factor * obj_val)
 
-println("\n Check if models are feasible")
+println("\nCheck if models are feasible")
 for var in [:orig_model, :ec_model]
     println(var)
     model = eval(var)
@@ -212,4 +220,6 @@ tagsave(file, Dict(
     )
 )
 println(relpath(file), " created, size: ", filesize(file), " bytes.")
+
+
 

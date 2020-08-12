@@ -2,17 +2,15 @@
 using DrWatson
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData, Rep_Human1, 
-                            print_action, load_cached, save_cache, set_cache_dir,
-                            delete_temp_caches, temp_cache_file
+import Chemostat_Rath2017: DATA_KEY, Rep_Human1
+const RepH1 = Rep_Human1;
+
 using SparseArrays
 import StatsBase: ecdf, mean, std
 import Chemostat
 import Chemostat.Utils: MetNet
 
-const HG = HumanGEM
-const Rd = RathData
-const RepH1 = Rep_Human1;
+
 # -
 
 # ---

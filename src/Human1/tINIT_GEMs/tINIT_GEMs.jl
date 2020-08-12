@@ -9,4 +9,7 @@ module tINIT_GEMs
     include("meta.jl")
     include("dir_and_files.jl")
 
+    function __init__()
+        _create_dirs()
+    end
 end

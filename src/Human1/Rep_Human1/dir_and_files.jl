@@ -6,9 +6,11 @@ const MODEL_FIGURES_DATA_DIR = joinpath(FIGURES_DATA_DIR, "Human1", NAME)
 const ECMODELS_DATA_DIR = joinpath(MODEL_RAW_DATA_DIR, "ec_GEMs/models")
 
 function _create_dirs()
-    mkpath(MODEL_PROCESSED_DATA_DIR)
-    mkpath(MODEL_CACHE_DATA_DIR)
-    mkpath(MODEL_FIGURES_DATA_DIR)
+    for dir in [MODEL_PROCESSED_DATA_DIR, MODEL_CACHE_DATA_DIR, MODEL_FIGURES_DATA_DIR]
+        if !isdir(dir)
+            mkpath(dir)
+        end
+    end
 end
 
 # FILES
