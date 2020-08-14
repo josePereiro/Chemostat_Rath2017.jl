@@ -1,1 +1,1 @@
-const MODEL_NAME = "HumanGEM"
+const PROJ_NAME = "HumanGEM"
