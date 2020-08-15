@@ -18,6 +18,8 @@ function _create_dirs()
     end
 end
 
+const tINIT_BRAIN_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "tINIT_brain_models.bson")
+
 # # jls
 # const BASE_MODEL_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "base_model.jls")
 # const FVA_PP_BASE_MODEL_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "fva_preprocessed_base_model.jls")
