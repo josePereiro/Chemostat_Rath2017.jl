@@ -29,7 +29,9 @@ const Ch = Chemostat
 import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData
 const HG = HumanGEM
 const Rd = RathData
+# -
 
+# +
 # ---
 # ## Description
 # ---
@@ -262,8 +264,9 @@ for stst in Rd.ststs
     exp_μ = Rd.val(:μ, stst)
     println("exp growth: $exp_μ")    
     Ch.SteadyState.apply_bound!(model, ξ, base_intake_info);
-    fbaout = Ch.LP.fba(model, obj_ider);
-    println("fba growth: $(fbaout.obj_val)")
+    fbaout_μ = Ch.LP.fba(model, obj_ider).obj_val;
+    fbaout_μ < exp_μ && @warn("fbaout_μ ($fbaout_μ) > exp_μ ($exp_μ)")
+    println("fba growth: $(fbaout_μ)")
     
 end
 # -
