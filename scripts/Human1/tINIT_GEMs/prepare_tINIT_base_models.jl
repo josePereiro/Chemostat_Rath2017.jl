@@ -4,11 +4,8 @@ using DrWatson
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 import JSON
-import DataFrames: DataFrame
 import MAT
-import CSV
 using SparseArrays
-import Serialization: serialize, deserialize
 
 import Chemostat
 const Ch = Chemostat
@@ -28,7 +25,7 @@ const Rd = RathData;
 # ## Load brain models
 # ---
 
-tINIT_brain_models = wload(tIG.tINIT_BRAIN_MODELS_FILE)[DATA_KEY];
+tINIT_brain_models = wload(tIG.tINIT_RAW_BRAIN_MODELS_FILE)[DATA_KEY];
 
 # ### Test Base Model
 
@@ -236,54 +233,7 @@ for (model_id, model) in tINIT_brain_models
 end
 # -
 
+# Saving
 file = tIG.tINIT_BASE_BRAIN_MODELS_FILE
 tagsave(file, Dict(DATA_KEY => tINIT_base_models))
 println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
-
-
-
-
-
-
-
-
-
-# +
-# # TODO: parallelize this
-# for (dat_id, file) in mat_files
-#     println("\n\n ----------------- Loading $dat_id -----------------\n")
-#     @time mat_dat = MAT.matread(file)["INIT_output"]
-#     println("content: ", mat_dat |> keys |> collect, "file: ", relpath(file), "\n")
-#     flush(stdout)
-    
-#     brain_models = get_brain_models(dat_id, mat_dat)
-#     for (id, dat) in brain_models
-#         for (i,(metnet, mat)) in zip(dat["metnet"], dat["mat"]) |> enumerate
-#             model_id = "$id-$i"
-#             println("\n ----------------- Processing $model_id -----------------\n")
-# #             global base_model = metnet
-# #             println("model size ", size(base_model))
-            
-# #             delete_boundary_mets()
-# #             define_exchanges()
-# #             apply_chstat_bound()
-# #             apply_niklas_biomass()
-# #             set_atp_demand()
-# #             show_model_summary()
-# #             run_fba_test()
-            
-# #             # Saving
-# #             println("\nSaving")
-# #             file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "base_model_$model_id.jls")
-# #             serialize(file, (id = model_id, metnet = base_model, src = mat))
-# #             # TODO: package this
-# #             println(relpath(file), " created")
-#         end
-#         flush(stdout)
-
-#     end
-# end;
-
-# +
-# brain_model = ["GTEx-brain", "TCGA-GBM TP", 
-#     "TCGA-GBM TR", "TCGA-GBM NT", "TCGA-LGG TP", "TCGA-LGG TR"]
