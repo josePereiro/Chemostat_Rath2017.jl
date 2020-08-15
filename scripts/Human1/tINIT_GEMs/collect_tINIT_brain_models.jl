@@ -88,6 +88,6 @@ for dataset_id in dataset_ids
 end
 
 # saving
-file = tIG.tINIT_BRAIN_MODELS_FILE
+file = tIG.tINIT_RAW_BRAIN_MODELS_FILE
 tagsave(file, Dict(DATA_KEY => brain_models))
 println(relpath(file), " created!!!, size: ", filesize(file), " bytes")

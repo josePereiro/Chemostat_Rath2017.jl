@@ -18,7 +18,8 @@ function _create_dirs()
     end
 end
 
-const tINIT_BRAIN_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "tINIT_brain_models.bson")
+const tINIT_RAW_BRAIN_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "tINIT_raw_brain_models.bson")
+const tINIT_BASE_BRAIN_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "tINIT_base_brain_models.bson")
 
 # # jls
 # const BASE_MODEL_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "base_model.jls")

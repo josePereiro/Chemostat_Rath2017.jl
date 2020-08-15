@@ -7,14 +7,15 @@ import JSON
 import DataFrames: DataFrame
 import MAT
 import CSV
+using SparseArrays
 import Serialization: serialize, deserialize
 
 import Chemostat
-Ch = Chemostat
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
-tIG = Chemostat_Rath2017.tINIT_GEMs
-Rd = Chemostat_Rath2017.RathData
+const Ch = Chemostat
+import Chemostat_Rath2017: DATA_KEY, HumanGEM, tINIT_GEMs, RathData
+const HG = HumanGEM
+const tIG = tINIT_GEMs
+const Rd = RathData;
 # -
 
 # ---
@@ -23,58 +24,18 @@ Rd = Chemostat_Rath2017.RathData
 
 # This script will load all the raw iINIt models and prepare then for modeling. See comments in the code for details
 
-notebook_name = "prepare_tINIT_base_models"
-
 # ---
-# ## Mat iINIT output files
+# ## Load brain models
 # ---
 
-# ids and names taken from data/raw/Human1_Publication_Data_Scripts/tINIT_GEMs/figures/model_id_type_mapping.txt
-healty_models_id = ["brain", "GBM NT"];
-cancer_models_id = ["brain-cancer", "GBM TP", "GBM TR", "LGG TP", "LGG TR"];
-
-mat_files = Dict()
-mat_files["GTEx"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "GTEx/tINIT_GTEx_outputs.mat");
-# mat_files["Hart2015"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "Hart2015/tINIT_Hart2015_HumanGEM_outputs.mat");
-mat_files["TCGA"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "TCGA/tINIT_TCGA_outputs.mat")
-# mat_files["DepMap_1_1"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_1_1.mat")
-# mat_files["DepMap_1_2"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_1_2.mat")
-# mat_files["DepMap_2_1"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_2_1.mat")
-# mat_files["DepMap_2_2"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_2_2.mat")
-# mat_files["DepMap_3_1"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_3_1.mat")
-# mat_files["DepMap_3_2"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_3_2.mat")
-# mat_files["DepMap_4_1"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_4_1.mat")
-# mat_files["DepMap_4_2"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_4_2.mat")
-# mat_files["DepMap_5_1"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_5_1.mat")
-# mat_files["DepMap_5_2"] = joinpath(tIG.RAW_tINIT_OUTPUTS_DIR, "DepMap_HumanGEM/tINIT_DepMap_HumanGEM_outputs_5_2.mat")
-
-function get_brain_models(dat_key, dat)
-    brain_models = Dict()
-    mat_models = dat["model"]
-    ids = get(dat, "id", get(dat, "tissues", nothing))
-    isnothing(ids) && error("ids not found!!!")
-    for (id, mat_model) in zip(ids, mat_models)
-        if id in healty_models_id || id in cancer_models_id
-            model_key = "$dat_key-$id"
-            model_dict = get!(brain_models, model_key, Dict())
-            mat_ = get!(model_dict, "mat", [])
-            metnet_ = get!(model_dict, "metnet", [])
-            push!(mat_, mat_model)
-            push!(metnet_, Ch.Utils.MetNet(mat_model))
-        end
-    end
-    return brain_models
-end
+tINIT_brain_models = wload(tIG.tINIT_BRAIN_MODELS_FILE)[DATA_KEY];
 
 # ### Test Base Model
 
-dat_id = "GTEx"
-@time mat_dat = MAT.matread(mat_files[dat_id])["INIT_output"]
-brain_models = get_brain_models(dat_id, mat_dat)
-first_key = brain_models |> keys |> collect |> first
-println("\n ----------------- Test Processing $first_key -----------------\n")
-mat_model = brain_models[first_key]["mat"][1];
-base_model = brain_models[first_key]["metnet"][1];
+dat_id = "GTEx-brain"
+println("\n ----------------- Test Processing $dat_id -----------------\n")
+mat_model = tINIT_brain_models[dat_id]["mat"]
+base_model = tINIT_brain_models[dat_id]["metnet"]
 println("model size ", size(base_model))
 
 #
@@ -150,7 +111,15 @@ define_exchanges()
 function apply_chstat_bound()
     ξ = 1.0
     println("\nApplaying chemostat bound, xi: ", ξ)
-    Ch.SteadyState.apply_bound!(base_model, ξ, HG.base_intake_info);
+    intake_info = deepcopy(HG.base_intake_info)
+    empty!(base_model.intake_info)
+    for (exch, dat) in intake_info
+        if !(exch in base_model.rxns)
+            delete!(intake_info, exch)
+        end
+    end
+    empty!(base_model.intake_info)
+    Ch.SteadyState.apply_bound!(base_model, ξ, intake_info);
 end
 apply_chstat_bound();
 
@@ -231,54 +200,90 @@ function run_fba_test()
         println("exp xi: $ξ")
         exp_μ = Rd.val(:μ, stst)
         println("exp growth: $exp_μ")    
-        Ch.SteadyState.apply_bound!(model, ξ, HG.base_intake_info);
+        Ch.SteadyState.apply_bound!(model, ξ, Dict());
         fbaout_μ = Ch.LP.fba(model, obj_ider).obj_val;
-        @assert fbaout_μ > exp_μ
+        fbaout_μ < exp_μ && @warn("fbaout_μ ($fbaout_μ) > exp_μ ($exp_μ)")
         println("fba growth: $fbaout_μ")
     end
 end
 run_fba_test();
 
 # ---
-# ## Preparing every for every model
+# ## Preparing  every model
 # ---
 
 # +
-# TODO: parallelize this
-for (dat_id, file) in mat_files
-    println("\n\n ----------------- Loading $dat_id -----------------\n")
-    @time mat_dat = MAT.matread(file)["INIT_output"]
-    println("content: ", mat_dat |> keys |> collect, "file: ", relpath(file), "\n")
-    flush(stdout)
-    
-    brain_models = get_brain_models(dat_id, mat_dat)
-    for (id, dat) in brain_models
-        for (i,(metnet, mat)) in zip(dat["metnet"], dat["mat"]) |> enumerate
-            model_id = "$id-$i"
-            println("\n ----------------- Processing $model_id -----------------\n")
-#             global base_model = metnet
-#             println("model size ", size(base_model))
-            
-#             delete_boundary_mets()
-#             define_exchanges()
-#             apply_chstat_bound()
-#             apply_niklas_biomass()
-#             set_atp_demand()
-#             show_model_summary()
-#             run_fba_test()
-            
-#             # Saving
-#             println("\nSaving")
-#             file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "base_model_$model_id.jls")
-#             serialize(file, (id = model_id, metnet = base_model, src = mat))
-#             # TODO: package this
-#             println(relpath(file), " created")
-        end
-        flush(stdout)
+tINIT_base_models = Dict()
+for (model_id, model) in tINIT_brain_models
+    println("\n ----------------- Processing $model_id -----------------\n")
+    global mat_model = tINIT_brain_models[model_id]["mat"]
+    global base_model = tINIT_brain_models[model_id]["metnet"]
+    println("model size ", size(base_model))
 
-    end
-end;
+    delete_boundary_mets()
+    define_exchanges()
+    apply_chstat_bound()
+    apply_niklas_biomass()
+    set_atp_demand()
+    show_model_summary()
+    run_fba_test()
+    
+    base_model = Ch.Utils.compress_model(base_model)
+    tINIT_base_models[model_id] = Dict()
+    tINIT_base_models[model_id]["metnet"] = base_model
+    tINIT_base_models[model_id]["mat"] = mat_model
+
+end
 # -
 
-brain_model = ["GTEx-brain", "TCGA-GBM TP", 
-    "TCGA-GBM TR", "TCGA-GBM NT", "TCGA-LGG TP", "TCGA-LGG TR"]
+file = tIG.tINIT_BASE_BRAIN_MODELS_FILE
+tagsave(file, Dict(DATA_KEY => tINIT_base_models))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+
+
+
+
+
+
+
+
+
+# +
+# # TODO: parallelize this
+# for (dat_id, file) in mat_files
+#     println("\n\n ----------------- Loading $dat_id -----------------\n")
+#     @time mat_dat = MAT.matread(file)["INIT_output"]
+#     println("content: ", mat_dat |> keys |> collect, "file: ", relpath(file), "\n")
+#     flush(stdout)
+    
+#     brain_models = get_brain_models(dat_id, mat_dat)
+#     for (id, dat) in brain_models
+#         for (i,(metnet, mat)) in zip(dat["metnet"], dat["mat"]) |> enumerate
+#             model_id = "$id-$i"
+#             println("\n ----------------- Processing $model_id -----------------\n")
+# #             global base_model = metnet
+# #             println("model size ", size(base_model))
+            
+# #             delete_boundary_mets()
+# #             define_exchanges()
+# #             apply_chstat_bound()
+# #             apply_niklas_biomass()
+# #             set_atp_demand()
+# #             show_model_summary()
+# #             run_fba_test()
+            
+# #             # Saving
+# #             println("\nSaving")
+# #             file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "base_model_$model_id.jls")
+# #             serialize(file, (id = model_id, metnet = base_model, src = mat))
+# #             # TODO: package this
+# #             println(relpath(file), " created")
+#         end
+#         flush(stdout)
+
+#     end
+# end;
+
+# +
+# brain_model = ["GTEx-brain", "TCGA-GBM TP", 
+#     "TCGA-GBM TR", "TCGA-GBM NT", "TCGA-LGG TP", "TCGA-LGG TR"]
