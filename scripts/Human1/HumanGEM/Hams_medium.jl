@@ -42,8 +42,6 @@ Ham_medium = Dict()
 
 # ## Salts
 
-Ham_medium |> keys |> collect |> clipboard
-
 # +
 # Calcium Chloride (CaCl2)   0.0333 g/L
 # Ham_medium["Ca2+[s]"] = 0.0333 * 1e3 / 110.98 # mM
