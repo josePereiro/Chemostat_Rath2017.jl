@@ -57,7 +57,7 @@ targets_dict["preparing_ecModels.jl"] = []
 targets_dict["cache"] = joinpath.(ecG.MODEL_CACHE_DATA_DIR, readdir(ecG.MODEL_CACHE_DATA_DIR))
 
 # Scripts-targets in order
-base_scripts = ["prepare_ecTemplate.jl", "generating_raw_ecModels.jl", "preparing_ecModels.jl"]
+base_scripts = ["prepare_ecTemplate.jl", "generating_raw_ecModels.jl", "prepare_base_ecModels.jl"]
 all_scripts = [base_scripts; []]
 
 function dispatch_args(args)

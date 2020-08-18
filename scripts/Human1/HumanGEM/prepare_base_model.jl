@@ -29,7 +29,6 @@ const Ch = Chemostat
 import Chemostat_Rath2017: DATA_KEY, HumanGEM, RathData
 const HG = HumanGEM
 const Rd = RathData
-# -
 
 # +
 # ---

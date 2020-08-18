@@ -23,12 +23,12 @@ import JSON # For pretty printing
 
 import Chemostat_Rath2017: DATA_KEY, HumanGEM
 const HG = HumanGEM
+# -
 
-# +
-## Ham's F-12 
-## but mediam componets from Human1 Zenodo https://zenodo.org/record/3583004#.Xu8KdmpKiCh
-## task (Growth in Ham's medium)
-## Final concentrations in mM
+# Ham's F-12 
+# but mediam componets from Human1 Zenodo https://zenodo.org/record/3583004#.Xu8KdmpKiCh
+# task (Growth in Ham's medium)
+# Final concentrations in mM
 Inf_ = 9999 # taked as infinite concentration
 def_ = 1e-1 #
 
@@ -38,9 +38,6 @@ def_ = 1e-1 #
 Ham_medium = Dict()
 
 # ## Inorganic Salts
-# -
-
-# ## Salts
 
 # +
 # Calcium Chloride (CaCl2)   0.0333 g/L
