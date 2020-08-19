@@ -7,7 +7,7 @@
 module HumanGEM
     import BSON
     import DrWatson: wload
-    import ..Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData, DATA_KEY
+    import ...Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData, DATA_KEY
     import CSV
     import Serialization: deserialize
     import DataFrames: DataFrame
