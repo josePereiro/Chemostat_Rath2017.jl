@@ -80,13 +80,13 @@ function del_bkwd_exchs(base_model, bkwd_exchs, max_bound = MAX_BOUND)
     return base_model, exchs, bkwd_exchs, fwd_exchs
 end
 
-function try_fba(args...)
+function try_fba(args...; verbose = true)
     fbaout = nothing
     try
         fbaout = fba(args...)
-        println("fba obj_val: ", fbaout.obj_val)
+        verbose && println("fba obj_val: ", fbaout.obj_val)
     catch err
-        @warn("ERROR doing fba: ", err)
+        verbose && @warn("ERROR doing fba: ", err)
     end
     return fbaout
  end
