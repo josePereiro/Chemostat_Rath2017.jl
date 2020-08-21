@@ -1,10 +1,12 @@
 module Human1
     import Chemostat.Utils: rxnindex, metindex, lb!, lb, ub!, S, S!, b,
-                            ub, del_met, rxn_mets, rxn_reacts,
-                            del_rxn, rxn_str, bounds, bounds!,
-                            MetNet, FBAout, met_rxns, isrev
+                            ub, del_met, rxn_mets, rxn_reacts, isfwd,
+                            del_rxn, rxn_str, bounds, bounds!, is_exchange,
+                            MetNet, FBAout, met_rxns, isrev, exchanges
     import Chemostat.LP: fba
     import Chemostat.SteadyState: apply_bound!
+    using ProgressMeter
+    import Distributions: median, mean
 
     include("HumanGEM/HumanGEM.jl")
     include("tINIT_GEMs/tINIT_GEMs.jl")

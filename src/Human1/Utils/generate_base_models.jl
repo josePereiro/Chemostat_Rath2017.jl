@@ -27,7 +27,23 @@ function delete_boundary_mets(base_model; verbose = true)
     return base_model
 end
 
-function prepare_extract_exchanges!(base_model::MetNet, max_bound = MAX_BOUND; verbose = true)
+function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
+
+
+     # this close uptake of all the reactions that are considered as exchanges do to 
+    # # their lack of reactants or products
+    # strct_exchs = exchanges(base_model)
+    # for exch_i in 
+    #     if isfwd(base_model, exch_i)
+    #         # forward defined (A -> nothing)
+    #         # A positive flux means production (open)
+    #         lb!(base_model, exch_i, 0.0) # uptake
+    #     else
+    #         # -> A 
+    #         ub!(base_model, exch_i, 0.0) # uptake
+    #     end
+    # end
+
     # Exchanges
     exchs = []
     bkwd_exchs = []
@@ -59,7 +75,7 @@ function prepare_extract_exchanges!(base_model::MetNet, max_bound = MAX_BOUND; v
         else # forward defined (A -> nothing)
             # A positive flux means production (open)
             push!(fwd_exchs, exch_i)
-            ub!(base_model, exch_i, max_bound)
+            ub!(base_model, exch_i, MAX_BOUND)
         end
 
         push!(exchs, exch_i)
@@ -71,12 +87,12 @@ function prepare_extract_exchanges!(base_model::MetNet, max_bound = MAX_BOUND; v
     return (exchs, bkwd_exchs, fwd_exchs)
 end
 
-function del_bkwd_exchs(base_model, bkwd_exchs, max_bound = MAX_BOUND)
+function del_bkwd_exchs(base_model, bkwd_exchs)
     println("\nDeleting bkwd_exchs")
     println("Before: ", size(base_model))
     base_model = del_rxn(base_model, bkwd_exchs);
     println("After: ", size(base_model))
-    exchs, bkwd_exchs, fwd_exchs = prepare_extract_exchanges!(base_model, max_bound)
+    exchs, bkwd_exchs, fwd_exchs = prepare_extract_exchanges!(base_model)
     return base_model, exchs, bkwd_exchs, fwd_exchs
 end
 
