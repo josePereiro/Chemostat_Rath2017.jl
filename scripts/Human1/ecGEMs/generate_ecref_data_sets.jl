@@ -125,10 +125,11 @@ for (i, (model_id, models_dict)) in ec_reference_models |> enumerate
 
     ec_refdata = Human1.get_ec_refdata(src_model, ec_model);
     new_ec_model = Human1.build_ecModel(src_model, [ec_refdata]);
-
+    Human1.print_ec_stats(new_ec_model)
+    
     ec_model = Ch.Utils.compress_model(ec_model)
     new_ec_model = Ch.Utils.compress_model(new_ec_model)
-
+    
     # testing
     # We used a tINIT GEM and its respective ecModel as ec template.
     # So, the resulting new ecModel must be equal to the template one

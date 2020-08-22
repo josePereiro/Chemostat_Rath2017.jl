@@ -18,6 +18,7 @@ end
 # FILES
 # mat 
 # const MODEL_EC_TEMPLATE_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "Human1_ec_template.bson")
-const EC_BRAIN_RAW_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "Human1_ec_raw_brain_models.bson")
+# const EC_BRAIN_RAW_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "Human1_ec_raw_brain_models.bson")
+const EC_BRAIN_BASE_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "Human1_ec_base_brain_models.bson")
 # const EC_BASE_REFERENCE_MODELS = joinpath(MODEL_PROCESSED_DATA_DIR, "ec_base_reference_models.bson")
 const EC_REFERENCE_DATA = joinpath(MODEL_PROCESSED_DATA_DIR, "ec_reference_data.bson")

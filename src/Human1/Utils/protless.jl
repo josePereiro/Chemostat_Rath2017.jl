@@ -53,14 +53,14 @@ function merge_protless!(model, allowed_protless, prot_kin_stoi, prot_draw_stoi)
         # A + (-prot_kin_stoi) prot_met -> B
         # add prot_met
         prot_met = "prot_" * fwd_rxn # This must make it unique
-        prot_meti = free_spot(model, :mets)
+        prot_meti = find_free_spot(model, :mets)
         model.S[prot_meti, fwd_rxni] = prot_kin_stoi
         model.mets[prot_meti] = prot_met
         model.b[prot_meti] = 0.0
         
         # Adding draw rxn
         # (-prot_draw_stoi) prot_pool ==> (1.0) prot_met
-        draw_rxni = free_spot(model, :rxns)
+        draw_rxni = find_free_spot(model, :rxns)
         model.rxns[draw_rxni] = DRAW_PREFFIX * prot_met
         model.lb[draw_rxni], model.ub[draw_rxni] = (0.0, 1000.0)
         model.S[prot_meti, draw_rxni] = 1.0
@@ -71,7 +71,7 @@ function merge_protless!(model, allowed_protless, prot_kin_stoi, prot_draw_stoi)
         if rev
             ## backward reaction
             # B + (-prot_kin_stoi) prot_met -> A
-            bkwd_rxni = free_spot(model, :rxns)
+            bkwd_rxni = find_free_spot(model, :rxns)
             model.S[:, bkwd_rxni] .= -model.S[:, fwd_rxni]
             model.S[prot_meti, bkwd_rxni] = prot_kin_stoi
             model.lb[bkwd_rxni] = 0.0

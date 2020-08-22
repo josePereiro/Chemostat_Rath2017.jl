@@ -1,12 +1,12 @@
-function build_ecModel(srcmodel, ec_refdatas::Vector)
+function build_ecModel(srcmodel, ec_refdata_vec::Vector; add_protless = true)
     mM, mN = size(srcmodel) .* (3,5) # heuristic
     
     merge_model = expanded_model(srcmodel, mM, mN)
     
-    rxn_ecmaps = [ec_refdata[ECMAP_KEY] for ec_refdata in ec_refdatas]
-    allowed_protless = union([ec_refdata[PROTLESS_KEY] for ec_refdata in ec_refdatas]...)
-    kin_stoi = maximum(median.([ec_refdata[PROT_STOIS_KEY].kin_stois for ec_refdata in ec_refdatas]))
-    draw_stoi = maximum(median.([ec_refdata[PROT_STOIS_KEY].draw_stois for ec_refdata in ec_refdatas]))
+    rxn_ecmaps = [ec_refdata[ECMAP_KEY] for ec_refdata in ec_refdata_vec]
+    allowed_protless = union([ec_refdata[PROTLESS_KEY] for ec_refdata in ec_refdata_vec]...)
+    kin_stoi = maximum(median.([ec_refdata[PROT_STOIS_KEY].kin_stois for ec_refdata in ec_refdata_vec]))
+    draw_stoi = maximum(median.([ec_refdata[PROT_STOIS_KEY].draw_stois for ec_refdata in ec_refdata_vec]))
 
 
     # Add extras
@@ -35,12 +35,14 @@ function build_ecModel(srcmodel, ec_refdatas::Vector)
     end
     
     # Add protless
-    # intersect!(allowed_protless, merge_model.rxns)
-    # merge_protless!(merge_model, allowed_protless, kin_stoi, draw_stoi);
+    if add_protless
+        println("add_protless = true") # Test
+        intersect!(allowed_protless, merge_model.rxns)
+        merge_protless!(merge_model, allowed_protless, kin_stoi, draw_stoi);
+    end
 
     finish!(prog)
-    return compated_model(merge_model)
-#     return (merge_model, allowed_protless, kin_stoi, draw_stoi)
+    return compacted_model(merge_model)
 end
 
 
@@ -68,13 +70,13 @@ function expanded_model(model, expdM::Int, expdN::Int)
     return MetNet(S_, b_, lb_, ub_, rxns_, mets_; subSystems = subSystems_)
 end
 
-function free_spot(model, col)
+function find_free_spot(model, col)
     spot = findfirst(isequal(EMPTY_SPOT), getfield(model, col))
     isnothing(spot) && error("Not $col empty spot!!!")
     return spot
 end
 
-function compated_model(model)
+function compacted_model(model)
 
     empty_mets = findall(model.mets .== EMPTY_SPOT)
     met_idxs = trues(size(model, 1))
@@ -104,7 +106,7 @@ function merge_rxndata!(model, rxndata)
     (rxndata.rxn in model.rxns) && return model
     
     # get empty spot
-    nrxni = free_spot(model, :rxns)
+    nrxni = find_free_spot(model, :rxns)
     
     # add data
     model.rxns[nrxni] = rxndata.rxn
@@ -118,7 +120,7 @@ function merge_rxndata!(model, rxndata)
             nmeti = metindex(model, met)
         else
             # get empty spot
-            nmeti = free_spot(model, :mets)
+            nmeti = find_free_spot(model, :mets)
         end
         
         # add data
@@ -154,4 +156,30 @@ function clear_rxndata!(model, rxndata)
     end
     
     return model
+end
+
+function print_ec_stats(ec_model)
+    M, N = size(ec_model)
+    # protless reactions
+    protless_count = N
+    draw_count = 0
+    for (rxni, rxn) in ec_model.rxns |> enumerate
+        metis = rxn_mets(ec_model, rxni)
+        any(startswith(ec_model.mets[meti], PROT_PREFFIX) 
+            for meti in metis) && (protless_count -= 1)
+        startswith(rxn, DRAW_PREFFIX) && (draw_count += 1)
+    end
+    println("protless rxns  : ", protless_count, "/", N, " [", (protless_count * 100) ÷ N, "%]")
+    println("draw rxns      : ", draw_count, "/", N, " [", (draw_count * 100) ÷ N, "%]")
+    
+    
+    prot_met_count = 0
+    pmet_count = 0
+    for met in ec_model.mets
+        startswith(met, PROT_PREFFIX) && (prot_met_count += 1)
+        startswith(met, PMET_PREFFIX) && (pmet_count += 1)
+    end
+    println("prot mets      : ", prot_met_count, "/", M, " [", (prot_met_count * 100) ÷ M, "%]")
+    println("pmets          : ", pmet_count, "/", M, " [", (pmet_count * 100) ÷ M, "%]")
+    
 end

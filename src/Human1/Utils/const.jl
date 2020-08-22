@@ -11,6 +11,7 @@ const REV_SUFFIX = "_REV"
 const NUM_SUFFIX = "No"
 const PROT_PREFFIX = "prot_"
 const ARM_PREFFIX = "arm_"
+const PMET_PREFFIX = "pmet_"
 const DRAW_PREFFIX = "draw_"
 const EMPTY_SPOT = "";
 const EXTRAS_KEY = "EXTRAS"
