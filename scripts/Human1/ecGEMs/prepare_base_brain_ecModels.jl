@@ -24,8 +24,8 @@ import JSON
 import Chemostat
 import Chemostat.Utils: MetNet
 const Ch = Chemostat
-import Chemostat_Rath2017: DATA_KEY, 
-        Rep_Human1, ecGEMs, tINIT_GEMs, HumanGEM, RathData
+import Chemostat_Rath2017: DATA_KEY, RathData
+import Chemostat_Rath2017.Human1: Rep_Human1, ecGEMs, tINIT_GEMs, HumanGEM
 const RepH1 = Rep_Human1;
 const ecG = ecGEMs
 const tIG = tINIT_GEMs;
@@ -38,6 +38,8 @@ HG._load_all_data();
 # ---
 # ## Load brain models
 # ---
+
+
 
 brain_models = wload(ecG.EC_BRAIN_RAW_MODELS_FILE)[DATA_KEY];
 

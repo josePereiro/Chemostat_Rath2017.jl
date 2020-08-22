@@ -110,4 +110,70 @@ function try_fba(args...; verbose = true)
     end
 end
 
+function apply_biomass!(base_model, obj_ider, niklas_biomass)
+    # I will modified the biomass equation of MODEL1105100000 model with data
+    # derived from Niklas (2013): https://doi.org/10.1016/j.ymben.2013.01.002. Table1. (see README)
+    # I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
+    println("\nApplying Niklas Biomass")
+    # JSON.print(HG.niklas_biomass, 4)
+    # println()
 
+    biomass_idx = rxnindex(base_model, obj_ider)
+    base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
+    for (met, y) in niklas_biomass
+        S!(base_model, met, biomass_idx, y)
+    end
+end
+
+function set_atp_demand(base_model)
+    base_model = deepcopy(base_model);
+    # From HumanGEM ATPM
+    # SUMMARY (color code: warning, info, error)
+    #  HMR_3964 ()
+    #  lb: 0.0, ub: 1000.0
+    #  (-1.0) m01371c + (-1.0) m02040c ==> (1.0) m01285c + (1.0) m02039c + (1.0) m02751c
+    atpm_ider = Human1.ATPM_IDER
+    if !(atpm_ider in base_model.rxns)
+        base_model = add_rxn(base_model, atpm_ider; 
+                mets = Dict("m01371c" => -1.0, "m02040c" => -1.0, # ->
+                    "m01285c" => 1.0, "m02039c" => 1.0, "m02751c" => 1.0), 
+                lb = -MAX_BOUND,
+                ub = MAX_BOUND);
+    end
+    # This reaction is foward defined with respect to atp
+    # atp + more_reacts <-> adp + more_products
+    # so we limit the lower bounds as the minimum atp demand 
+    # that the cell metabolism must fullfill
+    lb!(base_model, atpm_ider, ATPM_FLUX)
+
+    println("\nATP demand")
+    summary(base_model, atpm_ider)
+
+    return base_model
+end
+
+function open_rxns!(model, iders)
+    for rxn in iders
+        bounds!(model, rxn, -MAX_BOUND, MAX_BOUND);
+    end
+end
+
+# function run_fba_test(base_model, obj_ider)
+#     fbaout = Ch.LP.fba(base_model, obj_ider);
+#     println("\nFBAout summary")
+#     Ch.Utils.summary(base_model, fbaout)
+
+#     println("\nComparing with experiments")
+#     model = deepcopy(base_model)
+#     for stst in Rd.ststs
+#         println("\nStst: $stst")
+#         ξ = Rd.val(:ξ, stst)
+#         println("exp xi: $ξ")
+#         exp_μ = Rd.val(:μ, stst)
+#         println("exp growth: $exp_μ")    
+#         Ch.SteadyState.apply_bound!(model, ξ, Dict());
+#         fbaout_μ = Ch.LP.fba(model, obj_ider).obj_val;
+#         fbaout_μ < exp_μ && @warn("fbaout_μ ($fbaout_μ) > exp_μ ($exp_μ)")
+#         println("fba growth: $fbaout_μ")
+#     end
+# end

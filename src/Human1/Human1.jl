@@ -3,7 +3,7 @@ module Human1
                             ub, del_met, rxn_mets, rxn_reacts, isfwd,
                             del_rxn, rxn_str, bounds, bounds!, is_exchange,
                             MetNet, FBAout, met_rxns, isrev, exchanges,
-                            compress_model
+                            compress_model, add_rxn, summary
     import Chemostat.LP: fba
     import Chemostat.SteadyState: apply_bound!
     using ProgressMeter

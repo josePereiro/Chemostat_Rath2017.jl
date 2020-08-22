@@ -86,18 +86,17 @@ for (i, (id, files)) in ec_model_files |> enumerate
         # We close all reactions marked as "Exchanges/boundary" and returns the exchanges
         # We also close complitly the reactions classified as exchanges by having anly reacts or
         # prods
-        is_src && (src_exchs = Human1.prepare_extract_exchanges!(model))
-        !is_src && Human1.prepare_extract_exchanges!(model)
+        exchs = Human1.prepare_extract_exchanges!(model)
+        is_src && (src_exchs = exchs)
         
         # We delate any backward defined exchange reaction, 
         # all reactions will be possible reversible
         !is_src && (model = Human1.del_REV_rxns(model, src_exchs))
 
         # Apply Hams medium
-        for (rxn, c) in HG.base_intake_info
-            !(rxn in model.rxns) && continue
-            Ch.Utils.bounds!(model, rxn, -Human1.MAX_BOUND, Human1.MAX_BOUND);
-        end
+        medium = HG.base_intake_info |> keys |> collect
+        medium = filter((rxn) -> rxn in model.rxns, medium)
+        Human1.open_rxns!(model, medium)
 
         # Open prot pool exchange
         !is_src && Ch.Utils.bounds!(model, Human1.PROT_POOL_EXCHANGE, 0.0, Human1.MAX_BOUND);
