@@ -35,8 +35,8 @@ function build_ecModel(srcmodel, ec_refdatas::Vector)
     end
     
     # Add protless
-    intersect!(allowed_protless, merge_model.rxns)
-    merge_protless!(merge_model, allowed_protless, kin_stoi, draw_stoi);
+    # intersect!(allowed_protless, merge_model.rxns)
+    # merge_protless!(merge_model, allowed_protless, kin_stoi, draw_stoi);
 
     finish!(prog)
     return compated_model(merge_model)
@@ -132,7 +132,7 @@ end
 
 function clear_rxndata!(model, rxndata)    
     # find reaction
-    nrxni = free_spot(model, :rxns)
+    nrxni = rxnindex(model, rxndata.rxn)
     
     # clear data
     model.rxns[nrxni] = EMPTY_SPOT
@@ -141,7 +141,7 @@ function clear_rxndata!(model, rxndata)
     model.subSystems[nrxni] = "NA"
     
     for met in rxndata.mets
-        nmeti = free_spot(model, :mets)
+        nmeti = metindex(model, met)
 
         # clear stoi
         model.S[nmeti, nrxni] = 0.0

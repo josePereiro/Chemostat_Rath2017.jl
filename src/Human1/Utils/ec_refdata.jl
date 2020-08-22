@@ -112,8 +112,8 @@ end
 
 get_ec_refdata(src_model, ec_model) = Dict(
         ECMAP_KEY => get_rxn_ecmap(src_model, ec_model; verbose = true),
-        SRC_MODEL_KEY => src_model,
-        EC_MODEL_KEY => ec_model,
+        SRC_MODEL_KEY => compress_model(src_model),
+        EC_MODEL_KEY => compress_model(ec_model),
         PROTLESS_KEY => ec_model.rxns[collect_protless(ec_model)],
         PROT_STOIS_KEY => prot_stois(ec_model)
     )

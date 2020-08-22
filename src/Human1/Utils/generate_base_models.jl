@@ -2,11 +2,10 @@
 # preparing a model for fba/EP. They are often not pure functions!
 
 # redefining the Chemostat exchange criteria
-function is_exchange(model, ider, 
-    exch_subsys_hint = "Exchange/demand")
+function is_exchange_subsys(model, ider)
     idx = rxnindex(model, ider)
     subsys = model.subSystems[idx]
-    return occursin(exch_subsys_hint, string(subsys))
+    return occursin(EXCH_SUBSYS_HINT, string(subsys))
 end
 
 """
@@ -28,37 +27,14 @@ function delete_boundary_mets(base_model; verbose = true)
 end
 
 function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
-
-
-     # this close uptake of all the reactions that are considered as exchanges do to 
-    # # their lack of reactants or products
-    # strct_exchs = exchanges(base_model)
-    # for exch_i in 
-    #     if isfwd(base_model, exch_i)
-    #         # forward defined (A -> nothing)
-    #         # A positive flux means production (open)
-    #         lb!(base_model, exch_i, 0.0) # uptake
-    #     else
-    #         # -> A 
-    #         ub!(base_model, exch_i, 0.0) # uptake
-    #     end
-    # end
-
     # Exchanges
     exchs = []
     bkwd_exchs = []
     fwd_exchs = []
-    for exch in filter((ider) -> is_exchange(base_model, ider), base_model.rxns)
+
+    subsys_exchs = filter((ider) -> is_exchange_subsys(base_model, ider), base_model.rxns)
+    for exch in subsys_exchs
         exch_i = rxnindex(base_model, exch)
-
-        # First close it, later if it is what I want, open the outtake
-        lb!(base_model, exch_i, 0.0) 
-        ub!(base_model, exch_i, 0.0)
-
-        mets = rxn_mets(base_model, exch_i)
-
-        length(mets) != 1 && continue # I want only monomoleculars
-        !endswith(base_model.mets[first(mets)], "s") && continue # I what only the exchanges 's'
 
         # Because, this reactions are forward unbalanced (A <-> nothing)
         # positibe (+) bounds limit the outtake of the cell and
@@ -68,32 +44,45 @@ function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
         # We'll open all outtakes
         react = rxn_reacts(base_model, exch_i)
         if isempty(react) 
-            # backward defined (nothing <- A) 
+            # backward defined (nothing -> A) 
             # A positive flux means intake (close)
-            push!(bkwd_exchs, exch_i)
             ub!(base_model, exch_i, 0.0)
-        else # forward defined (A -> nothing)
+            lb!(base_model, exch_i, -MAX_BOUND)
+            push!(bkwd_exchs, exch)
+        else 
+            # forward defined (A -> nothing)
             # A positive flux means production (open)
-            push!(fwd_exchs, exch_i)
             ub!(base_model, exch_i, MAX_BOUND)
+            lb!(base_model, exch_i, 0.0)
+            push!(fwd_exchs, exch)
         end
 
-        push!(exchs, exch_i)
+        push!(exchs, exch)
     end
+
     verbose && println("\nExchanges: ", exchs |> length)
     verbose && println("\tfwd_exchs (outputs): ", fwd_exchs |> length)
     verbose && println("\tbkwd_exchs (inputs): ", bkwd_exchs |> length)
     
-    return (exchs, bkwd_exchs, fwd_exchs)
+    return exchs
 end
 
-function del_bkwd_exchs(base_model, bkwd_exchs)
-    println("\nDeleting bkwd_exchs")
-    println("Before: ", size(base_model))
-    base_model = del_rxn(base_model, bkwd_exchs);
-    println("After: ", size(base_model))
-    exchs, bkwd_exchs, fwd_exchs = prepare_extract_exchanges!(base_model)
-    return base_model, exchs, bkwd_exchs, fwd_exchs
+function del_REV_rxns(model, rxns)
+    println("\nDeleting REV exchs")
+    println("Before: ", size(model))
+    REV_rxns = []
+    foreach(rxns) do rxn
+        if endswith(rxn, REV_SUFFIX)
+            push!(REV_rxns, rxn)
+        else
+            rxn *= REV_SUFFIX
+            (rxn in model.rxns) && push!(REV_rxns, rxn)
+        end
+    end
+    model = del_rxn(model, REV_rxns);
+    println("After: ", size(model))
+    prepare_extract_exchanges!(model)
+    return model
 end
 
 function try_fba(args...; verbose = true)
@@ -108,7 +97,7 @@ function try_fba(args...; verbose = true)
  end
 
  function apply_chstat_bound!(base_model, ξ, intake_info; verbose = true)
-    verbose && println("\nApplaying chemostat bound, xi: ", ξ)
+    verbose && println("\nApplying chemostat bound, xi: ", ξ)
     
     apply_bound!(base_model, ξ, intake_info; emptyfirst = true, ignore_miss = true);
     
@@ -120,3 +109,5 @@ function try_fba(args...; verbose = true)
         println("\t", rxn, ": ", eq, " ", bs |> collect)
     end
 end
+
+
