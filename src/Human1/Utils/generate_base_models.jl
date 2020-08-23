@@ -8,6 +8,8 @@ function is_exchange_subsys(model, ider)
     return occursin(EXCH_SUBSYS_HINT, string(subsys))
 end
 
+subsys_exchs(model) = filter((ider) -> is_exchange_subsys(model, ider), eachindex(model.rxns))
+
 """
     delete_boundary_mets(base_model; verbose = true)
 
@@ -32,7 +34,7 @@ function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
     bkwd_exchs = []
     fwd_exchs = []
 
-    subsys_exchs = filter((ider) -> is_exchange_subsys(base_model, ider), base_model.rxns)
+    subsys_exchs = base_model.rxns[subsys_exchs(base_model)]
     for exch in subsys_exchs
         exch_i = rxnindex(base_model, exch)
 
