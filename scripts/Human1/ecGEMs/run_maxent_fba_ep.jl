@@ -1,98 +1,55 @@
-# -*- coding: utf-8 -*-
-# ---
-# jupyter:
-#   jupytext:
-#     cell_metadata_filter: -all
-#     formats: jl:light
-#     text_representation:
-#       extension: .jl
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.3.2
-#   kernelspec:
-#     display_name: Julia 1.1.0
-#     language: julia
-#     name: julia-1.1
-# ---
-using DrWatson
-quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-using DataFrames
-using Serialization
-using Dates
-
-# ### Precompaling in master worker first
-
-# run add "https://github.com/josePereiro/Chemostat" in the 
-# julia Pkg REPL for installing the package
-import Chemostat
-Ch = Chemostat
-
-import Chemostat_Rath2017
-Rd = Chemostat_Rath2017.RathData
-HG = Chemostat_Rath2017.HumanGEM
-tIG = Chemostat_Rath2017.tINIT_GEMs
-
-# ### Loading everywhere
-
-# +
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-length(workers()) < NO_CORES - 2 && addprocs(NO_CORES - 2; 
-    exeflags = "--project")
+NO_CORES = 3 # Test
+length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
+exeflags = "--project")
 println("Working in: ", workers())
 
-# +
+## Loading everywhere
 @everywhere begin
 
-using DataFrames
+using DrWatson
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 using Distributed
 using Serialization
+using SparseArrays
 using Dates
 import StatsBase: mean
 
+# custom packages
 import Chemostat
-Ch = Chemostat
+import Chemostat.Utils: MetNet, rxnindex, metindex, compress_model, 
+                        uncompress_model, clamp_bounds!,
+                        ChstatBoundle, norm_abs_stoi_err, av, va
+import Chemostat.LP: fba
+import Chemostat.SteadyState: apply_bound!
+import Chemostat.Test: empty_epout
+import Chemostat.MaxEntEP: maxent_ep
 
-# TODO include installation help
 import Chemostat_Rath2017
-Rd = Chemostat_Rath2017.RathData
-HG = Chemostat_Rath2017.HumanGEM
-tIG = Chemostat_Rath2017.tINIT_GEMs
+import Chemostat_Rath2017: DATA_KEY, Human1, print_action, string_err,
+                            load_cached, save_cache, set_cache_dir,
+                            delete_temp_caches, temp_cache_file, RathData
+import Chemostat_Rath2017.Human1: OBJ_IDER, ATPM_IDER, PROT_POOL_EXCHANGE, 
+                                MAX_BOUND, ZEROTH
+const RepH1 = Human1.Rep_Human1;
+const ecG = Human1.ecGEMs
+const tIG = Human1.tINIT_GEMs;
+const HG = Human1.HumanGEM;
+const Rd = RathData
+set_cache_dir(ecG.MODEL_CACHE_DATA_DIR)
     
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env()
-    
-end
-# -
-
-# ---
-# ## Description
-# ---
-
-# This script use the model produced in [3_prepare_fva_pp_model](./3_prepare_fva_pp_model.jl) (see 3_prepare_fva_pp_model description for more details). It use MaxEnt EP algorithm as reported in [Cossio et al](https://doi.org/10.1371/journal.pcbi.1006823). 
-
-@everywhere notebook_name = "fva_pp_tINIT_models_maxent_ep";
-
-# ---
-# ## Print functions
-# ---
-
-@everywhere function print_action(wid, pid, state, head, bodyls...)
-    Core.println("Worker $wid ($pid) $head at $(Time(now())) ----------------------------")
-    Core.println("\tState: ", state)
-    for body in bodyls
-        Core.println("\t$body")
-    end
-    Core.println()
-    flush(stdout);
-end
-@everywhere function print_action(state, head, bodyls...)
-    remotecall_wait(print_action, 1, myid(), getpid(), state, head, bodyls...)
 end
 
+## Description
+# This script use the model produced in [generate_fva_pp_model](./3_prepare_fva_pp_model.jl) 
+# (see 3_prepare_fva_pp_model description for more details). It use MaxEnt EP algorithm as reported 
+# in [Cossio et al](https://doi.org/10.1371/journal.pcbi.1006823). 
+
+## Print functions
 @everywhere function print_progress(wid, pid, 
             stst, ξi, ξs, ξ,  βi, βs, β, 
             exp_av, fba_av, 
@@ -129,116 +86,62 @@ end
         stst, ξi, ξs, ξ,  βi, βs, β, exp_av, fba_av, ep_av, 
         ep_alpha, ep_epsconv, ep_maxiter, ep_status, ep_iter, min_err, mean_err, max_err, elapsed)
 
-@everywhere function string_err(err; max_len = 10000)
-    s = sprint(showerror, err, catch_backtrace())
-    return length(s) > max_len ? s[1:max_len] * "\n..." : s
-end
-
-# ---
-# ## temp caching
-# ---
-
-@everywhere temp_cache_file_prefix = "$(notebook_name)___temp_cache"
-@everywhere temp_cache_file(state) = 
-    joinpath(tIG.MODEL_CACHE_DATA_DIR, "$(temp_cache_file_prefix)___state_$(hash(state)).jls")
-
-@everywhere function load_cached(state)
-    
-    tcache_file = temp_cache_file(state) |> relpath
-    data = nothing
-    if isfile(tcache_file)
-        try
-            data = deserialize(tcache_file)
-        catch err
-            print_action(state, "ERROR LOADING CACHE", 
-                "cache_file: $tcache_file", 
-                "err:        $(string_err(err))")
-        end
-        print_action(state, "CACHE LOADED", "cache_file: $tcache_file")
-    end
-    return data
-end
-
-@everywhere function save_cache(state, data)
-    tcache_file = temp_cache_file(state) |> relpath
-    try
-        serialize(tcache_file, data)
-    catch err
-        err = sprint(showerror(stderr, err, catch_backtrace()))
-        print_action(state, "ERROR SAVING CACHE", 
-                "cache_file: $tcache_file", 
-                "err:        $(string_err(err))")
-    end
-    print_action(state, "CACHE SAVED", "cache_file: $tcache_file")
-end
-
-@everywhere function delete_temp_caches()
-    cache_dir = dirname(temp_cache_file("bla"))
-    tcaches = filter(file -> occursin(temp_cache_file_prefix, file), readdir(cache_dir))
-    for tc in tcaches
-        tc = joinpath(cache_dir, tc)
-        rm(tc, force = true)
-        println(relpath(tc), " deleted!!!")
-    end
-end
-
-# ---
-# ## Testing
-# ---
-
+## Testing
 @everywhere begin
-    testing = false # Change this to true for testing
+    testing = false # make true for testing
 end
 println("Testing: ", testing)
 
-# ---
-# ## Params
-# ---
-
-# +
+## Params
 @everywhere begin
-    
-    params = Dict()
-    
-    # model iders
-    params["obj_ider"] = "biomass_human"
+    const params = Dict()
 
     # ep
     params["ep_alpha"] = 1e7 # The EP inverse temperature
     params["ep_epsconv"] = 1e-5 # The error threshold of convergence
     params["ep_maxiter"] = 1e4 # The maximum number of iteration beforre EP to return, even if not converged
     params["ep_epoch"] = 10 # This determine how often EP results will be cached
+    params["ξs"] = Rd.val(:ξ, Rd.ststs) # 
+    params["βs"] = [0.0; range(5e3, 5e4, length = 25)] # 
 
 end
-# -
 
-# ---
-# ## work functions
-# ---
+## Loading models
+@everywhere begin
+    myid() == 1 && println("\nLoading fva pp ec base models")
+    src_file = ecG.FVA_PP_BASE_MODELS
+    const ec_models = wload(src_file)[DATA_KEY]
+    myid() == 1 && println(relpath(src_file), " loaded!!!, size: ", filesize(src_file), " bytes")
+    for (model_id, model) in ec_models
+        ec_models[model_id] = uncompress_model(model)
+        clamp_bounds!(ec_models[model_id], MAX_BOUND, ZEROTH)
+        myid() == 1 && println("model: ", model_id, " size: ", size(model))
+    end
+end
 
-# +
-@everywhere function process_exp(stst, model_file, upfrec = 10)
-    
+
+## work functions
+@everywhere function process_exp(state)
+
+    # State
+    model_id, stst = state
+
     # --------------------  CHEMOSTAT PARAMETER XI --------------------  
     # Change here how many xi to model, you should always include the experimental xis
-    ξs = [Rd.val("ξ", stst)]
-    ξs = testing ? [Rd.val("ξ", stst)] : ξs
+    ξs = [Rd.val(:ξ, stst)]
+    ξs = testing ? [Rd.val("ξ", stst)] : ξs # params["ξs"]
     
     
     # --------------------  MAXENT PARAMETER BETA --------------------  
     # Change here how many betas to model
     # The beta range is set up by trial and error
-    βs = range(5e3, 5e4, length = 25)
-    βs = [0.0; βs]
-    βs = testing ? collect(1:5) : βs
-
-    # Current state
-    state = (stst, model_file, hash((ξs, βs)))
+    βs::Vector{Float64} = testing ? collect(1:5) : params["βs"]
     
     # --------------------  TEMP CACHE  --------------------  
     # I do not check any cache consistency, so delete the temporal caches if you
-    # dont trust them
-    cached_data = load_cached(state)
+    # don't trust them
+    cache_state = (stst, model_id, hash(params))
+    cached_data = load_cached(cache_state)
     !isnothing(cached_data) && return cached_data
     
     
@@ -250,15 +153,18 @@ end
     # Here parallel processing can optionally be used by calling 'pmap' or
     # 'map' instead, depending in the configuration of the parameters and the number
     # of experiments
-    ixs_data = map((ξi) -> process_xi(stst, model_file, ξi, ξs, βs, upfrec), eachindex(ξs))
+    ixs_data = map(eachindex(ξs)) do ξi
+        xi_state = (stst, model_id, ξi, ξs[ξi])
+        process_xi(xi_state)
+    end
     
     # --------------------  BOUNDLING --------------------  
-    boundle = Ch.Utils.ChstatBoundle()
+    boundle = ChstatBoundle()
     foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
 
     # --------------------  FINISHING --------------------   
-    data = (stst, boundle)
-    save_cache(state, data)
+    data = (state, boundle)
+    save_cache(data, cache_state)
     
     # Printing finishing in 1
     print_action(state, "FINISHING EXPERIMENT")
@@ -268,55 +174,51 @@ end
 end
 
 # +
-@everywhere function process_xi(stst, model_file, ξi, ξs, βs, upfrec)
+@everywhere function process_xi(xi_state; upfrec = 10)
     
     # Current state
-    ξ = ξs[ξi]
-    xi_state = (stst, ξ, hash(βs))
+    stst, model_id, ξi, ξ = xi_state
+
+    
     t0 = time() # to track xi processing duration
         
     # --------------------  TEMP CACHE  --------------------  
     # I do not check any cache consistency, so delete the temporal caches if you
     # dont trust them
-    cached_data = load_cached(xi_state)
+    cache_state = (xi_state, hash(params))
+    cached_data = load_cached(cache_state)
     !isnothing(cached_data) && return cached_data
 
     # Print hello in worker 1
     print_action(xi_state, "STARTING XI")
     
     # --------------------  EP PARAMS  --------------------  
-    ep_alpha = params["ep_alpha"]
-    ep_epsconv = params["ep_epsconv"]
-    ep_maxiter = floor(Int, params["ep_maxiter"])
+    ξs::Vector{Float64} = params["ξs"]
+    βs::Vector{Float64} = params["βs"]
+    ep_alpha::Float64 = params["ep_alpha"]
+    ep_epsconv::Float64 = params["ep_epsconv"]
+    ep_maxiter::Int = floor(Int, params["ep_maxiter"])
     ep_epoch = params["ep_epoch"]
 
 
     # --------------------  PREPARING MODEL  --------------------  
-    dat = deserialize(model_file);
-    model = dat.metnet
+    model::MetNet = deepcopy(ec_models[model_id])
     m, n = size(model)
-    obj_ider = params["obj_ider"]
-    obj_idx = Ch.Utils.rxnindex(model, obj_ider)
+    obj_idx = rxnindex(model, OBJ_IDER)
     
     # intake info
-    intake_info = Dict()
-    for (intake, info) in HG.stst_base_intake_info(stst)
-        if intake in model.rxns 
-            intake_info[intake] = info
-        else
-            delete!(model.intake_info, intake)
-        end
-    end
+    intake_info = HG.stst_base_intake_info(stst)
 
     # Chemostat steady state constraint, see Cossios paper, (see README)
-    Ch.SteadyState.apply_bound!(model, ξ, intake_info)
+    apply_bound!(model, ξ, intake_info; 
+        emptyfirst = true, ignore_miss = true)
 
     # --------------------  FBA  --------------------  
-    fbaout = Ch.LP.fba(model, obj_ider)
+    fbaout = fba(model, obj_idx)
 
     # storing
     xi_data = Dict() # local store
-    xi_data[(ξ, :net)] = model
+    xi_data[(ξ, :net)] = compress_model(model)
     xi_data[(ξ, :fba)] = fbaout
     
     
@@ -329,10 +231,10 @@ end
         
         # --------------------  TEMP CACHE  --------------------  
         # I do not check any cache consistency, so delete the temporal caches if you
-        # dont trust them
-        # currrent state
-        beta_state = (stst, ξ, β)
-        cached = load_cached(beta_state)
+        # don't trust them
+        # current state
+        beta_cache_state = (xi_state, β, hash(params))
+        cached = load_cached(beta_cache_state)
         epout = isnothing(cached) ? beta_seed : cached
         
         # --------------------  TRY MAXENT-EP  --------------------  
@@ -346,8 +248,8 @@ end
                 (ep_maxiter > curr_iter && # Till maxiter 
                     epout.status != :converged) # Or converged
                 
-                epout = testing ? Ch.Test.empty_epout(model) :
-                    Ch.MaxEntEP.maxent_ep(model, 
+                epout = testing ? empty_epout(model) :
+                    maxent_ep(model, 
                             alpha = ep_alpha, 
                             beta_vec = βv, 
                             epsconv = ep_epsconv, 
@@ -357,19 +259,19 @@ end
                 
                 curr_iter += epout.iter
 
-                # Show progress # TODO epout.iter > 10, make this setable
+                # Show progress # TODO epout.iter > 10, make this settable
                 if βi == 1 || βi == length(βs) || βi % upfrec == 0 || 
                         epout.iter > 10 || epout.status == :converged ||
                         (time() - show_t) > 30 # update if more than 30s
                     show_t = time()
                     
                     exp_av = Rd.val(:μ, stst)
-                    fba_av = Ch.Utils.av(model, fbaout, obj_idx)
-                    ep_av = Ch.Utils.av(model, epout, obj_idx)
+                    fba_av = av(model, fbaout, obj_idx)
+                    ep_av = av(model, epout, obj_idx)
                     ep_status = epout.status
                     ep_iter = curr_iter
 
-                    abs_norm_err = Ch.Utils.norm_abs_stoi_err(model, epout) .|> abs
+                    abs_norm_err = norm_abs_stoi_err(model, epout) .|> abs
                     max_err = abs_norm_err |> maximum
                     min_err = abs_norm_err |> minimum
                     mean_err = abs_norm_err |> mean
@@ -383,7 +285,7 @@ end
                 end
                 
                 # caching
-                save_cache(beta_state, epout)
+                save_cache(epout, beta_cache_state)
                 
             end # EP While loop
 
@@ -395,7 +297,7 @@ end
 
         catch err
             # Print error in 1
-            print_action(beta_state, "ERROR DURING EP", "err: $(string_err(err))")
+            print_action(beta_cache_state, "ERROR DURING EP", string_err(err))
 
             # storing error
             xi_data[(ξ, β, :ep)] = err
@@ -406,7 +308,7 @@ end
     end # β loop
     
     # --------------------  FINISHING --------------------   
-    save_cache(xi_state, xi_data)
+    save_cache(xi_data, xi_state)
     
     # Printing finishing in 1
     print_action(xi_state, "FINISHING XI")
@@ -428,23 +330,9 @@ end
 
 # ### Processing
 
-fva_pp_files = filter((s) -> startswith(s, "fva_pp_model_"), readdir(tIG.MODEL_PROCESSED_DATA_DIR))
-fva_pp_files = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, fva_pp_files);
-
-for model_file in fva_pp_files
-
-    model_file = relpath(model_file)
-    dat = deserialize(model_file)
-    model_id = dat.id
-
-    boundle_file = joinpath(tIG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___$(model_id)___boundles.jls")
-    if isfile(boundle_file)
-        println("\n skipping $model_id, $(basename(boundle_file)) exist!!!\n")
-        continue
-    end
+for (model_id, ec_model) in ec_models
 
     println("\n\n ------------------ $model_id ------------------\n\n")
-    Ch.Utils.summary(dat.metnet)
     println()
 
     # this can take a while!!!
@@ -453,14 +341,18 @@ for model_file in fva_pp_files
     ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
     println("Ststs: ", ststs_)
 
-    remote_results = pmap((stst) -> process_exp(stst, model_file), ststs_);
+    remote_results = pmap(ststs_) do stst
+        state = (model_id, stst)
+        process_exp(state)
+    end
 
     # ### Saving
 
     println("\nSaving")
-    to_save = (params = params, id = model_id, res = remote_results)
-    !testing && serialize(boundle_file, to_save)
-    println(relpath(boundle_file), " created!!!")
+    file = "maxent_fba_ep_boundles.bson"
+    tagsave(file, Dict(DATA_KEY => remote_results))
+    println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+
 
     # ### Delete Temp Caches
 
