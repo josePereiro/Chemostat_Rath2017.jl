@@ -2,6 +2,12 @@
 # ## Print functions
 # ---
 
+print_in1(ss...) = remotecall_wait(Core.print, 1, ss...);
+println_in1(ss...) = remotecall_wait(Core.println, 1, ss...);
+print_if1(ss...) = myid() == 1 ? print(ss...) : nothing
+println_if1(ss...) = myid() == 1 ? println(ss...) : nothing
+
+
 function print_action(wid, pid, state, head, bodyls...; t = Time(now()))
     Core.println("Worker $wid ($pid) $head at $(t) ----------------------------")
     Core.println("\tState: ", state)

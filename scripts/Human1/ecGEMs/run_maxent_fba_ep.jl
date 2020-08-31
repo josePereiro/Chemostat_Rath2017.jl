@@ -32,7 +32,8 @@ import Chemostat.MaxEntEP: maxent_ep
 import Chemostat_Rath2017
 import Chemostat_Rath2017: DATA_KEY, Human1, print_action, string_err,
                             load_cached, save_cache, set_cache_dir,
-                            delete_temp_caches, temp_cache_file, RathData
+                            delete_temp_caches, temp_cache_file, RathData,
+                            println_if1
 import Chemostat_Rath2017.Human1: OBJ_IDER, ATPM_IDER, PROT_POOL_EXCHANGE, 
                                 MAX_BOUND, ZEROTH
 const RepH1 = Human1.Rep_Human1;
@@ -108,20 +109,21 @@ println("Testing: ", testing)
 end
 
 ## Loading models
+println("\n\n ------------------ LOADING EC MODELS ------------------\n\n")
 @everywhere begin
-    myid() == 1 && println("\nLoading fva pp ec base models")
     src_file = ecG.FVA_PP_BASE_MODELS
     const ec_models = wload(src_file)[DATA_KEY]
-    myid() == 1 && println(relpath(src_file), " loaded!!!, size: ", filesize(src_file), " bytes")
+    println_if1(relpath(src_file), " loaded!!!, size: ", filesize(src_file), " bytes")
     for (model_id, model) in ec_models
         ec_models[model_id] = uncompress_model(model)
         clamp_bounds!(ec_models[model_id], MAX_BOUND, ZEROTH)
-        myid() == 1 && println("model: ", model_id, " size: ", size(model))
+        println_if1("model: ", model_id, " size: ", size(model))
     end
 end
 
 
 ## work functions
+# Returns a boundle with all the data
 @everywhere function process_exp(state)
 
     # State
@@ -165,7 +167,7 @@ end
     foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
 
     # --------------------  FINISHING --------------------   
-    data = (state, boundle)
+    data = boundle
     save_cache(data, cache_state)
     
     # Printing finishing in 1
@@ -349,39 +351,52 @@ end # process_xi
     end
 end 
 
-# ### Processing
-
+## Processing
+println("\n\n ------------------ PROCESSING ------------------\n\n")
 for (model_id, ec_model) in ec_models
+    
+    println("\n\n ------------------ $model_id ------------------\n")
 
-    println("\n\n ------------------ $model_id ------------------\n\n")
-    println()
-
+    # loading cache
+    state = (model_id, hash(params))
+    cached = load_cached(state)
+    !isnothing(cached) && continue
+    
     # this can take a while!!!
     # A, B, C steady states have the same initial conditions
     # ststs_ = [stst for stst in Rd.ststs if stst != "B" && stst != "C"]
     ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
-    println("Ststs: ", ststs_)
-
     ststs_ = ststs_[1:2] # Test
-    remote_results = pmap(ststs_) do stst
-        state = (model_id, stst)
-        process_exp(state)
-    end
-
-    # ### Saving
-
-    println("\nSaving")
-    file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
-    tagsave(file, Dict(DATA_KEY => remote_results))
-    println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
-
-
-    # ### Delete Temp Caches
-
-    # Do not forget to run this if you change any parameter
-    println("\nDeleting caches")
-    # delete_temp_caches() # Test
-    println()
-    flush(stdout)
     
+    data_dict = Dict()
+    println("Ststs: ", ststs_)
+    pmap(ststs_) do stst
+        exp_state = (model_id, stst)
+        data_dict[stst] = process_exp(exp_state)
+    end
+    
+    save_cache(data_dict, state)
 end
+
+## Saving
+println("\n\n ------------------ SAVING ------------------\n\n")
+boundles = Dict()
+for (model_id, ec_model) in ec_models
+
+    # loading cache
+    state = (model_id, hash(params))
+    cached = load_cached(state)
+    isnothing(cached) && continue
+
+    boundles[model_id] = cached
+end
+file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
+tagsave(file, Dict(DATA_KEY => boundles))
+println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+
+## Delete Temp Caches
+# Do not forget to run this if you change any parameter
+println("\n\n ------------------ DELETING CACHE ------------------\n\n")
+# delete_temp_caches() # Test
+println()
+flush(stdout)
