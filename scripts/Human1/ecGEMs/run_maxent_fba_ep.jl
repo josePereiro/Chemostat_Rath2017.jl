@@ -371,7 +371,7 @@ for (model_id, ec_model) in ec_models
     # ### Saving
 
     println("\nSaving")
-    file = "maxent_fba_ep_boundles.bson"
+    file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
     tagsave(file, Dict(DATA_KEY => remote_results))
     println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 
@@ -380,7 +380,7 @@ for (model_id, ec_model) in ec_models
 
     # Do not forget to run this if you change any parameter
     println("\nDeleting caches")
-    # delete_temp_caches()
+    # delete_temp_caches() # Test
     println()
     flush(stdout)
     
