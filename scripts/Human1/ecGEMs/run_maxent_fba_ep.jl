@@ -2,7 +2,7 @@
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-NO_CORES = 3 # Test
+NO_CORES = 0 # Test
 length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
 exeflags = "--project")
 println("Working in: ", workers())
@@ -101,6 +101,7 @@ println("Testing: ", testing)
     params["ep_epsconv"] = 1e-5 # The error threshold of convergence
     params["ep_maxiter"] = 1e4 # The maximum number of iteration beforre EP to return, even if not converged
     params["ep_epoch"] = 10 # This determine how often EP results will be cached
+    params["stoi_err_th"] = 3 # 
     params["ξs"] = Rd.val(:ξ, Rd.ststs) # 
     params["βs"] = [0.0; range(5e3, 5e4, length = 25)] # 
 
@@ -160,6 +161,7 @@ end
     
     # --------------------  BOUNDLING --------------------  
     boundle = ChstatBoundle()
+    βs = βs[1:1] # Test
     foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
 
     # --------------------  FINISHING --------------------   
@@ -179,7 +181,6 @@ end
     # Current state
     stst, model_id, ξi, ξ = xi_state
 
-    
     t0 = time() # to track xi processing duration
         
     # --------------------  TEMP CACHE  --------------------  
@@ -192,13 +193,14 @@ end
     # Print hello in worker 1
     print_action(xi_state, "STARTING XI")
     
-    # --------------------  EP PARAMS  --------------------  
+    # --------------------  PARAMS  --------------------  
     ξs::Vector{Float64} = params["ξs"]
     βs::Vector{Float64} = params["βs"]
     ep_alpha::Float64 = params["ep_alpha"]
     ep_epsconv::Float64 = params["ep_epsconv"]
     ep_maxiter::Int = floor(Int, params["ep_maxiter"])
     ep_epoch = params["ep_epoch"]
+    stoi_err_th = params["stoi_err_th"]
 
 
     # --------------------  PREPARING MODEL  --------------------  
@@ -236,6 +238,10 @@ end
         beta_cache_state = (xi_state, β, hash(params))
         cached = load_cached(beta_cache_state)
         epout = isnothing(cached) ? beta_seed : cached
+
+        best_beta_cache_state = (beta_cache_state, "BEST")
+        dat = load_cached(best_beta_cache_state)
+        best_epout, best_err = isnothing(dat) ? (nothing, Inf) : dat
         
         # --------------------  TRY MAXENT-EP  --------------------  
         try
@@ -259,6 +265,19 @@ end
                 
                 curr_iter += epout.iter
 
+                # stoi error
+                abs_norm_err = norm_abs_stoi_err(model, epout) .|> abs
+                max_err = abs_norm_err |> maximum
+                min_err = abs_norm_err |> minimum
+                mean_err = abs_norm_err |> mean
+                
+                # backup best solution 
+                if max_err < min(best_err, stoi_err_th)
+                    best_epout = epout
+                    best_err = max_err
+                    save_cache((best_epout, max_err), best_beta_cache_state)
+                end
+
                 # Show progress # TODO epout.iter > 10, make this settable
                 if βi == 1 || βi == length(βs) || βi % upfrec == 0 || 
                         epout.iter > 10 || epout.status == :converged ||
@@ -270,11 +289,6 @@ end
                     ep_av = av(model, epout, obj_idx)
                     ep_status = epout.status
                     ep_iter = curr_iter
-
-                    abs_norm_err = norm_abs_stoi_err(model, epout) .|> abs
-                    max_err = abs_norm_err |> maximum
-                    min_err = abs_norm_err |> minimum
-                    mean_err = abs_norm_err |> mean
 
                     elapsed = time() - t0
 
@@ -289,22 +303,29 @@ end
                 
             end # EP While loop
 
-            # save for the next beta
-            beta_seed = epout
-
-            # storing
-            xi_data[(ξ, β, :ep)] = epout
-
         catch err
-            # Print error in 1
-            print_action(beta_cache_state, "ERROR DURING EP", string_err(err))
 
-            # storing error
-            xi_data[(ξ, β, :ep)] = err
-            
             err isa InterruptException && rethrow(err)
+            
+            # using backup
+            isnothing(best_epout) && rethrow(err)
+            print_action(beta_cache_state, "ERROR DURING EP", string_err(err))
+            epout = best_epout
+            
         end # try
-        
+
+        # save for the next beta
+        beta_seed = epout
+
+        # storing
+        xi_data[(ξ, β, :ep)] = epout
+
+        # caching
+        save_cache(epout, beta_cache_state)
+
+        # Test
+        break;
+
     end # β loop
     
     # --------------------  FINISHING --------------------   
@@ -341,6 +362,7 @@ for (model_id, ec_model) in ec_models
     ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
     println("Ststs: ", ststs_)
 
+    ststs_ = ststs_[1:2] # Test
     remote_results = pmap(ststs_) do stst
         state = (model_id, stst)
         process_exp(state)
@@ -358,7 +380,7 @@ for (model_id, ec_model) in ec_models
 
     # Do not forget to run this if you change any parameter
     println("\nDeleting caches")
-    delete_temp_caches()
+    # delete_temp_caches()
     println()
     flush(stdout)
     
