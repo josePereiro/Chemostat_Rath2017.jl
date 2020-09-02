@@ -51,21 +51,21 @@ end
 function expanded_model(model, expdM::Int, expdN::Int)
     M, N = size(model)
     @assert all((expdM, expdN) .> (M, N))
+
+    function setfirsts!(col1, col2)
+        L = min(length(col1), length(col2))
+        col1[1:L] .= col2[1:L]
+        return col1
+    end
     
     S_ = zeros(expdM, expdN)
     S_[1:M, 1:N] .= model.S
-    b_ = zeros(expdM)
-    b_[1:M] .= model.b
-    lb_ = zeros(expdN)
-    lb_[1:N] .= model.lb
-    ub_ = zeros(expdN)
-    ub_[1:N] .= model.ub
-    subSystems_ = Vector{Any}(fill("NA", expdN))
-    subSystems_[1:N] .= model.subSystems
-    rxns_ = fill(EMPTY_SPOT, expdN)
-    rxns_[1:N] .= model.rxns
-    mets_ = fill(EMPTY_SPOT, expdM)
-    mets_[1:M] .= model.mets
+    b_ = setfirsts!(zeros(expdM), model.b)
+    lb_ = setfirsts!(zeros(expdN), model.lb)
+    ub_ = setfirsts!(zeros(expdN), model.ub)
+    subSystems_ = setfirsts!(Vector{Any}(fill("NA", expdN)), model.subSystems)
+    rxns_ = setfirsts!(fill(EMPTY_SPOT, expdN), model.rxns)
+    mets_ = setfirsts!(fill(EMPTY_SPOT, expdM), model.mets)
     
     return MetNet(S_, b_, lb_, ub_, rxns_, mets_; subSystems = subSystems_)
 end

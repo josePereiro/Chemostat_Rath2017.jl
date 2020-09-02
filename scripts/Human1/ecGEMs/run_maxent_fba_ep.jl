@@ -2,7 +2,7 @@
 using Distributed
 
 NO_CORES = length(Sys.cpu_info())
-NO_CORES = 0 # Test
+NO_CORES = 3 #
 length(workers()) < NO_CORES - 1 && addprocs(NO_CORES - 1; 
 exeflags = "--project")
 println("Working in: ", workers())
@@ -163,7 +163,6 @@ end
     
     # --------------------  BOUNDLING --------------------  
     boundle = ChstatBoundle()
-    βs = βs[1:1] # Test
     foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
 
     # --------------------  FINISHING --------------------   
@@ -325,9 +324,6 @@ end
         # caching
         save_cache(epout, beta_cache_state)
 
-        # Test
-        break;
-
     end # β loop
     
     # --------------------  FINISHING --------------------   
@@ -366,7 +362,6 @@ for (model_id, ec_model) in ec_models
     # A, B, C steady states have the same initial conditions
     # ststs_ = [stst for stst in Rd.ststs if stst != "B" && stst != "C"]
     ststs_ = testing ? Rd.ststs[1:1] : Rd.ststs
-    ststs_ = ststs_[1:2] # Test
     
     data_dict = Dict()
     println("Ststs: ", ststs_)
