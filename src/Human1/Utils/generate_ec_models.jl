@@ -48,33 +48,33 @@ end
 
 # This just prepare the model to hold more elements by making 
 # all the numerical fields larger
-function expanded_model(model, expdM::Int, expdN::Int)
-    M, N = size(model)
-    @assert all((expdM, expdN) .> (M, N))
+# function expanded_model(model, expdM::Int, expdN::Int)
+#     M, N = size(model)
+#     @assert all((expdM, expdN) .> (M, N))
 
-    function setfirsts!(col1, col2)
-        L = min(length(col1), length(col2))
-        col1[1:L] .= col2[1:L]
-        return col1
-    end
+#     function setfirsts!(col1, col2)
+#         L = min(length(col1), length(col2))
+#         col1[1:L] .= col2[1:L]
+#         return col1
+#     end
     
-    S_ = zeros(expdM, expdN)
-    S_[1:M, 1:N] .= model.S
-    b_ = setfirsts!(zeros(expdM), model.b)
-    lb_ = setfirsts!(zeros(expdN), model.lb)
-    ub_ = setfirsts!(zeros(expdN), model.ub)
-    subSystems_ = setfirsts!(Vector{Any}(fill("NA", expdN)), model.subSystems)
-    rxns_ = setfirsts!(fill(EMPTY_SPOT, expdN), model.rxns)
-    mets_ = setfirsts!(fill(EMPTY_SPOT, expdM), model.mets)
+#     S_ = zeros(expdM, expdN)
+#     S_[1:M, 1:N] .= model.S
+#     b_ = setfirsts!(zeros(expdM), model.b)
+#     lb_ = setfirsts!(zeros(expdN), model.lb)
+#     ub_ = setfirsts!(zeros(expdN), model.ub)
+#     subSystems_ = setfirsts!(Vector{Any}(fill("NA", expdN)), model.subSystems)
+#     rxns_ = setfirsts!(fill(EMPTY_SPOT, expdN), model.rxns)
+#     mets_ = setfirsts!(fill(EMPTY_SPOT, expdM), model.mets)
     
-    return MetNet(S_, b_, lb_, ub_, rxns_, mets_; subSystems = subSystems_)
-end
+#     return MetNet(S_, b_, lb_, ub_, rxns_, mets_; subSystems = subSystems_)
+# end
 
-function find_free_spot(model, col)
-    spot = findfirst(isequal(EMPTY_SPOT), getfield(model, col))
-    isnothing(spot) && error("Not $col empty spot!!!")
-    return spot
-end
+# function find_free_spot(model, col)
+#     spot = findfirst(isequal(EMPTY_SPOT), getfield(model, col))
+#     isnothing(spot) && error("Not $col empty spot!!!")
+#     return spot
+# end
 
 function compacted_model(model)
 

@@ -172,9 +172,11 @@ for (model_id, model) in ec_models
 end
 # -
 
-file = ecG.FVA_PP_BASE_MODELS
-tagsave(file, Dict(DATA_KEY => fva_pp_models))
-println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+## Saving
+# TODO: save all as compressed dicts
+# file = ecG.FVA_PP_BASE_MODELS
+# tagsave(file, Dict(DATA_KEY => fva_pp_models))
+# println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 
 ## Clearing
 delete_temp_caches()

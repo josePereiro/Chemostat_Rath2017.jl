@@ -385,9 +385,11 @@ for (model_id, ec_model) in ec_models
 
     boundles[model_id] = cached
 end
-file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
-tagsave(file, Dict(DATA_KEY => boundles))
-println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+
+# # TODO: save all as compressed dicts
+# file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
+# tagsave(file, Dict(DATA_KEY => boundles))
+# println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
 
 ## Delete Temp Caches
 # Do not forget to run this if you change any parameter

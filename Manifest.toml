@@ -81,7 +81,7 @@ uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 version = "0.8.1"
 
 [[Chemostat]]
-deps = ["Clp", "DataFrames", "Distributed", "Distributions", "ExtractMacro", "JuMP", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "Random", "Requires", "SparseArrays", "SpecialFunctions", "StatsBase"]
+deps = ["Clp", "DataFrames", "Distributed", "Distributions", "ExtractMacro", "JuMP", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "ProgressMeter", "Random", "Requires", "SparseArrays", "SpecialFunctions", "StatsBase"]
 path = "/Users/Pereiro/.julia/dev/Chemostat"
 uuid = "c5987326-81b3-11ea-28dd-b531745de20f"
 version = "0.5.1"

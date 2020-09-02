@@ -8,6 +8,7 @@ module Chemostat_Rath2017
     using Distributed
     using Dates
     using Serialization
+    import DrWatson: tagsave, wload
 
     include("Utils/Utils.jl")
     include("RathData/RathData.jl")
