@@ -135,6 +135,9 @@ epconv_kwargs = Dict()
 epconv_kwargs[:maxiter] = params["ep_maxiter"]
 epconv_kwargs[:epsconv] = params["ep_epsconv"]
 
+βs = range(1e3, 1e5, length = 25)
+βs = [0.0; βs]
+
 map(model_ids) do model_id
 
     tagprintln_inmw("PROCESSING MODEL ", 
@@ -163,7 +166,7 @@ map(model_ids) do model_id
                 end,
                 objider = OBJ_IDER,
                 costider = PROT_POOL_EXCHANGE,
-                beta_info = [(OBJ_IDER, [0.0])], # TODO: handle betas better
+                beta_info = [(OBJ_IDER, βs)], # TODO: handle betas better
                 clear_cache = false,
                 use_seed = true,
                 epmodel_kwargs = epmodel_kwargs,
