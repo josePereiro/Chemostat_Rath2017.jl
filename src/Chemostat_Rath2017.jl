@@ -9,6 +9,8 @@ module Chemostat_Rath2017
     using Dates
     using Serialization
     import DrWatson: tagsave, wload
+    import Chemostat
+    import Chemostat.Utils: IDER_TYPE, rxnindex
 
     include("Utils/Utils.jl")
     include("RathData/RathData.jl")
