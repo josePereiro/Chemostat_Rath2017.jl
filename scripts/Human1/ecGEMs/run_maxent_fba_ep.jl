@@ -9,7 +9,7 @@ set = ArgParseSettings()
         default = 1
 end
 parsed_args = parse_args(set)
-wcount = parsed_args["dry-run"]
+wcount = parsed_args["w"]
 
 ## ------------------------------------------------------------------
 using Distributed
