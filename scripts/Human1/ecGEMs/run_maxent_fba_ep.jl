@@ -1,3 +1,6 @@
+using DrWatson 
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 using Distributed
 
 NO_WORKERS = min(length(Sys.cpu_info()) - 1, 3)
@@ -6,9 +9,6 @@ println("Working in: ", workers())
 
 ## Loading everywhere
 @everywhere begin
-
-    using DrWatson 
-    quickactivate(@__DIR__, "Chemostat_Rath2017")
 
     using Distributed
     using Serialization
