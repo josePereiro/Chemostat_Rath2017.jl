@@ -9,7 +9,7 @@ set = ArgParseSettings()
         default = 1
 end
 parsed_args = parse_args(set)
-wcount = parsed_args["w"]
+wcount = parse(Int, parsed_args["w"])
 
 ## ------------------------------------------------------------------
 using Distributed
