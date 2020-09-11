@@ -1,8 +1,22 @@
+## ------------------------------------------------------------------
+## ARGS
+using ArgParse
+
+set = ArgParseSettings()
+@add_arg_table! set begin
+    "-w"
+        help = "number of workers to use"
+        default = 1
+end
+parsed_args = parse_args(set)
+wcount = parsed_args["dry-run"]
+
+## ------------------------------------------------------------------
 using Distributed
 
-NO_WORKERS = min(length(Sys.cpu_info()) - 1, 3)
-length(workers()) < NO_WORKERS && addprocs(NO_WORKERS; 
-    exeflags = "--project")
+NO_WORKERS = min(length(Sys.cpu_info()) - 1, wcount)
+length(workers()) < NO_WORKERS && 
+    addprocs(NO_WORKERS; exeflags = "--project")
 println("Working in: ", workers())
 
 ## Loading everywhere
