@@ -174,7 +174,7 @@ map(model_ids) do (model_id)
         "\n")
     
     to_map = Iterators.product(Rd.ststs, [model_id])
-    map(to_map) do (stst, model_id)
+    pmap(to_map) do (stst, model_id)
         
         ## SIMULATION PARAMS
         ξs = [Rd.val(:ξ, stst)]
@@ -183,7 +183,7 @@ map(model_ids) do (model_id)
         # βs = [0.0] # Test
         
         to_map = Iterators.product(ξs, [βs], [stst], [model_id])
-        pmap(to_map) do (ξ, βs, stst, model_id)
+        map(to_map) do (ξ, βs, stst, model_id)
             
             ## HASH SEEDS
             # TODO: add PARAMS hash
