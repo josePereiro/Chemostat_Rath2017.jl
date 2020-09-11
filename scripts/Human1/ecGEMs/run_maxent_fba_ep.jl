@@ -7,9 +7,17 @@ set = ArgParseSettings()
     "-w"
         help = "number of workers to use"
         default = 1
+    "--init_clear"
+        help = "clear cache before running the simulation"   
+        action = :store_true
+    "--finish_clear"
+        help = "clear cache at the end"   
+        action = :store_true
 end
 parsed_args = parse_args(set)
 wcount = parse(Int, parsed_args["w"])
+init_clear_flag = parsed_args["init_clear"]
+finish_clear_flag = parsed_args["finish_clear"]
 
 ## ------------------------------------------------------------------
 using Distributed
@@ -62,6 +70,14 @@ println("Working in: ", workers())
     const Rd = RathData
     set_cache_dir(ecG.MODEL_CACHE_DATA_DIR)
     
+end
+
+## ------------------------------------------------------------------
+# CLEAR CACHE (WARNING)
+if init_clear_flag
+    tagprintln_inmw("CLEARING CACHE ")
+    delete_temp_caches()
+    println_inmw("\n")
 end
 
 ## ------------------------------------------------------------------
@@ -251,5 +267,7 @@ tagprintln_inmw("SAVING RESULTS ")
 save_data(ecG.MAXENT_FBA_EB_BOUNDLES_FILE, boundles)
 
 ## CLEAR CACHE (WARNING)
-tagprintln_inmw("CLEARING CACHE ")
-delete_temp_caches()
+if finish_clear_flag
+    tagprintln_inmw("CLEARING CACHE ")
+    delete_temp_caches()
+end
