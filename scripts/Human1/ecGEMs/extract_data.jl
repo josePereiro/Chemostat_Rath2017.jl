@@ -19,7 +19,7 @@ import Chemostat
 import Chemostat.Utils: av, va, μ, σ, bounds, norm_abs_stoi_err
 
 import Chemostat_Rath2017
-import Chemostat_Rath2017: RathData, DATA_KEY
+import Chemostat_Rath2017: RathData, DATA_KEY, load_data, save_data
 import Chemostat_Rath2017.Human1: HumanGEM, tINIT_GEMs, ecGEMs, OBJ_IDER, 
                                 RATH_IDERS_TO_PLOT, MODEL_IDERS_TO_PLOT, 
                                 IDERS_MAP
@@ -30,8 +30,8 @@ const ecG = ecGEMs
 
 ## Loading dat
 src_file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
-boundles = wload(src_file)[DATA_KEY];
-println(relpath(src_file), " loaded!!!, size: ", filesize(src_file), " bytes")
+boundles = load_data(src_file)
+# boundles = wload(src_file)[DATA_KEY];
 
 ## Find experimental beta
 # The beta value that has the closest growth value to the experimental growth
@@ -117,8 +117,6 @@ for (model_id, dat) in boundles
 end
 
 ## Save
-save_file = ecG.EXTRACTED_DATA_FILE
-tagsave(save_file, Dict(DATA_KEY => global_dict))
-println(relpath(save_file), " created!!!, size: ", filesize(save_file), " bytes")
+save_data(ecG.EXTRACTED_DATA_FILE, global_dict)
 
 

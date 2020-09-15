@@ -40,14 +40,16 @@ using Plots
 pyplot();
 
 ## Total Correlations
-lim = 5
+lim = 0.2
 lims = [-lim, lim]
 fbap = plot(
     ylim = lims, 
-    # xlim = lims, 
+    xlim = lims, 
     title = "FBA correlation", 
     xlabel = "exp", ylabel = "model"
 )
+lim = 1
+lims = [-lim, lim]
 epp = plot(
     ylim = lims, 
     # xlim = lims, 
@@ -78,5 +80,5 @@ for (model_id, model_dat) in extracted_dat
         end
     end
 end
-plot([fbap, epp]...)
+plot([fbap, epp]..., size = [800, 400])
 
