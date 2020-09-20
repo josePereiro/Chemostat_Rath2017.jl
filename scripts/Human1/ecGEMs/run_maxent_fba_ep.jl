@@ -45,7 +45,7 @@ println("Working in: ", workers())
     import Chemostat.Utils: MetNet, EPModel,
                             rxnindex, metindex, compress_dict, 
                             uncompress_dict, clampfileds!, well_scaled_model,
-                            ChstatBoundle, norm_abs_stoi_err, av, va, nzabs_range,
+                            ChstatBundle, norm1_stoi_err, av, va, nzabs_range,
                             struct_to_dict
 
     import Chemostat.SimulationUtils: epoch_converge_ep!, cached_simulation, set_cache_dir, 
@@ -242,27 +242,27 @@ end # map(model_ids) do model_id
 ## COLLECTING RESULTS
 tagprintln_inmw("COLLECTING RESULTS ")
 sleep(1) # wait for collector to get all ids
-boundles = Dict()
+bundles = Dict()
 for id in res_ids
 
     model_id, stst, ξ, βs, model, dat = load_cache(id; verbose = false)
     
     # Bundle
-    model_dict = get!(boundles, model_id, Dict())
-    boundle = get!(model_dict, stst, ChstatBoundle())
+    model_dict = get!(bundles, model_id, Dict())
+    bundle = get!(model_dict, stst, ChstatBundle())
 
-    boundle[ξ, :net] = model
-    boundle[ξ, :fba] = dat[:fba]
+    bundle[ξ, :net] = model
+    bundle[ξ, :fba] = dat[:fba]
 
     for (βi, β) in βs |> enumerate
-        boundle[ξ, β, :ep] = dat[(:ep, βi)]
+        bundle[ξ, β, :ep] = dat[(:ep, βi)]
     end
 
 end
 
 ## SAVING
 tagprintln_inmw("SAVING RESULTS ")
-save_data(ecG.MAXENT_FBA_EB_BOUNDLES_FILE, boundles)
+save_data(ecG.MAXENT_FBA_EB_BOUNDLES_FILE, bundles)
 
 ## CLEAR CACHE (WARNING)
 if finish_clear_flag

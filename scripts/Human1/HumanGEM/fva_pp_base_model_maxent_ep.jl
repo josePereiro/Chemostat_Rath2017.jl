@@ -248,11 +248,11 @@ end
     ixs_data = map((ξi) -> process_xi(stst, ξi, ξs, βs, upfrec), eachindex(ξs))
     
     # --------------------  BOUNDLING --------------------  
-    boundle = Ch.Utils.ChstatBoundle()
-    foreach((ξi) -> boundle_xi_data!(boundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
+    bundle = Ch.Utils.ChstatBundle()
+    foreach((ξi) -> bundle_xi_data!(bundle, ξs[ξi], βs, ixs_data[ξi]), eachindex(ξs))
 
     # --------------------  FINISHING --------------------   
-    data = (stst, boundle)
+    data = (stst, bundle)
     save_cache(state, data)
     
     # Printing finishing in 1
@@ -363,7 +363,7 @@ end
                     ep_status = epout.status
                     ep_iter = curr_iter
 
-                    abs_norm_err = Ch.Utils.norm_abs_stoi_err(model, epout) .|> abs
+                    abs_norm_err = Ch.Utils.norm1_stoi_err(model, epout) .|> abs
                     max_err = abs_norm_err |> maximum
                     min_err = abs_norm_err |> minimum
                     mean_err = abs_norm_err |> mean
@@ -410,13 +410,13 @@ end
 end # process_xi
 # -
 
-@everywhere function boundle_xi_data!(boundle, ξ, βs, xi_data)
+@everywhere function bundle_xi_data!(bundle, ξ, βs, xi_data)
 
-    boundle[ξ, :net] = get(xi_data, (ξ, :net), nothing)
-    boundle[ξ, :fba] = get(xi_data, (ξ, :fba), nothing)
+    bundle[ξ, :net] = get(xi_data, (ξ, :net), nothing)
+    bundle[ξ, :fba] = get(xi_data, (ξ, :fba), nothing)
     
     for β in βs
-        boundle[ξ, β, :ep] = get(xi_data, (ξ, β, :ep), nothing)
+        bundle[ξ, β, :ep] = get(xi_data, (ξ, β, :ep), nothing)
     end
 end 
 
@@ -433,7 +433,7 @@ remote_results = map(process_exp, ststs_);
 # ### Saving
 
 println()
-file_ = joinpath(HG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___boundles.jls")
+file_ = joinpath(HG.MODEL_PROCESSED_DATA_DIR, "$(notebook_name)___bundles.jls")
 !testing && serialize(file_, (params, remote_results))
 println(relpath(file_), " created!!!")
 

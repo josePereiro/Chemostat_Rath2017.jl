@@ -22,7 +22,7 @@ set = ArgParseSettings()
     "--clear", "-c"
         help = "possible values: \"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
-                                "\"maxent_ep\" (clear only the maxent_ep boundles), " *
+                                "\"maxent_ep\" (clear only the maxent_ep bundles), " *
                                 "\"fva_pp\" (clear only the fva preprocess models), " *
                                 "\"cache\" (clear the cache forder). " * 
                                 "The name of any script can be also passed. " *
@@ -55,19 +55,19 @@ targets_dict["prepare_fva_pp_tINIT_models.jl"] = joinpath.(tIG.MODEL_PROCESSED_D
                                                             "fva_pp_model_TCGA-GBM TP-1.jls", "fva_pp_model_TCGA-GBM TR-1.jls", 
                                                             "fva_pp_model_TCGA-LGG TP-1.jls", "fva_pp_model_TCGA-LGG TR-1.jls"])
 targets_dict["fva_pp_tINIT_models_maxent_ep.jl"] = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, 
-                                                            ["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___boundles.jls",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles.jls",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles.jls",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles.jls",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles.jls",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles.jls"])
+                                                            ["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___bundles.jls",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___bundles.jls",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___bundles.jls",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___bundles.jls",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___bundles.jls",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___bundles.jls"])
 targets_dict["maxent_ep___extract_data.jl"] = joinpath.(tIG.MODEL_PROCESSED_DATA_DIR, 
-                                                            ["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___boundles___extracted_data.json",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___boundles___extracted_data.json",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TP-1___boundles___extracted_data.json",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___boundles___extracted_data.json",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___boundles___extracted_data.json",
-                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___boundles___extracted_data.json"])
+                                                            ["fva_pp_tINIT_models_maxent_ep___GTEx-brain-1___bundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM NT-1___bundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TP-1___bundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-GBM TR-1___bundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TP-1___bundles___extracted_data.json",
+                                                            "fva_pp_tINIT_models_maxent_ep___TCGA-LGG TR-1___bundles___extracted_data.json"])
 
 
 targets_dict["cache"] = joinpath.(tIG.MODEL_CACHE_DATA_DIR, readdir(tIG.MODEL_CACHE_DATA_DIR))

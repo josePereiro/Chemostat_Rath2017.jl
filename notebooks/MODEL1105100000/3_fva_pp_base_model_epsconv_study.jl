@@ -213,12 +213,12 @@ end
     # If cached return 
     if isfile(tcache_file)
         
-        (state, boundle) =  deserialize(tcache_file)
+        (state, bundle) =  deserialize(tcache_file)
         
         # Print in worker 1
         remotecall_wait(print_return_cached, 1, myid(), stst, tcache_file)
         
-        return (state, boundle)
+        return (state, bundle)
     end
     
     # prepare params
@@ -237,18 +237,18 @@ end
     xis_data = map((ξi) -> process_xi(state, ξi, ξs, βs, upfrec), eachindex(ξs))
     
     # Boundling
-    boundle = Ch.Utils.ChstatBoundle()
+    bundle = Ch.Utils.ChstatBundle()
     foreach(eachindex(ξs)) do ξi
-        boundle_xi_data!(boundle, ξs[ξi], βs, xis_data[ξi])
+        bundle_xi_data!(bundle, ξs[ξi], βs, xis_data[ξi])
     end
 
     # Catching 
-    serialize(tcache_file, (state, boundle))
+    serialize(tcache_file, (state, bundle))
     
     # Printing in 1
     remotecall_wait(print_stst_good_bye, 1, myid(), stst, tcache_file)
     
-    return (state, boundle)
+    return (state, bundle)
     
 end
 
@@ -371,13 +371,13 @@ end
 end
 # -
 
-@everywhere function boundle_xi_data!(boundle, ξ, βs, xi_data)
+@everywhere function bundle_xi_data!(bundle, ξ, βs, xi_data)
 
-    boundle[ξ, :net] = xi_data[(ξ, :net)]
-    boundle[ξ, :fba] = xi_data[(ξ, :fba)]
+    bundle[ξ, :net] = xi_data[(ξ, :net)]
+    bundle[ξ, :fba] = xi_data[(ξ, :fba)]
     
     for β in βs
-        boundle[ξ, β, :ep] = xi_data[(ξ, β, :ep)]
+        bundle[ξ, β, :ep] = xi_data[(ξ, β, :ep)]
     end
 end
 
@@ -414,6 +414,6 @@ end
 # ## Saving
 # ---
 
-file_ = joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___boundles.jls")
+file_ = joinpath(M.MODEL_CACHE_DATA_DIR, "$(notebook_name)___bundles.jls")
 serialize(file_, (params, remote_results))
 println(relpath(file_), " created!!!")

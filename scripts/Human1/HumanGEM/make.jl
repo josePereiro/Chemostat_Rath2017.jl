@@ -31,7 +31,7 @@ set = ArgParseSettings()
         help = "possible values: \"raw\" (clear raw data folder), " *
                                 "\"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
-                                "\"maxent_ep\" (clear only the maxent_ep boundles), " *
+                                "\"maxent_ep\" (clear only the maxent_ep bundles), " *
                                 "\"fva_pp\" (clear only the fva preprocess models), " *
                                 "\"cache\" (clear the cache forder). " *
                                 "You can pass several using comma Ex: --clear=cache,maxent"

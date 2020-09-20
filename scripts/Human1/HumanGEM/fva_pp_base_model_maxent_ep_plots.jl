@@ -47,28 +47,28 @@
 # @assert isfile.(files) |> all
 # data = deserialize.(files);
 
-# boundles = Dict()
+# bundles = Dict()
 # for dat in data
-#     stst, boundle = dat
-#     boundles[stst] = boundle
+#     stst, bundle = dat
+#     bundles[stst] = bundle
 # end
 
 # obj_ider = "biomass_human"
 # good_βs = Dict()
-# for (stst, boundle) in boundles
-#     good_βs[stst] = filter((β) -> boundle[1, β, :ep] isa Ch.Utils.EPout, boundle.βs);
+# for (stst, bundle) in bundles
+#     good_βs[stst] = filter((β) -> bundle[1, β, :ep] isa Ch.Utils.EPout, bundle.βs);
 # end
 
 # # +
-# colors = [:blue, :red]#Plots.distinguishable_colors(length(boundles))
+# colors = [:blue, :red]#Plots.distinguishable_colors(length(bundles))
 # p = plot(title = "HumanGEM", xlabel = "beta", ylabel = "alpha")
-# for (i, (stst, boundle)) in boundles |> enumerate
-#     ep_avs = Ch.Utils.av(boundle, 1, good_βs[stst], :ep, obj_ider);
-#     fba_av = Ch.Utils.av(boundle, 1, :fba, obj_ider)
+# for (i, (stst, bundle)) in bundles |> enumerate
+#     ep_avs = Ch.Utils.av(bundle, 1, good_βs[stst], :ep, obj_ider);
+#     fba_av = Ch.Utils.av(bundle, 1, :fba, obj_ider)
 #     scatter!(good_βs[stst], ep_avs, color = colors[i], label = "", m = 10)
 #     hline!([fba_av], color = colors[i], lw = 3, label = "")
 #     hline!([Rd.val(:μ, stst)], color = colors[i], lw = 3, label = "", ls = :dash)
-#     vline!([maximum(boundle.βs)], label = "", color = colors[i])
+#     vline!([maximum(bundle.βs)], label = "", color = colors[i])
 #     scatter!([],[], label = stst, marker = :square, ms = 30, color = colors[i])
 # end
 # scatter!([],[], ls = :dash, color = :black, label = "ep")
@@ -80,12 +80,12 @@
 
 # ## Stoi err
 # p = plot(title = "HumanGEM", xlabel = "beta", ylabel = "abs norm stoi error")
-# for (i, (stst, boundle)) in boundles |> enumerate
+# for (i, (stst, bundle)) in bundles |> enumerate
 #     βs = good_βs[stst] |> sort
-#     metnet = boundle[1, :net]
-#     epouts = boundle[1, βs, :ep]
+#     metnet = bundle[1, :net]
+#     epouts = bundle[1, βs, :ep]
 #     errs = map(epouts) do epout 
-#         Ch.Utils.norm_abs_stoi_err(metnet, epout)
+#         Ch.Utils.norm1_stoi_err(metnet, epout)
 #     end
 #     plot!(βs, mean.(errs), label = "", color = colors[i], lw = 2, ls = :dash)
 #     plot!(βs, maximum.(errs), label = "", color = colors[i], lw = 2)

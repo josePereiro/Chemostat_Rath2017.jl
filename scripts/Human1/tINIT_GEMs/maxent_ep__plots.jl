@@ -51,7 +51,7 @@ const tIG = ChR.tINIT_GEMs;
 # maxent_ep data files
 # TODO: package this
 preffix = "fva_pp_tINIT_models_maxent_ep___"
-suffix = "___boundles___extracted_data.json"
+suffix = "___bundles___extracted_data.json"
 # TODO: use DrWatson
 models_ids = ["GTEx-brain-1", "TCGA-GBM NT-1", "TCGA-GBM TP-1", 
     "TCGA-GBM TR-1", "TCGA-LGG TP-1", "TCGA-LGG TR-1"]

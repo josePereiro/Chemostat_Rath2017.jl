@@ -1,6 +1,7 @@
 *-gitworker-copy
 .DS_Store
 /dev/
+*dev.jl
 
 *.jl.*.cov
 *.jl.cov

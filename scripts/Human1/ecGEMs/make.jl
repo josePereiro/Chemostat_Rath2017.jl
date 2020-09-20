@@ -24,7 +24,7 @@ set = ArgParseSettings()
     "--clear", "-c"
         help = "possible values: \"all\" (clear all the scripts targets), " *
                                 "\"base\" (clear only the base model scripts targets), " *
-                                "\"maxent_ep\" (clear only the maxent_ep boundles), " *
+                                "\"maxent_ep\" (clear only the maxent_ep bundles), " *
                                 "\"fva_pp\" (clear only the fva preprocess models), " *
                                 "\"cache\" (clear the cache forder). " * 
                                 "The name of any script can be also passed. " *

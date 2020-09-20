@@ -12,7 +12,7 @@ using MathProgBase
 # run add "https://github.com/josePereiro/Chemostat" in the 
 # julia Pkg REPL for installing the package
 import Chemostat
-import Chemostat.Utils: av, va, μ, σ, bounds, norm_abs_stoi_err
+import Chemostat.Utils: av, va, μ, σ, bounds, norm1_stoi_err
 
 import Chemostat_Rath2017
 import Chemostat_Rath2017: RathData, DATA_KEY
@@ -48,7 +48,7 @@ fbap = plot(
     title = "FBA correlation", 
     xlabel = "exp", ylabel = "model"
 )
-lim = 1
+lim = 3
 lims = [-lim, lim]
 epp = plot(
     ylim = lims, 
@@ -81,4 +81,3 @@ for (model_id, model_dat) in extracted_dat
     end
 end
 plot([fbap, epp]..., size = [800, 400])
-

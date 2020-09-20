@@ -46,57 +46,57 @@ data_notebook_name = "fva_pp_base_model_maxent_ep_epsconv_study";
 # --- 
 
 # Check cached objects
-cache_file = joinpath(M.MODEL_CACHE_DATA_DIR, "$(data_notebook_name)___boundles.jls");
+cache_file = joinpath(M.MODEL_CACHE_DATA_DIR, "$(data_notebook_name)___bundles.jls");
 params, data = deserialize(cache_file)
 println("loaded $(relpath(cache_file))!!!")
 
-boundles = Dict()
-for (state, boundle) in data
-    boundles[state] = boundle
+bundles = Dict()
+for (state, bundle) in data
+    bundles[state] = bundle
 end
 
 # +
-# ### Cleaning boundles, keep only the complete errorless indexes
-# function get_clean(boundle)
-#     βs_ = sort(boundle.βs, rev = true)
-#     ξs_ = sort(boundle.ξs)
+# ### Cleaning bundles, keep only the complete errorless indexes
+# function get_clean(bundle)
+#     βs_ = sort(bundle.βs, rev = true)
+#     ξs_ = sort(bundle.ξs)
     
 #     errorless_βi = trues(length(βs_))
 #     for ξ in ξs_
 #         for (βi, β) in enumerate(βs_)
-#             if haskey(boundle, ξ, β, :ep)
-#                 data = Ch.Utils.get_data(boundle, ξ, β, :ep)
+#             if haskey(bundle, ξ, β, :ep)
+#                 data = Ch.Utils.get_data(bundle, ξ, β, :ep)
 #                 errorless_βi[βi] = data isa Ch.Utils.EPout && errorless_βi[βi]
 #             else
 #                 errorless_βi[βi] = false
 #             end
 #         end
 #     end
-#     all(errorless_βi .== false) && error("Boundle is too dirty!!!")
+#     all(errorless_βi .== false) && error("Bundle is too dirty!!!")
     
 #     errorless_βi = βs_[errorless_βi]
-#     errorless_boundle = Ch.Utils.ChstatBoundle()
+#     errorless_bundle = Ch.Utils.ChstatBundle()
 #     for ξ in ξs_
-#         model = Ch.Utils.get_data(boundle, ξ, :net)
-#         fbaout = Ch.Utils.get_data(boundle, ξ, :fba)
-#         Ch.Utils.add_data!(errorless_boundle, ξ, :net, model)
-#         Ch.Utils.add_data!(errorless_boundle, ξ, :fba, fbaout)
+#         model = Ch.Utils.get_data(bundle, ξ, :net)
+#         fbaout = Ch.Utils.get_data(bundle, ξ, :fba)
+#         Ch.Utils.add_data!(errorless_bundle, ξ, :net, model)
+#         Ch.Utils.add_data!(errorless_bundle, ξ, :fba, fbaout)
         
 #         for β in errorless_βi
-#             epout = Ch.Utils.get_data(boundle, ξ, β, :ep)
-#             Ch.Utils.add_data!(errorless_boundle, ξ, β, :ep, epout)
+#             epout = Ch.Utils.get_data(bundle, ξ, β, :ep)
+#             Ch.Utils.add_data!(errorless_bundle, ξ, β, :ep, epout)
 #         end
 #     end
-#     return errorless_boundle
+#     return errorless_bundle
 # end
 
 # +
-# for (stst, boundle) in boundles
-#     boundles[stst] = get_clean(boundle)
+# for (stst, bundle) in bundles
+#     bundles[stst] = get_clean(bundle)
 # end
 # # This three ststs are equivalents (repetitions of the same experiment)
-# # boundles["A"] = boundles["C"]
-# # boundles["B"] = boundles["C"];
+# # bundles["A"] = bundles["C"]
+# # bundles["B"] = bundles["C"];
 # -
 
 obj_ider = params["obj_ider"]; # all models are equals in this sense
@@ -108,7 +108,7 @@ ep_epsconvs = params["ep_epsconvs"];
 
 function commom_data(stst, ep_epsconv, model_ider, idxs...)
     
-    boundle = boundles[(stst, ep_epsconv)]
+    bundle = bundles[(stst, ep_epsconv)]
     
     exp_ider = model_ider == obj_ider ? "μ" : "q" * M.mets_map[M.exch_met_map[model_ider]]
     sense = model_ider == obj_ider ? 1 : -1
@@ -116,8 +116,8 @@ function commom_data(stst, ep_epsconv, model_ider, idxs...)
     exp_av = sense * Rd.val(exp_ider, stst)
     exp_av_err = Rd.err(exp_ider, stst)
     
-    ep_av = Ch.Utils.av(boundle, idxs..., model_ider)
-    ep_std = sqrt(Ch.Utils.va(boundle, idxs..., model_ider))  
+    ep_av = Ch.Utils.av(bundle, idxs..., model_ider)
+    ep_std = sqrt(Ch.Utils.va(bundle, idxs..., model_ider))  
     
     return exp_av, exp_av_err, ep_av, ep_std
 end
