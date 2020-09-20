@@ -6,18 +6,18 @@ set = ArgParseSettings()
 @add_arg_table! set begin
     "-w"
         help = "number of workers to use"
-        default = 1
-    "--init_clear"
+        default = "1"
+    "--init-clear"
         help = "clear cache before running the simulation"   
         action = :store_true
-    "--finish_clear"
+    "--finish-clear"
         help = "clear cache at the end"   
         action = :store_true
 end
 parsed_args = parse_args(set)
 wcount = parse(Int, parsed_args["w"])
-init_clear_flag = parsed_args["init_clear"]
-finish_clear_flag = parsed_args["finish_clear"]
+init_clear_flag = parsed_args["init-clear"]
+finish_clear_flag = parsed_args["finish-clear"]
 
 ## ------------------------------------------------------------------
 using Distributed
@@ -156,8 +156,16 @@ GC.gc()
 end
 
 ## ------------------------------------------------------------------
-# CLEAR CACHE (WARNING)
-# delete_temp_caches()
+# RES IDS
+# Collect all the computed results ids for bundling
+const chnl = RemoteChannel() do
+    Channel{Any}(10)
+end
+const res_ids = []
+const collector = @async while true
+    id = take!(chnl)
+    push!(res_ids, id)
+end
 
 ## ------------------------------------------------------------------
 # SIMULATION
@@ -212,18 +220,14 @@ map(model_ids) do (model_id)
             )
             
             ## SAVING DATA
-            # model = prepare_model(model_id, ξ, stst)
-            model = simple_toy_MetNet()
-            save_cache(sim_hash, (model_id, stst, ξ, βs, model, dat); 
+            model = prepare_model(model_id, ξ, stst)
+            # model = simple_toy_MetNet() # Test
+            res_id = (:RESULT, sim_hash)
+            save_cache(res_id, (model_id, stst, ξ, βs, model, dat); 
                 headline = "CATCHING RESULTS\n")
             
-            ## SAVING TO INDEX
-            # Here I save a link to the work done by worker
-            index_id = indexid(myid())
-            index = load_cache(index_id; verbose = false)
-            index = isnothing(index) ? [] : index
-            push!(index, sim_hash)
-            save_cache(index_id, index; headline = "UPDATING INDEX")
+            ## PASSING ID TO MASTER
+            put!(chnl, res_id)
             
             GC.gc()
             return nothing
@@ -237,29 +241,23 @@ end # map(model_ids) do model_id
 
 ## COLLECTING RESULTS
 tagprintln_inmw("COLLECTING RESULTS ")
+sleep(1) # wait for collector to get all ids
 boundles = Dict()
-for wid in workers()
+for id in res_ids
 
-    index_id = indexid(wid)
-    index = load_cache(index_id; verbose = false)
-    isnothing(index) && continue
+    model_id, stst, ξ, βs, model, dat = load_cache(id; verbose = false)
     
-    for id in index
-        
-        model_id, stst, ξ, βs, model, dat = load_cache(id; verbose = false)
-       
-        # Bundle
-        model_dict = get!(boundles, model_id, Dict())
-        boundle = get!(model_dict, stst, ChstatBoundle())
+    # Bundle
+    model_dict = get!(boundles, model_id, Dict())
+    boundle = get!(model_dict, stst, ChstatBoundle())
 
-        boundle[ξ, :net] = model
-        boundle[ξ, :fba] = dat[:fba]
+    boundle[ξ, :net] = model
+    boundle[ξ, :fba] = dat[:fba]
 
-        for (βi, β) in βs |> enumerate
-            boundle[ξ, β, :ep] = dat[(:ep, βi)]
-        end
-
+    for (βi, β) in βs |> enumerate
+        boundle[ξ, β, :ep] = dat[(:ep, βi)]
     end
+
 end
 
 ## SAVING
