@@ -2,8 +2,7 @@
 using DrWatson
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-import CSV
-import DataFrames: DataFrame
+import UtilsJL: save_data
 
 import Chemostat_Rath2017
 M = Chemostat_Rath2017.MODEL1105100000
@@ -47,7 +46,9 @@ for (k, v) in mets_map
 end
 
 # Saving
-df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
-CSV.write(M.METS_MAP_FILE, df)
-println("created $(relpath(M.METS_MAP_FILE))")
+save_data(M.METS_MAP_FILE, mets_map)
+# df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
+# CSV.write(M.METS_MAP_FILE, df)
+# println("created $(relpath(M.METS_MAP_FILE))")
+
 

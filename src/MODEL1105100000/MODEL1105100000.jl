@@ -6,6 +6,7 @@
 
 module MODEL1105100000
     import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
+    import UtilsJL: load_data
     # import Chemostat
     # Ch = Chemostat
     import CSV
@@ -13,13 +14,9 @@ module MODEL1105100000
     import DataFrames: DataFrame
     
 
-    include("meta.jl")
+    include("const.jl")
     include("dir_and_files.jl")
     include("load_data.jl")
-    include("base_intake_info.jl")
-    include("add_a1at_syntesis.jl")
+    include("utils.jl")
 
-    function __init__()
-        _load_all_data()
-    end
 end

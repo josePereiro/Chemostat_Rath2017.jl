@@ -1,62 +1,54 @@
-# -*- coding: utf-8 -*-
-
-using DrWatson
+import DrWatson: quickactivate
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-import DataFrames: DataFrame
+## ----------------------------------------------------------------------
+import UtilsJL: save_data
 import MAT
-import CSV
 
-import Chemostat
-Ch = Chemostat
-import Chemostat_Rath2017
-M = Chemostat_Rath2017.MODEL1105100000
-Rd = Chemostat_Rath2017.RathData
+import Chemostat.Utils: rxnindex, MetNet, rxn_mets
 
-# -
+import Chemostat_Rath2017: MODEL1105100000, RathData
+import Chemostat_Rath2017.MODEL1105100000: MODEL_RAW_MAT_FILE, NIKLAS_BIOMASS_FILE
 
+## ----------------------------------------------------------------------
 # This file is the primary input to the processing
-if !isfile(M.MODEL_RAW_MAT_FILE)
-    error("$(M.MODEL_RAW_MAT_FILE) not found, you must run 'make all' fisrt (see README)!!!")
+if !isfile(MODEL_RAW_MAT_FILE)
+    error("$(MODEL_RAW_MAT_FILE) not found, you must run 'scripts/MODEL1105100000/0_make_mat_file.py'")
 end
 
-# ---
-# ### MAT model
-# ---
+## ----------------------------------------------------------------------
+# MAT model
 
-mat_model = MAT.matread(M.MODEL_RAW_MAT_FILE);
+mat_model = MAT.matread(MODEL_RAW_MAT_FILE);
 mat_model = mat_model[first(keys(mat_model))];
-model = Ch.Utils.MetNet(mat_model);
+model = MetNet(mat_model; reshape = true);
 println("Loaded Model: ", size(model))
 
 biomass_ider = "BIOMASS"
-biomass_idx = Ch.Utils.rxnindex(model, biomass_ider);
+biomass_idx = rxnindex(model, biomass_ider);
 
-
-
-# ---
-# ### Biomass equation
-# ---
+## ----------------------------------------------------------------------
+# Biomass equation
 # I will modified the biomass equation of MODEL1105100000 model with data
 # derived from Niklas (2013): 103–114. https://doi.org/10.1016/j.ymben.2013.01.002. Table1.
 # I compute de relation between the total of each group reported in Niklas 2013 with the equivalent group found in the model biomass, and then rescaled each group to match the reported total. I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
 
 biomass = Dict()
-for met_idx in Ch.Utils.rxn_mets(model, biomass_ider)
+for met_idx in rxn_mets(model, biomass_ider)
     met = model.mets[met_idx]
     biomass[met] = model.S[met_idx, biomass_idx]
 end
 
-# ### Carbohydrates
-
+## ----------------------------------------------------------------------
+# Carbohydrates
 ch_id = "g6p_c"
 exp_ch_tot = 438.3 * 1e-3 # Niklas (2013): 103–114. https://doi.org/10.1016/j.ymben.2013.01.002. Table1
 println("experimental total ch: ", exp_ch_tot)
 model_ch_tot = 0.0 # The model did not include directly any carbohydrate
 println("model total ch: ", model_ch_tot)
 
-# ### RNA
-
+## ----------------------------------------------------------------------
+# RNA
 rna_ids = ["amp_c", "cmp_c", "gmp_c", "ump_c"]
 model_rna_tot = abs.(sum([biomass[met] for met in rna_ids]))
 println("model total rna: ", model_rna_tot)
@@ -65,8 +57,8 @@ println("experimental total rna: ", exp_rna_tot)
 rna_factor = exp_rna_tot/model_rna_tot
 println("factor exp/model: ", rna_factor)
 
-# ### DNA
-
+## ----------------------------------------------------------------------
+# DNA
 dna_ids = ["damp_c", "dcmp_c", "dgmp_c", "dtmp_c"]
 model_dna_tot = abs.(sum([biomass[met] for met in dna_ids]))
 println("model total dna: ", model_dna_tot)
@@ -75,8 +67,8 @@ println("experimental total dna: ", exp_dna_tot)
 dna_factor = exp_dna_tot/model_dna_tot
 println("factor exp/model: ", dna_factor)
 
-# ### Lipids
-
+## ----------------------------------------------------------------------
+# Lipids
 lip_ids = ["chsterol_c", "clpn_DASH_hs_c", "dag_DASH_hs_c",
            "lpchol_DASH_hs_c", "mag_DASH_hs_c", "pa_DASH_hs_c",
            "pail_DASH_hs_c", "pe_DASH_hs_c", "ps_DASH_hs_c",
@@ -89,8 +81,8 @@ println("experimental total lipids:", exp_lip_tot)
 lip_factor = exp_lip_tot/model_lip_tot
 println("factor exp/model:", lip_factor)
 
-# ### Aminoacids
-
+## ----------------------------------------------------------------------
+# Aminoacids
 aa_ids = ["ala_DASH_DASH_DASH_L_c", "asn_DASH_DASH_DASH_L_c", "asp_DASH_DASH_DASH_L_c",
           "gln_DASH_DASH_DASH_L_c", "glu_DASH_DASH_DASH_L_c", "pro_DASH_DASH_DASH_L_c",
           "ser_DASH_DASH_DASH_L_c", "gly_c"]
@@ -101,9 +93,8 @@ println("experimental total protein: ", exp_prot_tot)
 prot_factor = exp_prot_tot/model_prot_tot
 println("factor exp/model: ", prot_factor)
 
-# ### Rescaling
-
-# +
+## ----------------------------------------------------------------------
+# Rescaling
 # Carbohydrates # I put all the reported quatity in a single metabolite
 biomass[ch_id] = -exp_ch_tot
 
@@ -128,10 +119,7 @@ for rna in rna_ids
 end
 # -
 
-# ### Saving
-
-df = DataFrame([collect(keys(biomass)), collect(values(biomass))])
-CSV.write(M.NIKLAS_BIOMASS_FILE, df)
-println("created $(relpath(M.NIKLAS_BIOMASS_FILE))")
-
+## ----------------------------------------------------------------------
+# Saving
+save_data(NIKLAS_BIOMASS_FILE, biomass)
 
