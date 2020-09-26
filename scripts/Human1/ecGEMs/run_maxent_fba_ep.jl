@@ -46,7 +46,7 @@ println("Working in: ", workers())
                             rxnindex, metindex, compress_dict, 
                             uncompress_dict, clampfileds!, well_scaled_model,
                             ChstatBundle, norm1_stoi_err, av, va, nzabs_range,
-                            struct_to_dict
+                            struct_to_dict, ub!
 
     import Chemostat.SimulationUtils: epoch_converge_ep!, cached_simulation, set_cache_dir, 
                             tagprintln_inmw, println_inmw, tagprintln_ifmw, println_ifmw,
@@ -152,6 +152,9 @@ GC.gc()
     apply_bound!(model, ξ, intake_info; 
         emptyfirst = true, ignore_miss = true)
 
+    # Fix total_prot
+    ub!(model, PROT_POOL_EXCHANGE, 0.298) # From fba
+
     return model
 end
 
@@ -170,10 +173,6 @@ end
 ## ------------------------------------------------------------------
 # SIMULATION
 # Any of the loops can be parallelized by just changing one of the 'map' functions
-
-# This uniquely identify a worker
-@everywhere indexid(wid) = (:INDEX, wid, sim_global_id)
-
 to_map = Iterators.product(model_ids)
 map(model_ids) do (model_id)
 
@@ -181,14 +180,13 @@ map(model_ids) do (model_id)
         "\nid: ", model_id, 
         "\n")
     
-    to_map = Iterators.product(Rd.ststs, [model_id])
+    ststs = Rd.ststs[1:1] # Test
+    to_map = Iterators.product(ststs, [model_id])
     pmap(to_map) do (stst, model_id)
         
         ## SIMULATION PARAMS
         ξs = [Rd.val(:ξ, stst)]
-        # ξs = rand(5) # Test
         βs = [0.0; range(1e3, 1e5, length = 25)] 
-        # βs = [0.0] # Test
         
         to_map = Iterators.product(ξs, [βs], [stst], [model_id])
         map(to_map) do (ξ, βs, stst, model_id)
@@ -206,12 +204,9 @@ map(model_ids) do (model_id)
                 sim_id = sim_hash,
                 get_model = function()
                     return prepare_model(model_id, ξ, stst);
-                    # return simple_toy_MetNet() # Test
                 end,
                 objider = OBJ_IDER, 
-                # objider = "biom", # Test
                 beta_info = [(OBJ_IDER, βs)],
-                # beta_info = [("biom", βs)], 
                 costider = PROT_POOL_EXCHANGE,
                 clear_cache = false,
                 use_seed = true,
@@ -221,7 +216,6 @@ map(model_ids) do (model_id)
             
             ## SAVING DATA
             model = prepare_model(model_id, ξ, stst)
-            # model = simple_toy_MetNet() # Test
             res_id = (:RESULT, sim_hash)
             save_cache(res_id, (model_id, stst, ξ, βs, model, dat); 
                 headline = "CATCHING RESULTS\n")
