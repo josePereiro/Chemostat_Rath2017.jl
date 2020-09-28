@@ -20,10 +20,8 @@ init_clear_flag = parsed_args["init-clear"]
 finish_clear_flag = parsed_args["finish-clear"]
 
 ## ------------------------------------------------------------------
-# Dev
-wcount = 1
-init_clear_flag = false
-finish_clear_flag = false
+import DrWatson: quickactivate
+quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 using Distributed
 
@@ -35,9 +33,8 @@ println("Working in: ", workers())
 ## Loading everywhere
 @everywhere begin
 
-    using DrWatson 
+    import DrWatson: quickactivate
     quickactivate(@__DIR__, "Chemostat_Rath2017")
-
 
     using Distributed
     using Serialization
@@ -48,14 +45,14 @@ println("Working in: ", workers())
     # custom packages
     import Chemostat
     import Chemostat.Utils: MetNet, EPModel,
-                            rxnindex, metindex, compress_dict, 
-                            uncompress_dict, clampfileds!, well_scaled_model,
-                            ChstatBundle, norm1_stoi_err, av, va, nzabs_range,
-                            struct_to_dict, ub!
+                            rxnindex, metindex, 
+                            clampfileds!, well_scaled_model,
+                            ChstatBundle, norm1_stoi_err, av, va, nzabs_range, ub!,
+                            save_data, load_data, struct_to_dict, compressed_copy,
+                            tagprintln_inmw, println_inmw, println_ifmw, logspace,
+                            set_cache_dir, save_cache, load_cache, delete_temp_caches
 
-    import Chemostat.SimulationUtils: epoch_converge_ep!, cached_simulation, set_cache_dir, 
-                            tagprintln_inmw, println_inmw, tagprintln_ifmw, println_ifmw,
-                            save_cache, load_cache, delete_temp_caches
+    import Chemostat.SimulationUtils: epoch_converge_ep!, cached_simulation
     import Chemostat.SteadyState: apply_bound!
     import Chemostat.LP: fba
     
@@ -64,7 +61,7 @@ println("Working in: ", workers())
     
     const Rd = RathData
     const M = MODEL1105100000
-    set_cache_dir(ecG.MODEL_CACHE_DATA_DIR)
+    set_cache_dir(M.MODEL_CACHE_DATA_DIR)
     
 end
 
@@ -87,11 +84,11 @@ end
     scaling_params[:scale_base] = 1000.0 # A smaller base could kill the process because of memory usage
     
     const epmodel_kwargs = Dict()
-    epmodel_kwargs[:alpha] = 1e7 
+    epmodel_kwargs[:alpha] = 1e9
 
     const epconv_kwargs = Dict()
     epconv_kwargs[:maxiter] = Int(1e4) # The maximum number of iteration before EP to return, even if not converged
-    epconv_kwargs[:epsconv] = 1e-5 # The error threshold of convergence
+    epconv_kwargs[:epsconv] = 1e-6 # The error threshold of convergence
     epconv_kwargs[:maxvar] = 1e10
     epconv_kwargs[:minvar] = 1e-10
 
@@ -103,54 +100,36 @@ end
 # SIMULATION GLOBAL ID
 # This must uniquely identify this simulation version
 # It is used to avoid cache collisions
-@everywhere sim_global_id = "MAXENT_FBA_EP_v2"
+@everywhere sim_global_id = "MAXENT_FBA_EP_v1"
 
 ## ------------------------------------------------------------------
-# LOAD MODELS
+# LOAD MODEL
 tagprintln_inmw("LOADING EC MODELS")
-src_file = ecG.FVA_PP_BASE_MODELS
-ec_models = load_data(src_file)
-model_ids = ec_models |> keys |> collect
-for (model_id, model_dict) in ec_models
-    local model = model_dict |> compress_dict |> MetNet
-    ec_models[model_id] = model
-    clampfileds!(model, [:lb, :ub, :b]; abs_max = MAX_BOUND, zeroth =  ZEROTH)
-    println_ifmw("model: ", model_id, " size: ", size(model), " S nzabs_range: ", nzabs_range(model.S), "\n")
-end    
-
-## ------------------------------------------------------------------
-# SCALE MODELS
-# tagprintln_inmw("SCALING MODELS")
-# for (model_id, model) in ec_models
-#     ec_models[model_id] = well_scaled_model(model, scaling_params[:scale_base]; verbose = false)
-#     println_ifmw("model: ", model_id, " size: ", size(model), " S nzabs_range: ", nzabs_range(model.S), "\n")
-# end  
+src_file = M.FVA_PP_BASE_MODEL_FILE
+fva_pp_model = load_data(src_file)
+println_ifmw("size: ", size(fva_pp_model), 
+    " S nzabs_range: ", nzabs_range(fva_pp_model.S), "\n")
 
 ## ------------------------------------------------------------------
 # CACHE MODELS
 @everywhere models_cache_id = (:MODELS, sim_global_id)
-save_cache(models_cache_id, ec_models; headline = "MODELS CACHE SAVED")
+save_cache(models_cache_id, fva_pp_model; headline = "MODELS CACHE SAVED")
 # free 
-ec_models = nothing
+fva_pp_model = nothing
 GC.gc()
 
 ## ------------------------------------------------------------------
 # GET MODEL FUNCTION
-@everywhere function prepare_model(model_id, ξ, stst)
-    dat = load_cache(models_cache_id; verbose = false)
-    isnothing(dat) && error("Unable to load model!!")
-    model = dat[model_id] 
+@everywhere function prepare_model(ξ, stst)
+    model = load_cache(models_cache_id; verbose = false)
+    isnothing(model) && error("Unable to load model!!")
 
     # intake info
-    intake_info = HG.stst_base_intake_info(stst)
+    intake_info = M.stst_base_intake_info(stst)
 
     # Chemostat steady state constraint, see Cossio's paper, (see README)
     apply_bound!(model, ξ, intake_info; 
         emptyfirst = true, ignore_miss = true)
-
-    # Fix total_prot
-    ub!(model, PROT_POOL_EXCHANGE, 0.298) # From fba
-
     return model
 end
 
@@ -168,66 +147,54 @@ end
 
 ## ------------------------------------------------------------------
 # SIMULATION
-# Any of the loops can be parallelized by just changing one of the 'map' functions
-to_map = Iterators.product(model_ids)
-map(model_ids) do (model_id)
-
-    tagprintln_inmw("PROCESSING MODEL ", 
-        "\nid: ", model_id, 
-        "\n")
+# Any of the loops can be parallelized by just 
+# changing one of the 'map' functions
+ststs = Rd.ststs
+pmap(ststs) do stst
     
-    ststs = Rd.ststs[1:1] # Test
-    to_map = Iterators.product(ststs, [model_id])
-    pmap(to_map) do (stst, model_id)
+    ## SIMULATION PARAMS
+    ξs = [Rd.val(:ξ, stst)]
+    βs = [0.0; logspace(5, 7, 50)] 
+    
+    to_map = Iterators.product(ξs, [βs], [stst])
+    map(to_map) do (ξ, βs, stst)
         
-        ## SIMULATION PARAMS
-        ξs = [Rd.val(:ξ, stst)]
-        βs = [0.0; range(1e3, 1e5, length = 25)] 
+        ## HASH SEEDS
+        # TODO: add PARAMS hash
+        stst_hash = (stst, sim_global_id)
+        sim_hash = (ξ, stst_hash)
+
+        dat = cached_simulation(;
+            epochlen = sim_params[:epochlen], 
+            verbose = true,
+            sim_id = sim_hash,
+            get_model = function()
+                return prepare_model(ξ, stst);
+            end,
+            objider = M.OBJ_IDER, 
+            beta_info = [(M.OBJ_IDER, βs)],
+            costider = M.COST_IDER,
+            clear_cache = false,
+            use_seed = true,
+            epmodel_kwargs = epmodel_kwargs,
+            epconv_kwargs = epconv_kwargs
+        )
         
-        to_map = Iterators.product(ξs, [βs], [stst], [model_id])
-        map(to_map) do (ξ, βs, stst, model_id)
-            
-            ## HASH SEEDS
-            # TODO: add PARAMS hash
-            model_hash = (model_id, sim_global_id)
-            stst_hash = (stst, model_hash)
-            sim_hash = (ξ, stst_hash)
-
-            dat = cached_simulation(;
-                epochlen = sim_params[:epochlen], 
-                # epochlen = 100, # Test
-                verbose = true,
-                sim_id = sim_hash,
-                get_model = function()
-                    return prepare_model(model_id, ξ, stst);
-                end,
-                objider = OBJ_IDER, 
-                beta_info = [(OBJ_IDER, βs)],
-                costider = PROT_POOL_EXCHANGE,
-                clear_cache = false,
-                use_seed = true,
-                epmodel_kwargs = epmodel_kwargs,
-                epconv_kwargs = epconv_kwargs
-            )
-            
-            ## SAVING DATA
-            model = prepare_model(model_id, ξ, stst)
-            res_id = (:RESULT, sim_hash)
-            save_cache(res_id, (model_id, stst, ξ, βs, model, dat); 
-                headline = "CATCHING RESULTS\n")
-            
-            ## PASSING ID TO MASTER
-            put!(chnl, res_id)
-            
-            GC.gc()
-            return nothing
-        end # map(ξs) do ξ
-
+        ## SAVING DATA
+        model = prepare_model(ξ, stst)
+        res_id = (:RESULT, sim_hash)
+        save_cache(res_id, (stst, ξ, βs, model, dat); 
+            headline = "CATCHING RESULTS\n")
+        
+        ## PASSING ID TO MASTER
+        put!(chnl, res_id)
+        
+        GC.gc()
         return nothing
-    end # map(Rd.ststs) do stst
+    end # map(ξs) do ξ
 
     return nothing
-end # map(model_ids) do model_id
+end # map(Rd.ststs) do stst
 
 ## COLLECTING RESULTS
 tagprintln_inmw("COLLECTING RESULTS ")
@@ -235,11 +202,10 @@ sleep(1) # wait for collector to get all ids
 bundles = Dict()
 for id in res_ids
 
-    model_id, stst, ξ, βs, model, dat = load_cache(id; verbose = false)
+    stst, ξ, βs, model, dat = load_cache(id; verbose = false)
     
     # Bundle
-    model_dict = get!(bundles, model_id, Dict())
-    bundle = get!(model_dict, stst, ChstatBundle())
+    bundle = get!(bundles, stst, ChstatBundle())
 
     bundle[ξ, :net] = model
     bundle[ξ, :fba] = dat[:fba]
@@ -252,7 +218,7 @@ end
 
 ## SAVING
 tagprintln_inmw("SAVING RESULTS ")
-save_data(ecG.MAXENT_FBA_EB_BOUNDLES_FILE, bundles)
+save_data(M.MAXENT_FBA_EB_BUNDLES_FILE, bundles)
 
 ## CLEAR CACHE (WARNING)
 if finish_clear_flag

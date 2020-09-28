@@ -43,8 +43,8 @@ println("Working in: ", workers())
     # custom packages
     import Chemostat
     import Chemostat.Utils: MetNet, EPModel,
-                            rxnindex, metindex, compress_dict, 
-                            uncompress_dict, clampfileds!, well_scaled_model,
+                            rxnindex, metindex, compressed_copy, 
+                            uncompressed_copy, clampfileds!, well_scaled_model,
                             ChstatBundle, norm1_stoi_err, av, va, nzabs_range,
                             struct_to_dict, ub!
 
@@ -116,7 +116,7 @@ src_file = ecG.FVA_PP_BASE_MODELS
 ec_models = load_data(src_file)
 model_ids = ec_models |> keys |> collect
 for (model_id, model_dict) in ec_models
-    local model = model_dict |> compress_dict |> MetNet
+    local model = model_dict |> compressed_copy |> MetNet
     ec_models[model_id] = model
     clampfileds!(model, [:lb, :ub, :b]; abs_max = MAX_BOUND, zeroth =  ZEROTH)
     println_ifmw("model: ", model_id, " size: ", size(model), " S nzabs_range: ", nzabs_range(model.S), "\n")

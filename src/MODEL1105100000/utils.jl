@@ -4,7 +4,9 @@
 """
 function stst_base_intake_info(stst) 
     intake_info = load_base_intake_info()
-    
+    mets_map = load_mets_map()
+    exch_met_map = load_exch_met_map()
+
     # The feed medium of each steady state only vary
     # in the composition of this mets (see Rath2017)
     for rath_met in ["GLC", "GLN", "GAL"]

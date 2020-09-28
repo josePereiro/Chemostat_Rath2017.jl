@@ -6,6 +6,6 @@ function _load_all_data()
                         (:ham_medium, HAM_MEDIUM_FILE), 
                         (:base_intake_info, BASE_INTAKE_INFO_FILE)]
 
-        @eval global $var = isfile($file) ? wload($file)[$DATA_KEY] : nothing
+        @eval global $var = isfile($file) ? load_data($file) : nothing
     end
 end

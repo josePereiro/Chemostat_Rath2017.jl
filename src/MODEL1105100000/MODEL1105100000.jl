@@ -5,10 +5,9 @@
 # https://www.ebi.ac.uk/compneur-srv/biomodels-main/MODEL1105100000
 
 module MODEL1105100000
-    import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
-    import UtilsJL: load_data
-    # import Chemostat
-    # Ch = Chemostat
+    import ..Chemostat_Rath2017: PROJ_ROOT, PROCESSED_DATA_DIR, RathData,
+                                 FIGURES_DATA_DIR, load_data
+    const Rd = RathData
     import CSV
     import Serialization: deserialize
     import DataFrames: DataFrame

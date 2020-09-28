@@ -10,11 +10,12 @@ module Chemostat_Rath2017
     using Serialization
     import DrWatson: tagsave, wload
     import Chemostat
-    import Chemostat.Utils: IDER_TYPE, rxnindex
+    import Chemostat.Utils: IDER_TYPE, rxnindex, load_data
 
     include("Utils/Utils.jl")
     include("RathData/RathData.jl")
     include("MODEL1105100000/MODEL1105100000.jl")
-    include("Human1/Human1.jl")
+    # TODO: change how I manage data, use load function instead of globals
+    # include("Human1/Human1.jl") 
     
 end # module
