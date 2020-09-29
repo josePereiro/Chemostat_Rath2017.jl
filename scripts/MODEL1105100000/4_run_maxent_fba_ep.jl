@@ -196,7 +196,8 @@ pmap(ststs) do stst
     return nothing
 end # map(Rd.ststs) do stst
 
-## COLLECTING RESULTS
+## ------------------------------------------------------------------
+# COLLECTING RESULTS
 tagprintln_inmw("COLLECTING RESULTS ")
 sleep(1) # wait for collector to get all ids
 bundles = Dict()
@@ -216,7 +217,8 @@ for id in res_ids
 
 end
 
-## SAVING
+## ------------------------------------------------------------------
+# SAVING
 tagprintln_inmw("SAVING RESULTS ")
 save_data(M.MAXENT_FBA_EB_BUNDLES_FILE, bundles)
 
