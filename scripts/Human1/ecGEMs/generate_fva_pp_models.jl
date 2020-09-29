@@ -19,7 +19,7 @@ using SparseArrays
 import Serialization: serialize, deserialize
 
 import Chemostat
-import Chemostat.Utils: MetNet, compress_model, uncompress_model, clamp_bounds!, rxnindex, del_blocked
+import Chemostat.Utils: MetNet, compressed_model, uncompressed_model, clampfileds!, rxnindex, del_blocked
 import Chemostat.LP: fba, fva
 import Chemostat_Rath2017: DATA_KEY, RathData, Human1, 
                             print_action, temp_cache_file, set_cache_dir,

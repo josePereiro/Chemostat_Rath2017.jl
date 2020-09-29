@@ -13,8 +13,6 @@ function _create_dirs()
     end
 end
 
-
-
 # FILES
 # mat 
 const EC_BRAIN_BASE_MODELS_FILE = joinpath(MODEL_PROCESSED_DATA_DIR, "Human1_ec_base_brain_models.bson")

@@ -14,8 +14,7 @@ module Chemostat_Rath2017
 
     include("Utils/Utils.jl")
     include("RathData/RathData.jl")
-    include("MODEL1105100000/MODEL1105100000.jl")
-    # TODO: change how I manage data, use load function instead of globals
-    # include("Human1/Human1.jl") 
+    # include("MODEL1105100000/MODEL1105100000.jl")
+    include("Human1/Human1.jl") 
     
 end # module

@@ -5,20 +5,21 @@
 
 
 module HumanGEM
-    import BSON
-    import DrWatson: wload
-    import ...Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData, DATA_KEY
+    import ...Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, 
+                                  PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData, 
+                                  load_data
+    import ..Human1: OBJ_IDER
     import CSV
     import Serialization: deserialize
     import DataFrames: DataFrame
+    const Rd = RathData
 
-    include("meta.jl")
+    include("const.jl")
     include("dir_and_files.jl")
     include("load_data.jl")
     include("base_intake_info.jl")
 
     function __init__()
-        _load_all_data()
         _create_dirs()
     end
 end

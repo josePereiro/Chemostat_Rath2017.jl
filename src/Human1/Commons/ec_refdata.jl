@@ -76,7 +76,7 @@ function get_rxn_ecmap(src_model, ec_model; verbose = true)
     # Extras (Not related with any src reaction)
     dict[EXTRAS_KEY] = RxnData[]
     # prot_pool_exchange
-    prot_pool_exchange = Human1.PROT_POOL_EXCHANGE
+    prot_pool_exchange = PROT_POOL_EXCHANGE
     if prot_pool_exchange in ec_rxns_set
         rxndata = RxnData(ec_model, prot_pool_exchange)
         push!(dict[EXTRAS_KEY], rxndata)
@@ -109,6 +109,8 @@ struct RxnData
         return new(rxn, subSys, mets, stoi, b, lb, ub)
     end
 end
+
+
 
 get_ec_refdata(src_model, ec_model) = Dict(
         ECMAP_KEY => get_rxn_ecmap(src_model, ec_model; verbose = true),

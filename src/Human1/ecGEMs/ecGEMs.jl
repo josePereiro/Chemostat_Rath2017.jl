@@ -6,7 +6,7 @@
 module ecGEMs
     import ...Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData
     
-    include("meta.jl")
+    include("const.jl")
     include("dir_and_files.jl")
 
     function __init__()

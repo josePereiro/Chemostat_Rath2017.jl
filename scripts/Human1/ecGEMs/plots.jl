@@ -1,8 +1,12 @@
-import DrWatson: quickactivate
+using DrWatson
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
+using Dates
+using StatsBase
+using DataFrames
 using SparseArrays
 using MathProgBase
+using Serialization
 using Distributions
 
 # run add "https://github.com/josePereiro/Chemostat" in the 
@@ -11,31 +15,37 @@ import Chemostat
 import Chemostat.Utils: av, va, μ, σ, bounds, is_exchange,
                         norm1_stoi_err, norm2_stoi_err,
                         find_closest_beta, metindex, met_rxns,
-                        save_data, load_data, to_symbol_dict,
-                        ChstatBundle
-
+                        save_data, load_data, to_symbol_dict
+                        
 import Chemostat_Rath2017
-import Chemostat_Rath2017: RathData, MODEL1105100000
+import Chemostat_Rath2017: RathData, Human1
+import Chemostat_Rath2017.Human1: HumanGEM, ecGEMs
+const Hm = Human1
 const Rd = RathData
-const M = MODEL1105100000
+const HG = HumanGEM
+const ecG = ecGEMs
 
-using Plots
-
-## ------------------------------------------------------------------
-# LOADING BUNDLES
-src_file = M.MAXENT_FBA_EB_BUNDLES_FILE
+## Loading data
+src_file = ecG.MAXENT_FBA_EB_BOUNDLES_FILE
 bundles = load_data(src_file)
 
-## ------------------------------------------------------------------
-# Dev data
+## Dev data
+model_id = "GTEx-brain"
 stst = "E"
-bundle = bundles[stst]
+bundle = bundles[model_id][stst]
 exp_ξ = Rd.val(:ξ, stst)
 exp_μ = Rd.val(:D, stst)
 model = bundle[exp_ξ, :net]
 fbaout = bundle[exp_ξ, :fba]
-exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
+exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, OBJ_IDER)
 epout = bundle[exp_ξ, exp_β, :ep];
+
+
+##
+using StatsPlots
+# gr(size = (600, 500))
+
+##
 
 ## ------------------------------------------------------------------
 for (stst, bundle) in bundles
@@ -223,16 +233,8 @@ function individual_correlation()
 end
 fbaps, epps = individual_correlation();
 plot(epps...; layout = length(epps) )
-##
-n = length(fbaps)
-plot(fbaps...; size = [n * 300, 300], layout = grid(1, n))
 
-##
-
-
-
-## ------------------------------------------------------------------
-# stoi_err_by_compartments
+## stoi_err_by_compartments
 # errs = log.(norm2_stoi_err(model, epout) .+ 1e-3);
 # histogram(errs; normalize = true, xlabel = "log err", ylabel = "prob dens")
 
@@ -259,7 +261,7 @@ function stoi_err_by_compartments(get_comp::Function, model, out)
         push!(ps, p)
     end
     ##
-    plot(ps...; size = [1000, 400])
+    plot(ps..., size = [1000, 400])
 
 end
 
