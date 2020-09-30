@@ -1,12 +1,8 @@
 using DrWatson
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-using Dates
-using StatsBase
-using DataFrames
 using SparseArrays
 using MathProgBase
-using Serialization
 using Distributions
 
 # run add "https://github.com/josePereiro/Chemostat" in the 
@@ -15,12 +11,12 @@ import Chemostat
 import Chemostat.Utils: av, va, μ, σ, bounds, is_exchange,
                         norm1_stoi_err, norm2_stoi_err,
                         find_closest_beta, metindex, met_rxns,
-                        save_data, load_data, to_symbol_dict
+                        load_data, to_symbol_dict
                         
 import Chemostat_Rath2017
 import Chemostat_Rath2017: RathData, Human1
 import Chemostat_Rath2017.Human1: HumanGEM, ecGEMs
-const Hm = Human1
+const H1 = Human1
 const Rd = RathData
 const HG = HumanGEM
 const ecG = ecGEMs
@@ -37,25 +33,23 @@ exp_ξ = Rd.val(:ξ, stst)
 exp_μ = Rd.val(:D, stst)
 model = bundle[exp_ξ, :net]
 fbaout = bundle[exp_ξ, :fba]
-exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, OBJ_IDER)
+exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, H1.OBJ_IDER)
 epout = bundle[exp_ξ, exp_β, :ep];
 
-
 ##
-using StatsPlots
+using Plots
 # gr(size = (600, 500))
 
-##
-
 ## ------------------------------------------------------------------
-for (stst, bundle) in bundles
-    exp_ξ = Rd.val(:ξ, stst)
-    exp_μ = Rd.val(:D, stst)
-    exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
-    mod_μ = av(bundle, exp_ξ, exp_β, :ep, M.OBJ_IDER)
-    println(stst, "  \texp mu: ", exp_μ, "     \t mod mu: ", mod_μ, "        \tbeta: ", exp_β)
+for (model_id, dat) in bundles
+    for (stst, bundle) in dat
+        exp_ξ = Rd.val(:ξ, stst)
+        exp_μ = Rd.val(:D, stst)
+        exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, H1.OBJ_IDER)
+        mod_μ = av(bundle, exp_ξ, exp_β, :ep, H1.OBJ_IDER)
+        println(stst, "  \texp mu: ", exp_μ, "     \t mod mu: ", mod_μ, "        \tbeta: ", exp_β)
+    end
 end
-
 ## ------------------------------------------------------------------
 function get_limits(xdat, ydat; marginf = 0.10)
     xmargin = abs(minimum(xdat) - maximum(xdat)) * marginf
@@ -70,72 +64,79 @@ end
 ## ------------------------------------------------------------------
 # TOOLS
 # Total Correlations
-ider_map = M.load_rath_met_exch_map()
+ider_map = HG.load_rath_met_exch_map()
 function total_correlation()
-    ticks = round.(collect(range(-0.4, 0.4; length = 4)), digits = 2)
-    lims = [minimum(ticks), maximum(ticks)]
-    fbap = plot(
-        ylim = lims, 
-        xlim = lims, 
-        xticks = ticks,
-        yticks = ticks,
-        xtickfontsize = 9,
-        ytickfontsize = 9,
-        title = "FBA correlation", 
-        xlabel = "exp", ylabel = "model"
-    )
-    plot!(fbap, x -> x, lims[1], lims[2]; label = "", color = :black)
-    # ticks = round.(collect(range(-0.4, 0.4; length = 4)), digits = 2)
-    # lims = [minimum(ticks), maximum(ticks)]
-    epp = plot(
-        ylim = lims, 
-        xlim = lims, 
-        xticks = ticks,
-        yticks = ticks,
-        xtickfontsize = 9,
-        ytickfontsize = 9,
-        title = "EP correlation", 
-        xlabel = "exp", ylabel = "model"
-    )
-    plot!(epp, x -> x, lims[1], lims[2]; label = "", color = :black)
 
     xs = []
     xerrs = []
     fbays = []
     epys = []
     epyerrs = []
-    for (stst, bundle) in bundles
-        exp_ξ =  Rd.val(:ξ, stst)
-        exp_μ =  Rd.val(:D, stst)
-        exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
+    for (model_id, dat) in bundles
+        for (stst, bundle) in dat
+            exp_ξ =  Rd.val(:ξ, stst)
+            exp_μ =  Rd.val(:D, stst)
+            exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, HG.OBJ_IDER)
 
-        for rider in Rd.iders_to_plot
-            sense = rider == Rd.growth_ider ? 1 : -1 # TODO: package this
-            mider = ider_map[rider]
-            exp_av = sense * Rd.qval(rider, stst)
-            exp_err = Rd.qerr(rider, stst)
-            push!(xs, exp_av)
-            push!(xerrs, exp_err)
+            for rider in Rd.iders_to_plot
+                sense = rider == Rd.growth_ider ? 1 : -1 # TODO: package this
+                mider = ider_map[rider]
+                exp_av = sense * Rd.qval(rider, stst)
+                exp_err = Rd.qerr(rider, stst)
+                push!(xs, exp_av)
+                push!(xerrs, exp_err)
 
-            # FBA
-            mod_av = av(bundle, exp_ξ, :fba, mider)
-            push!(fbays, mod_av)
-            
-            # EP
-            mod_av = av(bundle, exp_ξ, exp_β,:ep, mider)
-            push!(epys, mod_av)
-            mod_err = sqrt(va(bundle, exp_ξ, exp_β,:ep, mider))
-            push!(epyerrs, mod_err)
+                # FBA
+                mod_av = av(bundle, exp_ξ, :fba, mider)
+                push!(fbays, mod_av)
+                
+                # EP
+                mod_av = av(bundle, exp_ξ, exp_β,:ep, mider)
+                push!(epys, mod_av)
+                mod_err = sqrt(va(bundle, exp_ξ, exp_β,:ep, mider))
+                push!(epyerrs, mod_err)
+            end
         end
     end
 
+    ntick = 4
+    ndig = 3
+    font = 9
+    
     # FBA
+    xlims, ylims = get_limits(xs, fbays; marginf = 0.20)
+    xticks = round.(collect(range(minimum(xlims), maximum(xlims); 
+        length = ntick)), digits = ndig)
+    yticks = round.(collect(range(minimum(ylims), maximum(ylims); 
+        length = ntick)), digits = ndig)
+    fbap = plot(title = "FBA correlation", 
+        xlabel = "exp", ylabel = "model", titlefont = font,
+        xtickfontsize = font, ytickfontsize = font)
+    plot!(fbap, x -> x, xlims[1], xlims[2]; label = "", color = :black)
+    zoom_fbap = deepcopy(fbap)
     scatter!(fbap, xs, fbays; xerr = xerrs, label = "", color = :black)
+    scatter!(zoom_fbap, xs, fbays; xerr = xerrs, 
+        xlims = [-0.05, 0.04],
+        ylims = [-0.1, 0.1],
+        label = "", color = :black)
 
     # EP
-    scatter!(epp, xs, epys; xerr = epys, yerr = epyerrs, label = "", color = :black)
+    xlims, ylims = get_limits(xs, epys; marginf = 0.20)
+    yticks = round.(collect(range(minimum(ylims), maximum(ylims); 
+        length = ntick)), digits = ndig)
+    epp = plot(title = "EP correlation", 
+        xlabel = "exp", ylabel = "model", titlefont = font,
+        xtickfontsize = font, ytickfontsize = font)
+    plot!(epp, x -> x, xlims[1], xlims[2]; label = "", color = :black)
+    zoom_epp = deepcopy(epp)
+    scatter!(epp, xs, epys; xerr = xerrs, yerr = epyerrs, 
+        label = "", color = :black)
+    scatter!(zoom_epp, xs, epys; xerr = xerrs, yerr = epyerrs, 
+        xlims = [-0.05, 0.04],
+        ylims = [-1, 12],
+        label = "", color = :black)
 
-    return plot([fbap, epp]..., layout = 2, size = [800, 400],)
+    return plot([fbap, epp, zoom_fbap, zoom_epp]..., layout = 4)
 end
 total_correlation()
 
@@ -172,28 +173,30 @@ function individual_correlation()
         fba_avs = []
         ep_avs = []
         ep_errs = []
-        for (stst, bundle) in bundles
-            exp_ξ =  Rd.val(:ξ, stst)
-            exp_μ =  Rd.val(:D, stst)
-            exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
+        for (model_id, dat) in bundles
+            for (stst, bundle) in dat
+                exp_ξ =  Rd.val(:ξ, stst)
+                exp_μ =  Rd.val(:D, stst)
+                exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
 
-            sense = rider == Rd.growth_ider ? 1 : -1 # TODO: package this
-            mider = ider_map[rider]
-            exp_av = sense * Rd.qval(rider, stst)
-            exp_err = Rd.qerr(rider, stst)
-            push!(exp_avs, exp_av)
-            push!(exp_errs, exp_err)
+                sense = rider == Rd.growth_ider ? 1 : -1 # TODO: package this
+                mider = ider_map[rider]
+                exp_av = sense * Rd.qval(rider, stst)
+                exp_err = Rd.qerr(rider, stst)
+                push!(exp_avs, exp_av)
+                push!(exp_errs, exp_err)
 
-            # FBA
-            fba_av = av(bundle, exp_ξ, :fba, mider)
-            push!(fba_avs, fba_av)
+                # FBA
+                fba_av = av(bundle, exp_ξ, :fba, mider)
+                push!(fba_avs, fba_av)
 
-            # EP
-            ep_av = av(bundle, exp_ξ, exp_β,:ep, mider)
-            push!(ep_avs, ep_av)
-            ep_err = sqrt(va(bundle, exp_ξ, exp_β,:ep, mider))
-            push!(ep_errs, ep_err)
-            
+                # EP
+                ep_av = av(bundle, exp_ξ, exp_β,:ep, mider)
+                push!(ep_avs, ep_av)
+                ep_err = sqrt(va(bundle, exp_ξ, exp_β,:ep, mider))
+                push!(ep_errs, ep_err)
+                
+            end
         end
 
         xlims, ylims = get_limits(exp_avs, fba_avs; marginf = 0.20)
@@ -234,7 +237,8 @@ end
 fbaps, epps = individual_correlation();
 plot(epps...; layout = length(epps) )
 
-## stoi_err_by_compartments
+## ------------------------------------------------------------------
+# stoi_err_by_compartments
 # errs = log.(norm2_stoi_err(model, epout) .+ 1e-3);
 # histogram(errs; normalize = true, xlabel = "log err", ylabel = "prob dens")
 

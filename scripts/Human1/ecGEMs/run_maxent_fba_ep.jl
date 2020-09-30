@@ -27,7 +27,8 @@ length(workers()) < NO_WORKERS &&
     addprocs(NO_WORKERS; exeflags = "--project")
 println("Working in: ", workers())
 
-## Loading everywhere
+## ------------------------------------------------------------------
+# Loading everywhere
 @everywhere begin
 
     using DrWatson 
@@ -46,27 +47,21 @@ println("Working in: ", workers())
                             rxnindex, metindex, compressed_copy, 
                             uncompressed_copy, clampfileds!, well_scaled_model,
                             ChstatBundle, norm1_stoi_err, av, va, nzabs_range,
-                            struct_to_dict, ub!
-
-    import Chemostat.SimulationUtils: epoch_converge_ep!, cached_simulation, set_cache_dir, 
+                            struct_to_dict, ub!, set_cache_dir,  to_symbol_dict,
                             tagprintln_inmw, println_inmw, tagprintln_ifmw, println_ifmw,
-                            save_cache, load_cache, delete_temp_caches
-    import Chemostat.SteadyState: apply_bound!
+                            save_cache, load_cache, delete_temp_caches, 
+                            load_data, save_data
 
-    # Dev
+    import Chemostat.SimulationUtils: cached_simulation
+    import Chemostat.SteadyState: apply_bound!
     import Chemostat.LP: fba
-    import Chemostat.Test: toy_model, simple_toy_MetNet
-    import Chemostat.Test: empty_epout
-    import Chemostat.MaxEntEP: maxent_ep, converge_ep!
+
 
     import Chemostat_Rath2017
-    import Chemostat_Rath2017: DATA_KEY, Human1, RathData, load_data, save_data
-    import Chemostat_Rath2017.Human1: OBJ_IDER, ATPM_IDER, PROT_POOL_EXCHANGE, 
-                                    MAX_BOUND, ZEROTH
-    const RepH1 = Human1.Rep_Human1;
+    import Chemostat_Rath2017: Human1, RathData
+    const H1 = Human1
     const ecG = Human1.ecGEMs
-    const tIG = Human1.tINIT_GEMs;
-    const HG = Human1.HumanGEM;
+    const HG = Human1.HumanGEM
     const Rd = RathData
     set_cache_dir(ecG.MODEL_CACHE_DATA_DIR)
     
@@ -118,8 +113,9 @@ model_ids = ec_models |> keys |> collect
 for (model_id, model_dict) in ec_models
     local model = model_dict |> compressed_copy |> MetNet
     ec_models[model_id] = model
-    clampfileds!(model, [:lb, :ub, :b]; abs_max = MAX_BOUND, zeroth =  ZEROTH)
-    println_ifmw("model: ", model_id, " size: ", size(model), " S nzabs_range: ", nzabs_range(model.S), "\n")
+    clampfileds!(model, [:lb, :ub, :b]; abs_max = H1.MAX_BOUND, zeroth =  H1.ZEROTH)
+    println_ifmw("model: ", model_id, " size: ", size(model), 
+        " S nzabs_range: ", nzabs_range(model.S), "\n")
 end    
 
 ## ------------------------------------------------------------------
@@ -153,7 +149,7 @@ GC.gc()
         emptyfirst = true, ignore_miss = true)
 
     # Fix total_prot
-    ub!(model, PROT_POOL_EXCHANGE, 0.298) # From fba
+    ub!(model, H1.PROT_POOL_EXCHANGE, 0.298) # From fba
 
     return model
 end
@@ -205,9 +201,9 @@ map(model_ids) do (model_id)
                 get_model = function()
                     return prepare_model(model_id, ξ, stst);
                 end,
-                objider = OBJ_IDER, 
-                beta_info = [(OBJ_IDER, βs)],
-                costider = PROT_POOL_EXCHANGE,
+                objider = H1.OBJ_IDER, 
+                beta_info = [(H1.OBJ_IDER, βs)],
+                costider = H1.PROT_POOL_EXCHANGE,
                 clear_cache = false,
                 use_seed = true,
                 epmodel_kwargs = epmodel_kwargs,
