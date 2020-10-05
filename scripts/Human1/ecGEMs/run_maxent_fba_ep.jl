@@ -250,11 +250,13 @@ for id in res_ids
 
 end
 
-## SAVING
+## ------------------------------------------------------------------
+# SAVING
 tagprintln_inmw("SAVING RESULTS ")
 save_data(ecG.MAXENT_FBA_EB_BOUNDLES_FILE, bundles)
 
-## CLEAR CACHE (WARNING)
+## ------------------------------------------------------------------
+# CLEAR CACHE (WARNING)
 if finish_clear_flag
     tagprintln_inmw("CLEARING CACHE ")
     delete_temp_caches()
