@@ -92,6 +92,14 @@ git-tree-sha1 = "2ac27f59196a68070e132b25713f9a5bbc5fa0d2"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
 version = "0.8.3"
 
+[[Chemostat]]
+deps = ["Clp", "Dates", "Distributed", "Distributions", "ExtractMacro", "LinearAlgebra", "MAT", "MathProgBase", "Plots", "Printf", "ProgressMeter", "Random", "Requires", "Serialization", "SparseArrays", "SpecialFunctions", "StatsBase", "UtilsJL"]
+git-tree-sha1 = "cfedf67b04a6b60acacbc8a50611cfa431632f52"
+repo-rev = "v0.7.0"
+repo-url = "https://github.com/josePereiro/Chemostat"
+uuid = "c5987326-81b3-11ea-28dd-b531745de20f"
+version = "0.7.0"
+
 [[Clp]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "MathOptInterface", "MathProgBase", "SparseArrays"]
 git-tree-sha1 = "0872354eaeb05a86e400f45abaac1dc93da7bf76"
@@ -226,6 +234,11 @@ version = "1.15.1"
 git-tree-sha1 = "7fce513fcda766962ff67c5596cb16c463dfd371"
 uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
 version = "0.1.2"
+
+[[ExtractMacro]]
+git-tree-sha1 = "35616bd2fb03730d2700ebe71870af7169d9e6a2"
+uuid = "f86d3d12-fd5b-522c-99e9-61577282a1e9"
+version = "1.0.0"
 
 [[EzXML]]
 deps = ["BinaryProvider", "Libdl", "Printf"]
@@ -371,6 +384,7 @@ uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 version = "1.2.0"
 
 [[LibGit2]]
+deps = ["Printf"]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 
 [[Libdl]]
@@ -499,7 +513,7 @@ uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 version = "1.0.11"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
+deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PlotThemes]]
@@ -684,7 +698,7 @@ uuid = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 version = "1.1.0"
 
 [[SuiteSparse]]
-deps = ["Libdl", "LinearAlgebra", "SparseArrays"]
+deps = ["Libdl", "LinearAlgebra", "Serialization", "SparseArrays"]
 uuid = "4607b0f0-06f3-5cda-b6b1-a6196a1729e9"
 
 [[TableOperations]]
@@ -765,7 +779,7 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 [[UtilsJL]]
 deps = ["BSON", "Dates", "Distributed", "DrWatson", "Serialization", "SparseArrays"]
 git-tree-sha1 = "cd736ce26cebf2296bb18d2d217cf450c0d52bcf"
-repo-rev = "665d597f842031b528df51075e60e817d9e80c4d"
+repo-rev = "v0.2.3"
 repo-url = "https://github.com/josePereiro/UtilsJL.git"
 uuid = "1d417f3e-fd42-11ea-18da-dda57c9b97b2"
 version = "0.2.3"
