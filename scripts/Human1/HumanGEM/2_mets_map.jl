@@ -1,13 +1,15 @@
-# +
-using DrWatson
-@quickactivate "Chemostat_Rath2017"
+## ---------------------------------------------------------------
+import DrWatson: quickactivate
+quickactivate(@__DIR__, "Chemostat_Rath2017")
 
+## ---------------------------------------------------------------
 import JSON # for pretty printing
 
-import Chemostat_Rath2017: DATA_KEY, HumanGEM
-const HG = HumanGEM
-# -
+import Chemostat_Rath2017: Chemostat, Human1
+const ChU = Chemostat.Utils
+const HG = Human1.HumanGEM
 
+## ---------------------------------------------------------------
 # This create a map between the metabolites ids of the Human1 model 
 # and the ids used in Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
 
@@ -42,20 +44,19 @@ mets_map["PRO"] = "m02770s"
 mets_map["GAL"] = "m01910s"
 mets_map["THR"] = "m02993s"
 
+## ---------------------------------------------------------------
 # print
 println("\nRath2017 - HumanGEM met map")
 JSON.print(mets_map, 4)
 println()
 
-# makinig it both ways
+# making it both ways
 for (k, v) in mets_map
     mets_map[v] = k
 end
 
+## ---------------------------------------------------------------
 # Saving
-file = HG.METS_MAP_FILE
-tagsave(file, Dict(DATA_KEY => mets_map))
-println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
-
+ChU.save_data(HG.METS_MAP_FILE, mets_map)
 
 

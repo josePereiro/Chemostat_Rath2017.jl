@@ -1,16 +1,12 @@
-# +
-using DrWatson
+## --------------------------------------------------------------------
+import DrWatson: quickactivate
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-import CSV
-import DataFrames: DataFrame
-import MAT
+## --------------------------------------------------------------------
+import Chemostat_Rath2017: HumanGEM
+HG = HumanGEM
 
-import Chemostat_Rath2017
-HG = Chemostat_Rath2017.HumanGEM
-# -
-
-zenodo_download_link = "https://zenodo.org/record/3583004/files/Human1_Publication_Data_Scripts.zip?download=1"
+const zenodo_download_link = "https://zenodo.org/record/3583004/files/Human1_Publication_Data_Scripts.zip?download=1"
 
 cd(HG.MODEL_RAW_DATA_DIR |> dirname)
 zip_file = "Human1_Publication_Data_Scripts.zip"
@@ -23,7 +19,8 @@ else
     download(zenodo_download_link, zip_file)
     run(`unzip $zip_file`)
 end
-!isdir(HG.MODEL_RAW_DATA_DIR) && error("$(HG.MODEL_RAW_DATA_DIR) not found after download-unzip!!!")
+!isdir(HG.MODEL_RAW_DATA_DIR) && 
+    error("$(HG.MODEL_RAW_DATA_DIR) not found after download && unzip!!!")
 println(relpath(HG.MODEL_RAW_DATA_DIR), " ready!!!")
 flush(stdout)
 flush(stderr)

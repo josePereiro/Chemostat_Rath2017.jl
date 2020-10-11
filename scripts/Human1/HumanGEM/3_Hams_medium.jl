@@ -1,30 +1,16 @@
-# -*- coding: utf-8 -*-
-# ---
-# jupyter:
-#   jupytext:
-#     cell_metadata_filter: -all
-#     formats: jl:light
-#     text_representation:
-#       extension: .jl
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.3.2
-#   kernelspec:
-#     display_name: Julia 1.1.0
-#     language: julia
-#     name: julia-1.1
-# ---
+## ---------------------------------------------------------------
+import DrWatson: quickactivate
+quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-# +
-using DrWatson
-@quickactivate "Chemostat_Rath2017"
-
+## ---------------------------------------------------------------
 import JSON # For pretty printing
 
-import Chemostat_Rath2017: DATA_KEY, HumanGEM
-const HG = HumanGEM
-# -
+import Chemostat_Rath2017: Chemostat, Human1
+const ChU = Chemostat.Utils
+const HG = Human1.HumanGEM
 
+
+## ---------------------------------------------------------------
 # Ham's F-12 
 # but mediam componets from Human1 Zenodo https://zenodo.org/record/3583004#.Xu8KdmpKiCh
 # task (Growth in Ham's medium)
@@ -32,14 +18,14 @@ const HG = HumanGEM
 Inf_ = 9999 # taked as infinite concentration
 def_ = 1e-1 #
 
-# ## Nutrient Mixture F-12 Ham N6760
+# Nutrient Mixture F-12 Ham N6760
 # Source concentration where are g/L, from https://www.sigmaaldrich.com/life-science/cell-culture/learning-center/media-formulations/f-12-ham.html
 
 Ham_medium = Dict()
 
-# ## Inorganic Salts
+## ---------------------------------------------------------------
+# Inorganic Salts
 
-# +
 # Calcium Chloride (CaCl2)   0.0333 g/L
 # Ham_medium["Ca2+[s]"] = 0.0333 * 1e3 / 110.98 # mM
 Ham_medium["Ca2+[s]"] = Inf_
@@ -90,11 +76,10 @@ Ham_medium["zinc[s]"] = Inf_
 # Sodium Bicarbonate  1.176 g/L
 # Ham_medium["Na+[s]"] += 1.176 * 1e3 / 58.44 # mM
 # Ham_medium["HCO3-[s]"] += 1.176 * 1e3 / 84.007 # mM
-# -
 
-# ## Vitamins
+## ---------------------------------------------------------------
+# Vitamins
 
-# +
 # D-Biotin   0.0000073 g/L
 # Ham_medium["biotin[s]"] = 0.0000073 * 1e3 / 244.31 # mM
 Ham_medium["biotin[s]"] = Inf_ 
@@ -138,7 +123,8 @@ Ham_medium["thiamin[s]"] = Inf_
 # Ham_medium["cobamide-coenzyme[s]"] = 0.00136 * 1e3 / 1355.365 # mM
 Ham_medium["cobamide-coenzyme[s]"] = Inf_
 
-# # Other
+## ---------------------------------------------------------------
+# Other
 # D-Glucose   1.802  g/L
 Ham_medium["glucose[s]"] = 1.802 * 1e3 / 180.156 # mM
 
@@ -167,14 +153,15 @@ Ham_medium["lipoic acid[s]"] = Inf_
 # Ham_medium["thymidine[s]"] = 0.00073 * 1e3 / 242.2286 # mM
 Ham_medium["thymidine[s]"] = Inf_
 
+## ---------------------------------------------------------------
 # Add
 # L-Glutamine   0.146 g/L
 Ham_medium["glutamine[s]"] = 0.146 * 1e3 / 146.14 # mM
-# -
 
-# ## Amino Acids
 
-# +
+## ---------------------------------------------------------------
+# Amino Acids
+
 # L-Alanine   0.009 g/L
 Ham_medium["alanine[s]"] = 0.009 * 1e3 / 89.09 # mM
 
