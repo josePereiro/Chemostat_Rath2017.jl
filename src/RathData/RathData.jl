@@ -16,4 +16,10 @@ module RathData
     include("dir_and_files.jl")
     include("data_interface.jl")
     include("a1at_aa_rel_ab.jl")
+
+    function __init__()
+        _load_rath_bundle()
+        _define_interface()
+    end
+
 end

@@ -4,13 +4,19 @@
 
 
 # A single structure with all the data. one ring to rule them all!!!
-rath_bundle = nothing
-function load_rath_bundle()
-    !isfile(RATH_STDM_CONV_FILE) && return nothing
-    global rath_bundle = Dict()
+const rath_bundle = Dict()
+function _load_rath_bundle()
+    
+    files = [RATH_CONT_CUL_DATA_CONV_FILES[exp] for exp in exps]
+    push!(files, RATH_STDM_CONV_FILE)
+    for file in files
+        !isfile(file) && error("Data file missing, ", relpath(file))
+    end
+
+    empty!(rath_bundle)
     for exp in exps
         
-        data = Dict()
+        data = get!(rath_bundle, exp, Dict())
         
         # std medium
         stdm_conv = CSV.read(RATH_STDM_CONV_FILE, DataFrame);
@@ -38,33 +44,36 @@ function load_rath_bundle()
         ξunit = "gDW * hr/ L"
         data["ξ"] = Dict("val" => ξval, "err" => ξerr, "unit" => ξunit)
             
-        
-        rath_bundle[exp] = data
     end
     return rath_bundle
 end
-load_rath_bundle()
-
 
 # interface
+# Will define the val, qval, sval, sval, err and unit function to access Rath data
 _parse_id(prefix, id) = (string(prefix) == "q" && string(id) == "μ") ? "μ" : string(prefix, id) # handle biomass
-for base_fun in [:val, :err, :unit]      
-    key = string(base_fun)
-    @eval begin
-        $base_fun(id, exp::AbstractString) = rath_bundle[exp][string(id)][$key]
-        function $base_fun(id, exp::AbstractString, deflt)
-            try 
-                $base_fun(id, exp); 
-            catch err
-                err isa KeyError && return deflt
-                rethrow(err)
+function _define_interface()
+    for base_fun in [:val, :err, :unit]      
+        key = string(base_fun)
+        @eval begin
+            $base_fun(id, exp) = rath_bundle[string(exp)][string(id)][$key]
+            function $base_fun(id, exp::AbstractString, deflt)
+                try 
+                    $base_fun(id, exp); 
+                catch err
+                    err isa KeyError && return deflt
+                    rethrow(err)
+                end
             end
-        end
-        $base_fun(id, exps::Vector, args...) = [$base_fun(id, exp, args...) for exp in exps]
-    end 
+            $base_fun(id, exps::Vector, deflt) = [$base_fun(id, exp, deflt) for exp in exps]
+            $base_fun(id, exps::Vector) = [$base_fun(id, exp) for exp in exps]
+            $base_fun(id) = $base_fun(id, $exps) # all the experiments
+        end 
 
-    for prefix in ["q", "c", "s"]
-        fun = Symbol(string(prefix, base_fun))
-        @eval $fun(id, args...) = $base_fun(_parse_id($prefix, id), args...)
+        for prefix in ["q", "c", "s"]
+            fun = Symbol(string(prefix, base_fun))
+            @eval $fun(id) = $base_fun(_parse_id($prefix, id))
+            @eval $fun(id, exp) = $base_fun(_parse_id($prefix, id), exp)
+            @eval $fun(id, exps, deflt) = $base_fun(_parse_id($prefix, id), exps, deflt)
+        end
     end
 end
