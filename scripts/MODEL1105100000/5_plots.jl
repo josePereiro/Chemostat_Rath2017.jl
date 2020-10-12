@@ -58,7 +58,6 @@ function get_limits(xdat, ydat; marginf = 0.10)
 end
 
 ## ------------------------------------------------------------------
-# TOOLS
 # Total Correlations
 ider_map = M.load_rath_met_exch_map()
 function total_correlation()
