@@ -1,10 +1,15 @@
 # DIRS
 const MODEL_PROCESSED_DATA_DIR = joinpath(PROCESSED_DATA_DIR, PROJ_NAME)
-mkpath(MODEL_PROCESSED_DATA_DIR)
 const MODEL_CACHE_DATA_DIR = joinpath(MODEL_PROCESSED_DATA_DIR, "cache")
-mkpath(MODEL_CACHE_DATA_DIR)
-const MODEL_FIGURES_DATA_DIR = joinpath(FIGURES_DATA_DIR, PROJ_NAME)
-mkpath(MODEL_FIGURES_DATA_DIR)
+const MODEL_FIGURES_DATA_DIR = joinpath(FIGURES_DATA_DIR, PROJ_NAME) 
+
+function _make_dirs()
+    for dir in [MODEL_PROCESSED_DATA_DIR, 
+                MODEL_CACHE_DATA_DIR, 
+                MODEL_FIGURES_DATA_DIR]
+        try mkpath(dir) catch end
+    end
+end
 
 
 # FILES

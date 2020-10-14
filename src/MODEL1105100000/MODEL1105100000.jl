@@ -18,4 +18,8 @@ module MODEL1105100000
     include("load_data.jl")
     include("utils.jl")
 
+    function __init__()
+        _make_dirs()
+    end
+
 end
