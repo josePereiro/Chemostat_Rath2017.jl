@@ -3,6 +3,7 @@ import DrWatson: quickactivate
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 ## ---------------------------------------------------------------
+import Plots: plot, plot!, scatter, scatter!
 import SparseArrays
 import Distributions: mean
 import Chemostat_Rath2017: Chemostat
@@ -13,14 +14,13 @@ const HG = HumanGEM
 const Rd = RathData
 const ecG = ecGEMs
 
-using Plots
-
 ## ---------------------------------------------------------------
 maxent_dat = ChU.load_data(ecG.MAXENT_FBA_EB_BOUNDLES_FILE)
 
 ## ---------------------------------------------------------------
 commit_hash = ChU.load_commit_short_hash(ecG.MAXENT_FBA_EB_BOUNDLES_FILE)
 fig_title = string(nameof(ecG), " [", commit_hash, "]")
+println(fig_title)
 
 ## ------------------------------------------------------------------
 color_pool = [:orange, :blue, :red, :black, :violet, 
@@ -49,7 +49,7 @@ function growth_vs_beta()
     )
     serie_fun = log10 #(x) -> x
     for (model_id, bundles) in maxent_dat
-        sbundles = sort(collect(bundles); by = (x) -> x[1])
+        sbundles = sort(collect(bundles); by = first)
         for (exp, bundle) in sbundles
             # exp != 7 && continue
             exp_growth = Rd.val("μ", exp)
@@ -175,10 +175,7 @@ function closest_beta()
     end
     return p
 end
-p = closest_beta();
-# pfile = joinpath(ecG.MODEL_FIGURES_DATA_DIR, "closest_beta.bson")
-# ChU.save_data(pfile, p)
-p
+closest_beta();
 
 ## -------------------------------------------------------------------
 # GROWTH CORRELATION
@@ -235,6 +232,11 @@ function total_correlation()
     )
     plot!(epp, x -> x, lims[1], lims[2]; label = "", color = :black)
 
+    # Info print
+    rel_th = 0.2;
+    abs_th = 1e-4;
+    rf(x) = round(x, digits = 4)
+
     xs = []
     xerrs = []
     fbays = []
@@ -247,7 +249,7 @@ function total_correlation()
 
             exp_ξ =  Rd.val(:ξ, stst)
             exp_μ =  Rd.val(:D, stst)
-            exp_β = ChU.find_closest_beta(bundle, exp_ξ, exp_μ, HG.OBJ_IDER)
+            exp_β = closest_βs[model_id][exp]
 
             for rider in Rd.iders_to_plot
                 sense = rider == Rd.growth_ider ? 1 : -1 # TODO: package this
@@ -261,11 +263,28 @@ function total_correlation()
                 mod_av = ChU.av(bundle, exp_ξ, :fba, mider)
                 push!(fbays, mod_av)
                 
+                # Info print
+                # exp\\mod\\rel
+                rel_err = abs(mod_av - exp_av)/max(abs(mod_av), abs(exp_av))
+                if abs(mod_av) > abs_th && rel_th < rel_err < Inf
+                    println("FBA\\", model_id, "\\", stst, "\\", rider, 
+                        ":\t [", rf(exp_av), ", ", rf(mod_av), ", ", rf(rel_err), "]")
+                end
+
                 # EP
                 mod_av = ChU.av(bundle, exp_ξ, exp_β,:ep, mider)
                 push!(epys, mod_av)
                 mod_err = sqrt(ChU.va(bundle, exp_ξ, exp_β,:ep, mider))
                 push!(epyerrs, mod_err)
+
+                 # Info print
+                 rel_err = abs(mod_av - exp_av)/max(abs(mod_av), abs(exp_av))
+                 if abs(mod_av) > abs_th && rel_th < rel_err < Inf
+                     println("EP\\", model_id, "\\", stst, "\\", rider, 
+                        ":\t [", rf(exp_av), ", ", rf(mod_av), ", ", rf(rel_err), "]")
+                 end
+                 println()
+
             end
         end
     end
@@ -280,10 +299,39 @@ function total_correlation()
 end
 total_correlation()
 
-## -------------------------------------------------------------------
-# Dev
-model = maxent_dat["GTEx-brain"]["E"][1,:net]
-met = "m01370s"
-idermap = HG.load_readable_met_ids_map();
-# ChU.summary(model, "m01370s")
-idermap[met]
+## ------------------------------------------------------------------
+# MARGINALS
+function exp_b_marginals(;model_id = "GTEx-brain", exp = "E",
+        xlims = Dict())
+    bundle = maxent_dat[model_id][exp]
+    exp_ξ =  Rd.val(:ξ, exp)
+    exp_β = closest_βs[model_id][exp]
+    model = bundle[exp_ξ, :net]
+    ider_map = HG.load_rath_met_exch_map()
+
+    ps = []
+    for rider in Rd.iders_to_plot
+        mider = ider_map[rider]
+        p = plot(title = first(rider, 10), 
+            titlefont = 8, 
+            yticks = []
+        )
+        ChP.plot_marginal!(p, bundle, exp_ξ, exp_β, [:fba, :ep], mider;
+             label = "", xlim = get(xlims, rider, nothing))
+        push!(ps, p)
+    end
+    plot(ps..., layout = length(ps))
+end
+exp_b_marginals(exp = "E"; 
+    xlims = Dict("GLC" => [-5, 5], 
+                "LAC" => [-10, 250],
+                "GLN" => [-1, 1],
+                "NH4" => [-1, 8],
+                "GAL" => [-1, 10],
+                "PYR" => [-10, 600],
+                "GLU" => [-5, 5],
+                "ALA" => [-5, 50],
+                "ASP" => [-5, 5],
+                "μ" => [-0.1, 0.1], 
+    )
+)
