@@ -201,8 +201,8 @@ map(model_ids) do (model_id)
                 get_model = function()
                     return prepare_model(model_id, ξ, stst);
                 end,
-                objider = H1.OBJ_IDER, 
-                beta_info = [(H1.OBJ_IDER, βs)],
+                objider = H1.BIOMASS_IDER, 
+                beta_info = [(H1.BIOMASS_IDER, βs)],
                 costider = H1.PROT_POOL_EXCHANGE,
                 clear_cache = false,
                 use_seed = true,

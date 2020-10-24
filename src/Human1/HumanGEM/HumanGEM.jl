@@ -8,7 +8,7 @@ module HumanGEM
     import ...Chemostat_Rath2017: PROJ_ROOT, RAW_DATA_DIR, 
                                   PROCESSED_DATA_DIR, FIGURES_DATA_DIR, RathData, 
                                   load_data
-    import ..Human1: OBJ_IDER
+    import ..Human1: BIOMASS_IDER
     import CSV
     import Serialization: deserialize
     import DataFrames: DataFrame

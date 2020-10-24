@@ -24,7 +24,7 @@ import Chemostat.LP: fba, fva
 import Chemostat_Rath2017: DATA_KEY, RathData, Human1, 
                             print_action, temp_cache_file, set_cache_dir,
                             save_cache, load_cached, delete_temp_caches
-import Chemostat_Rath2017.Human1: OBJ_IDER, ATPM_IDER, PROT_POOL_EXCHANGE, MAX_BOUND, ZEROTH, try_fba
+import Chemostat_Rath2017.Human1: BIOMASS_IDER, ATPM_IDER, PROT_POOL_EXCHANGE, MAX_BOUND, ZEROTH, try_fba
 const RepH1 = Human1.Rep_Human1;
 const ecG = Human1.ecGEMs
 const tIG = Human1.tINIT_GEMs;
@@ -57,7 +57,7 @@ end
     println("\nComputing obj val")
     const obj_vals = Dict{String, Float64}()
     for (model_id, model) in ec_models
-        obj_vals[model_id] = fba(model, OBJ_IDER).obj_val
+        obj_vals[model_id] = fba(model, BIOMASS_IDER).obj_val
         myid() == 1 && println("model ", model_id, " obj_val: ", obj_vals[model_id])
     end
 end
@@ -78,7 +78,7 @@ end
     
     # model
     model::MetNet = deepcopy(ec_models[model_id])
-    obj_idx = rxnindex(model, OBJ_IDER)
+    obj_idx = rxnindex(model, BIOMASS_IDER)
     m, n = size(model)
 
     # epoch
@@ -107,7 +107,7 @@ end
     backup = (model.lb[epoch], model.ub[epoch])
     model.lb[epoch] .= data[2][1]
     model.ub[epoch] .= data[2][2]
-    curr_val = fba(model, OBJ_IDER).obj_val
+    curr_val = fba(model, BIOMASS_IDER).obj_val
     if abs(curr_val - obj_vals[model_id]) > tol 
         # --------------------  SAVE FVA  --------------------  
         print_action(state, "STARTING SAVE FVA")
@@ -116,7 +116,7 @@ end
         model.ub[epoch] .= backup[2]
         data = (epoch, (model.lb[epoch], model.ub[epoch]))
         try
-            data = (epoch, fva(model, epoch; check_obj = OBJ_IDER, verbose = false))
+            data = (epoch, fva(model, epoch; check_obj = BIOMASS_IDER, verbose = false))
         catch err
             print_action(state, "ERROR DOING FVA", "Error: $err")
             err isa InterruptException && rethrow(err)
@@ -135,8 +135,8 @@ end
 fva_pp_models = Dict()
 for (model_id, model) in ec_models
     build_model = deepcopy(ec_models[model_id]);
-    try_fba(build_model, OBJ_IDER)
-    obj_idx = rxnindex(build_model, OBJ_IDER)
+    try_fba(build_model, BIOMASS_IDER)
+    obj_idx = rxnindex(build_model, BIOMASS_IDER)
     M, N = size(build_model)
     epoch_len = min(100, N)
     @assert epoch_len > 0
@@ -165,7 +165,7 @@ for (model_id, model) in ec_models
     # deleting blocked
     fva_pp_model = del_blocked(build_model; protected = ignored);
     println("\nfva_pp_model, ", size(fva_pp_model))
-    try_fba(fva_pp_model, OBJ_IDER)
+    try_fba(fva_pp_model, BIOMASS_IDER)
 
     fva_pp_models[model_id] = compress_model(fva_pp_model)
     break;

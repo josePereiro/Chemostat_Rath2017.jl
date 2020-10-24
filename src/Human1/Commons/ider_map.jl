@@ -2,7 +2,7 @@ RATH_GROWTH_IDER = "μ"
 function _ider_maps()
     global RATH_IDERS_TO_PLOT = [RATH_GROWTH_IDER; RathData.msd_mets]
     global MODEL_IDERS_TO_PLOT = map(RATH_IDERS_TO_PLOT) do rath_ider
-        model_ider = rath_ider == RATH_GROWTH_IDER ? OBJ_IDER :
+        model_ider = rath_ider == RATH_GROWTH_IDER ? BIOMASS_IDER :
             HumanGEM.exch_met_map[HumanGEM.mets_map[rath_ider]]
     end
     global IDERS_MAP = Dict()

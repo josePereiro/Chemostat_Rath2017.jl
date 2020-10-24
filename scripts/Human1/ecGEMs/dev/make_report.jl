@@ -54,7 +54,7 @@ for (model_id, bundles) in maxent_dat
     for (exp, bundle) in bundles
         exp_xi = Rd.val("ξ", exp)
         exp_mu = Rd.val("μ", exp)
-        closest_βs[model_id][exp] = ChU.find_closest_beta(bundle, exp_xi, exp_mu, HG.OBJ_IDER)
+        closest_βs[model_id][exp] = ChU.find_closest_beta(bundle, exp_xi, exp_mu, HG.BIOMASS_IDER)
     end
 end
 
@@ -74,14 +74,14 @@ function growth_vs_beta()
                 ls = :dash, color = colors[exp], lw = 3, label = "")
             
             exp_xi = Rd.val("ξ", exp)
-            fba_growth = ChU.av(bundle, exp_xi, :fba, HG.OBJ_IDER)
+            fba_growth = ChU.av(bundle, exp_xi, :fba, HG.BIOMASS_IDER)
             fba_growth += eps_
             plot!(p, fun1.(bundle.βs), fill(fun1(fba_growth), length(bundle.βs)); 
                 ls = :dot, color = colors[exp], lw = 3, label = "")
 
-            ep_growths = ChU.av(bundle, exp_xi, bundle.βs, :ep, HG.OBJ_IDER)
+            ep_growths = ChU.av(bundle, exp_xi, bundle.βs, :ep, HG.BIOMASS_IDER)
             ep_growths .+= eps_
-            ep_stds = sqrt.(ChU.va(bundle, exp_xi, bundle.βs, :ep, HG.OBJ_IDER))
+            ep_stds = sqrt.(ChU.va(bundle, exp_xi, bundle.βs, :ep, HG.BIOMASS_IDER))
             plot!(p, fun1.(bundle.βs), fun1.(ep_growths); 
                 label = exp, lw = 3, color = colors[exp])
 

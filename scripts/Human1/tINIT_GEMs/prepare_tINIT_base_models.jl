@@ -50,12 +50,12 @@ for (dat_id, tINIT_dat) in tINIT_brain_models
     medium = filter((rxn) -> rxn in base_model.rxns, medium)
     Human1.open_rxns!(base_model, medium)
     
-    Human1.apply_biomass!(base_model, Human1.OBJ_IDER, HG.niklas_biomass)
+    Human1.apply_biomass!(base_model, Human1.BIOMASS_IDER, HG.niklas_biomass)
     base_model = Human1.set_atp_demand(base_model)
     
-    Human1.try_fba(base_model, Human1.OBJ_IDER)
+    Human1.try_fba(base_model, Human1.BIOMASS_IDER)
     
-    fbaout = Human1.try_fba(base_model, Human1.OBJ_IDER);
+    fbaout = Human1.try_fba(base_model, Human1.BIOMASS_IDER);
     @assert fbaout.obj_val > Human1.ZEROTH
     
     base_model = Ch.Utils.compress_model(base_model)

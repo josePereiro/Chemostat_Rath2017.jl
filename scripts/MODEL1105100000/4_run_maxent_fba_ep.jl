@@ -171,8 +171,8 @@ pmap(ststs) do stst
             get_model = function()
                 return prepare_model(ξ, stst);
             end,
-            objider = M.OBJ_IDER, 
-            beta_info = [(M.OBJ_IDER, βs)],
+            objider = M.BIOMASS_IDER, 
+            beta_info = [(M.BIOMASS_IDER, βs)],
             costider = M.COST_IDER,
             clear_cache = false,
             use_seed = true,

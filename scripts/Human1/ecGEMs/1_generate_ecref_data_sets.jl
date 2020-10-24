@@ -102,7 +102,7 @@ for (i, (id, files)) in ec_model_files |> enumerate
         !is_src && Ch.Utils.bounds!(model, Human1.PROT_POOL_EXCHANGE, 0.0, Human1.MAX_BOUND);
 
         # Check that the model is feasible
-        fbaout = Human1.try_fba(model, Human1.OBJ_IDER);
+        fbaout = Human1.try_fba(model, Human1.BIOMASS_IDER);
         @assert fbaout.obj_val > Human1.ZEROTH
 
         model = Ch.Utils.compress_model(model);

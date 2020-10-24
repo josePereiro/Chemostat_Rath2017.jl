@@ -23,7 +23,7 @@ import Chemostat.LP: fva_preprocess, fva
 
 import Chemostat_Rath2017
 import Chemostat_Rath2017: RathData, DATA_KEY, load_data, save_data
-import Chemostat_Rath2017.Human1: HumanGEM, tINIT_GEMs, ecGEMs, OBJ_IDER, 
+import Chemostat_Rath2017.Human1: HumanGEM, tINIT_GEMs, ecGEMs, BIOMASS_IDER, 
                                 RATH_IDERS_TO_PLOT, MODEL_IDERS_TO_PLOT, 
                                 IDERS_MAP, RATH_GROWTH_IDER
 const Rd = RathData
@@ -59,7 +59,7 @@ bundle = bundles[model_id][stst];
 
 ##
 exp_μ = Rd.val(:μ, stst)
-exp_β = find_closest_β(bundle, exp_μ, OBJ_IDER)
+exp_β = find_closest_β(bundle, exp_μ, BIOMASS_IDER)
 xi = 1
 beta = exp_β
 model = bundle[xi, :net]

@@ -159,7 +159,7 @@ apply_bound!(base_model, ξ, base_intake_info);
 # I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
 println("Applying Niklas Biomass")
 niklas_biomass = M.load_niklas_biomass()
-biomass_idx = rxnindex(base_model, M.OBJ_IDER)
+biomass_idx = rxnindex(base_model, M.BIOMASS_IDER)
 base_model.S[:, biomass_idx] .= zeros(size(base_model, 1))
 for (met, y) in niklas_biomass
     S!(base_model, met, biomass_idx, y)
@@ -210,7 +210,7 @@ clampfileds!(fva_preprocessed_model, [:lb, :ub];
     zeroth = M.ZEROTH,  abs_max = M.ABS_MAX_BOUND)
 println("Fva preprocessed base_model summary")
 
-fbaout = fba(fva_preprocessed_model, M.OBJ_IDER)
+fbaout = fba(fva_preprocessed_model, M.BIOMASS_IDER)
 summary(fva_preprocessed_model, fbaout)
 
 dict_ = fva_preprocessed_model |> struct_to_dict |> compressed_copy

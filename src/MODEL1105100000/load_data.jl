@@ -10,7 +10,7 @@ function load_rath_met_exch_map()
     exch_met_map = load_exch_met_map()
     mets_map = load_mets_map()
     model_iders_to_plot = map(Rd.iders_to_plot) do rath_ider
-        model_ider = rath_ider == Rd.growth_ider ? OBJ_IDER :
+        model_ider = rath_ider == Rd.growth_ider ? BIOMASS_IDER :
             exch_met_map[mets_map[rath_ider]]
     end
 

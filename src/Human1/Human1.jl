@@ -1,7 +1,7 @@
 module Human1
     
     import Chemostat.Utils: rxnindex, metindex, lb!, lb, ub!, S, S!, b,
-                            ub, rxn_mets, rxn_reacts, isfwd,
+                            ub, rxn_mets, rxn_reacts, isfwd_bounded,
                             rxn_str, bounds, bounds!, is_exchange,
                             MetNet, FBAout, met_rxns, isrev, exchanges, 
                             summary, load_data

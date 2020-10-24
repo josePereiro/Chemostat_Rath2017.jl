@@ -33,7 +33,7 @@ closest_βs = Dict()
 for (exp, bundle) in bundles
     exp_xi = Rd.val("ξ", exp)
     exp_mu = Rd.val("μ", exp)
-    closest_βs[exp] = ChU.find_closest_beta(bundle, exp_xi, exp_mu, M.OBJ_IDER)
+    closest_βs[exp] = ChU.find_closest_beta(bundle, exp_xi, exp_mu, M.BIOMASS_IDER)
 end
 closest_βs
 
@@ -54,14 +54,14 @@ function growth_vs_beta()
             ls = :dash, color = colors[exp], lw = 3, label = "")
         
         exp_xi = Rd.val("ξ", exp)
-        fba_growth = ChU.av(bundle, exp_xi, :fba, M.OBJ_IDER)
+        fba_growth = ChU.av(bundle, exp_xi, :fba, M.BIOMASS_IDER)
         fba_growth += eps_
         plot!(p, serie_fun.(bundle.βs), fill(serie_fun(fba_growth), length(bundle.βs)); 
             ls = :dot, color = colors[exp], lw = 3, label = "")
 
-        ep_growths = ChU.av(bundle, exp_xi, bundle.βs, :ep, M.OBJ_IDER)
+        ep_growths = ChU.av(bundle, exp_xi, bundle.βs, :ep, M.BIOMASS_IDER)
         ep_growths .+= eps_
-        ep_stds = sqrt.(ChU.va(bundle, exp_xi, bundle.βs, :ep, M.OBJ_IDER))
+        ep_stds = sqrt.(ChU.va(bundle, exp_xi, bundle.βs, :ep, M.BIOMASS_IDER))
         plot!(p, serie_fun.(bundle.βs), serie_fun.(ep_growths); 
             label = exp, lw = 3, color = colors[exp])
 
@@ -157,7 +157,7 @@ function closest_beta()
         
         # model
         exp_xi = Rd.val("ξ", exp)
-        μs = ChU.av(bundle, exp_xi, bundle.βs, :ep, M.OBJ_IDER)
+        μs = ChU.av(bundle, exp_xi, bundle.βs, :ep, M.BIOMASS_IDER)
         plot!(p, serie_fun.(bundle.βs), μs, label = "", color = colors[exp], lw = 3)
 
         # exp
@@ -182,7 +182,7 @@ function growth_correlation()
     
         exp_ξ =  Rd.val("ξ", exp)
         exp_β = closest_βs[exp]
-        model_μ = ChU.av(bundle, exp_ξ, exp_β, :ep, M.OBJ_IDER)
+        model_μ = ChU.av(bundle, exp_ξ, exp_β, :ep, M.BIOMASS_IDER)
         exp_μ = Rd.val("μ", exp)
         scatter!(p, [serie_fun(exp_μ)], [serie_fun(model_μ)], label = "", color = colors[exp])
     end

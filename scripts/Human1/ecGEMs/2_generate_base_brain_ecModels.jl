@@ -55,13 +55,13 @@ for (model_id, dat) in brain_models
     src_model = Ch.Utils.uncompress_model(src_model)
     println("src model")
     println("size: ", size(src_model))
-    fbaout = Human1.try_fba(src_model, Human1.OBJ_IDER)
+    fbaout = Human1.try_fba(src_model, Human1.BIOMASS_IDER)
     @assert fbaout.obj_val > Human1.ZEROTH
     
     ec_model = Human1.build_ecModel(src_model, ec_refdata_set; add_protless = true);
     println("\nec model")
     println("size: ", size(ec_model))
-    fbaout = Human1.try_fba(ec_model, Human1.OBJ_IDER)
+    fbaout = Human1.try_fba(ec_model, Human1.BIOMASS_IDER)
     @assert fbaout.obj_val > Human1.ZEROTH
     Human1.print_ec_stats(ec_model)
     
@@ -86,9 +86,9 @@ for (model_id, ec_model) in ec_models
     medium = filter((rxn) -> rxn in base_model.rxns, medium)
     Human1.open_rxns!(base_model, medium)
 
-    Human1.apply_biomass!(base_model, Human1.OBJ_IDER, HG.niklas_biomass)
+    Human1.apply_biomass!(base_model, Human1.BIOMASS_IDER, HG.niklas_biomass)
 
-    fbaout = Human1.try_fba(base_model, Human1.OBJ_IDER);
+    fbaout = Human1.try_fba(base_model, Human1.BIOMASS_IDER);
     @assert fbaout.obj_val > Human1.ZEROTH
     
     base_models[model_id] = Ch.Utils.compress_model(base_model)

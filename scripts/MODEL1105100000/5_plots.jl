@@ -32,7 +32,7 @@ closest_βs = Dict()
 for (exp, bundle) in bundles
     exp_xi = Rd.val("ξ", exp)
     exp_mu = Rd.val("μ", exp)
-    closest_βs[exp] = ChU.find_closest_beta(bundle, exp_xi, exp_mu, M.OBJ_IDER)
+    closest_βs[exp] = ChU.find_closest_beta(bundle, exp_xi, exp_mu, M.BIOMASS_IDER)
 end
 closest_βs
 
@@ -197,7 +197,7 @@ exp_b_marginals("E")
 #         for (stst, bundle) in bundles
 #             exp_ξ =  Rd.val(:ξ, stst)
 #             exp_μ =  Rd.val(:D, stst)
-#             exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
+#             exp_β = find_closest_beta(bundle, exp_ξ, exp_μ, M.BIOMASS_IDER)
 
 #             sense = rider == Rd.growth_ider ? 1 : -1 # TODO: package this
 #             mider = ider_map[rider]
@@ -271,5 +271,5 @@ exp_ξ = Rd.val(:ξ, stst)
 exp_μ = Rd.val(:D, stst)
 model = bundle[exp_ξ, :net]
 fbaout = bundle[exp_ξ, :fba]
-exp_β = ChU.find_closest_beta(bundle, exp_ξ, exp_μ, M.OBJ_IDER)
+exp_β = ChU.find_closest_beta(bundle, exp_ξ, exp_μ, M.BIOMASS_IDER)
 epout = bundle[exp_ξ, exp_β, :ep];
