@@ -45,7 +45,7 @@ println("Working in: ", workers())
     import Chemostat
     import Chemostat.Utils: MetNet, EPModel,
                             rxnindex, metindex, compressed_copy, 
-                            uncompressed_copy, clampfileds!, well_scaled_model,
+                            uncompressed_copy, clampfields!, well_scaled_model,
                             ChstatBundle, norm1_stoi_err, av, va, nzabs_range,
                             struct_to_dict, ub!, set_cache_dir,  to_symbol_dict,
                             tagprintln_inmw, println_inmw, tagprintln_ifmw, println_ifmw,
@@ -113,7 +113,7 @@ model_ids = ec_models |> keys |> collect
 for (model_id, model_dict) in ec_models
     local model = model_dict |> compressed_copy |> MetNet
     ec_models[model_id] = model
-    clampfileds!(model, [:lb, :ub, :b]; abs_max = H1.MAX_BOUND, zeroth =  H1.ZEROTH)
+    clampfields!(model, [:lb, :ub, :b]; abs_max = H1.MAX_BOUND, zeroth =  H1.ZEROTH)
     println_ifmw("model: ", model_id, " size: ", size(model), 
         " S nzabs_range: ", nzabs_range(model.S), "\n")
 end    

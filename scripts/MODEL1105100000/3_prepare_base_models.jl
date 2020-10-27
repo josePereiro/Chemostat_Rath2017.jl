@@ -10,7 +10,7 @@ import Chemostat.SteadyState: apply_bound!
 import Chemostat.LP: fva_preprocess, fba
 import Chemostat.Utils: MetNet, del_rxn!, compacted_model,
                         lb!, ub!, S!, rxn_mets, rxnindex,
-                        rxn_str, bounds, summary, clampfileds!
+                        rxn_str, bounds, summary, clampfields!
 
 import Chemostat_Rath2017: RathData, MODEL1105100000
 const Rd = RathData
@@ -206,7 +206,7 @@ println("FVA Preprocessing")
 # TODO use COBRA fva for speed up
 fva_preprocessed_model = fva_preprocess(base_model, eps = 0, verbose = true)
 ##
-clampfileds!(fva_preprocessed_model, [:lb, :ub]; 
+clampfields!(fva_preprocessed_model, [:lb, :ub]; 
     zeroth = M.ZEROTH,  abs_max = M.ABS_MAX_BOUND)
 println("Fva preprocessed base_model summary")
 

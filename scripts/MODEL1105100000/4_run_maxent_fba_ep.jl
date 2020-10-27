@@ -46,7 +46,7 @@ println("Working in: ", workers())
     import Chemostat
     import Chemostat.Utils: MetNet, EPModel,
                             rxnindex, metindex, 
-                            clampfileds!, well_scaled_model,
+                            clampfields!, well_scaled_model,
                             ChstatBundle, norm1_stoi_err, av, va, nzabs_range, ub!,
                             save_data, load_data, struct_to_dict, compressed_copy,
                             tagprintln_inmw, println_inmw, println_ifmw, logspace,
