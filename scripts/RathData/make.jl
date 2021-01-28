@@ -1,3 +1,6 @@
+import DrWatson: quickactivate
+quickactivate(@__DIR__, "Chemostat_Rath2017")
+
 #=
     This script just run all the other scripts in the correct order.
 =#
@@ -25,11 +28,8 @@ not_run_arg = parsed_args["not-run"]
 cd(@__DIR__) # move to this folder
 println("\nNow at: ", pwd())
 
-using DrWatson
-quickactivate(@__DIR__, "Chemostat_Rath2017")
-
 import Chemostat_Rath2017
-Rd = Chemostat_Rath2017.RathData;
+const Rd = Chemostat_Rath2017.RathData;
 
 # Scripts-targets in order
 all_scripts = [

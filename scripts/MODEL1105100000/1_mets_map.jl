@@ -1,13 +1,14 @@
-# +
-using DrWatson
+import DrWatson: quickactivate
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-import UtilsJL: save_data
+import UtilsJL
+const UJL = UtilsJL
 
 import Chemostat_Rath2017
-M = Chemostat_Rath2017.MODEL1105100000
-# -
+const ChR = Chemostat_Rath2017
+const M = ChR.MODEL1105100000
 
+## ----------------------------------------------------------------------------
 # This create a map between the metabolites ids of the MODEL1105100000_url model 
 # and the ids used in Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
 
@@ -45,10 +46,7 @@ for (k, v) in mets_map
     mets_map[v] = k
 end
 
+## ----------------------------------------------------------------------------
 # Saving
-save_data(M.METS_MAP_FILE, mets_map)
-# df = DataFrame([collect(keys(mets_map)), collect(values(mets_map))])
-# CSV.write(M.METS_MAP_FILE, df)
-# println("created $(relpath(M.METS_MAP_FILE))")
-
+UJL.save_data(M.METS_MAP_FILE, mets_map)
 

@@ -1,41 +1,26 @@
-# -*- coding: utf-8 -*-
-# ---
-# jupyter:
-#   jupytext:
-#     cell_metadata_filter: -all
-#     formats: jl:light
-#     text_representation:
-#       extension: .jl
-#       format_name: light
-#       format_version: '1.5'
-#       jupytext_version: 1.3.2
-#   kernelspec:
-#     display_name: Julia 1.1.0
-#     language: julia
-#     name: julia-1.1
-# ---
+## ----------------------------------------------------------------------------
+import DrWatson: quickactivate
+quickactivate(@__DIR__, "Chemostat_Rath2017")
 
-# +
-using DrWatson
+@time begin
+    import MAT
+    using SparseArrays
+    using Test
+    using Distributions
 
-import MAT
-using SparseArrays
-using Test
-using Distributions
+    import Chemostat
+    const Ch = Chemostat
+    const ChU = Ch.Utils
 
-import Chemostat
-import Chemostat.Utils: MetNet
-const Ch = Chemostat
-import Chemostat_Rath2017: DATA_KEY, Human1
-const RepH1 = Human1.Rep_Human1;
-const ecG = Human1.ecGEMs
-const tIG = Human1.tINIT_GEMs;
-const HG = Human1.HumanGEM;
-# -
+    import Chemostat_Rath2017
+    const ChR = Chemostat_Rath2017
+    const H1 = ChR.Human1
+    const ecG = H1.ecGEMs
+    const HG = H1.HumanGEM
+end
 
-# ---
-# ### Collect files
-
+## ----------------------------------------------------------------------------
+# Collect files
 # Pick all ec Models
 data_dir = ecG.EC_RAW_MODELS_DIR
 ec_model_files = Dict()
@@ -50,13 +35,13 @@ for (root, _, files) in walkdir(data_dir)
             !isfile(ecfile) && error(relpath(ecfile), " not found")
             
             ec_model_files[model_id] = (src = srcfile, ec = ecfile)
-            break
+            break # Test
         end
     end
 end
 
-# ---
-# ### Processing
+## ----------------------------------------------------------------------------
+# Processing
 
 println("\n\n--------------- Preprocessing models ---------------")
 ec_reference_models = Dict()
