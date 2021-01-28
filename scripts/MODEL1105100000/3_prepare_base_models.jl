@@ -218,8 +218,8 @@ println("Fva preprocessed base_model ChU.summary")
 fbaout = ChLP.fba(fva_preprocessed_model, M.BIOMASS_IDER)
 ChU.summary(fva_preprocessed_model, fbaout)
 
-dict_ = fva_preprocessed_model |> UJL.struct_to_dict |> UJL.compressed_copy
 
 ## ----------------------------------------------------------------------------
 # Saving
+dict_ = fva_preprocessed_model |> UJL.struct_to_dict |> UJL.compressed_copy
 UJL.save_data(M.FVA_PP_BASE_MODEL_FILE, ChU.MetNet(dict_))
