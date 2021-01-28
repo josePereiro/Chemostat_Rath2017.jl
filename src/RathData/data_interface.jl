@@ -10,7 +10,7 @@ function _load_rath_bundle()
     files = [RATH_CONT_CUL_DATA_CONV_FILES[exp] for exp in exps]
     push!(files, RATH_STDM_CONV_FILE)
     for file in files
-        !isfile(file) && error("Data file missing, ", relpath(file))
+        !isfile(file) && return
     end
 
     empty!(rath_bundle)
