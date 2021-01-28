@@ -215,8 +215,8 @@ ChU.clampfields!(fva_preprocessed_model, [:lb, :ub];
     zeroth = M.ZEROTH,  abs_max = M.ABS_MAX_BOUND)
 println("Fva preprocessed base_model ChU.summary")
 
-ChLP.fbaout = ChLP.fba(fva_preprocessed_model, M.BIOMASS_IDER)
-ChU.summary(fva_preprocessed_model, ChLP.fbaout)
+fbaout = ChLP.fba(fva_preprocessed_model, M.BIOMASS_IDER)
+ChU.summary(fva_preprocessed_model, fbaout)
 
 dict_ = fva_preprocessed_model |> UJL.struct_to_dict |> UJL.compressed_copy
 
