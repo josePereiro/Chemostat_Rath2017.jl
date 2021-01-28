@@ -131,6 +131,7 @@ GC.gc()
 # GET MODEL FUNCTION
 @everywhere function prepare_model(ξ, stst)
     model = UJL.load_cache(models_cache_id; verbose = false)
+    model = ChU.uncompressed_model(model)
     isnothing(model) && error("Unable to load model!!")
 
     # intake info
