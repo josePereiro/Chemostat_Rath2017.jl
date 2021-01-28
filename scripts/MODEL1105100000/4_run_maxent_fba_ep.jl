@@ -66,8 +66,8 @@ println("Working in: ", workers())
     import UtilsJL
     const UJL = UtilsJL
     
+    UJL.set_cache_dir(M.MODEL_CACHE_DATA_DIR)
 end
-UJL.set_cache_dir(M.MODEL_CACHE_DATA_DIR)
 
 ## ----------------------------------------------------------------------------
 # CLEAR CACHE (WARNING)
