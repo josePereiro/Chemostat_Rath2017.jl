@@ -209,16 +209,16 @@ ChU.summary(base_model)
 println("FVA Preprocessing")
 # This can take a while
 # TODO use COBRA fva for speed up
-ChLP.fva_preprocessed_model = ChLP.fva_preprocess(base_model, eps = 0, verbose = true)
+fva_preprocessed_model = ChLP.fva_preprocess(base_model, eps = 0, verbose = true)
 ##
-ChU.clampfields!(ChLP.fva_preprocessed_model, [:lb, :ub]; 
+ChU.clampfields!(fva_preprocessed_model, [:lb, :ub]; 
     zeroth = M.ZEROTH,  abs_max = M.ABS_MAX_BOUND)
 println("Fva preprocessed base_model ChU.summary")
 
-ChLP.fbaout = ChLP.fba(ChLP.fva_preprocessed_model, M.BIOMASS_IDER)
-ChU.summary(ChLP.fva_preprocessed_model, ChLP.fbaout)
+ChLP.fbaout = ChLP.fba(fva_preprocessed_model, M.BIOMASS_IDER)
+ChU.summary(fva_preprocessed_model, ChLP.fbaout)
 
-dict_ = ChLP.fva_preprocessed_model |> UJL.struct_to_dict |> UJL.compressed_copy
+dict_ = fva_preprocessed_model |> UJL.struct_to_dict |> UJL.compressed_copy
 
 ## ----------------------------------------------------------------------------
 # Saving
