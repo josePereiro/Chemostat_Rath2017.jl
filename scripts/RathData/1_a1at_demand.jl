@@ -1,13 +1,13 @@
+## ----------------------------------------------------------------------------
 import DataFrames: DataFrame
 import CSV
 
 import Chemostat_Rath2017
 Rd = Chemostat_Rath2017.RathData;
-# -
 
+## ----------------------------------------------------------------------------
 # This just check that the script is run in the
 # package enviroment
-Chemostat_Rath2017.check_env()
 
 # from https=>//www.drugbank.ca/polypeptides/P01009
 a1at_sec = "MPSSVSWGILLLAGLCCLVPVSLAEDPQGDAAQKTDTSHHDQDHPTFNKITPNLAEFAFS"*
@@ -38,6 +38,7 @@ for i in a1at_sec
     end
 end
 
+## ----------------------------------------------------------------------------s
 df = DataFrame(id = collect(keys(a1at_aa_rel_ab)), rel_ab = collect(values(a1at_aa_rel_ab)))
 CSV.write(Rd.A1AT_AA_REL_ABUNDANCE_FILE, df)
 println("created $(relpath(Rd.A1AT_AA_REL_ABUNDANCE_FILE))")

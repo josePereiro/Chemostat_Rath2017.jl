@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-# +
+## ----------------------------------------------------------------------------
 # This script take the data from data/raw, fetched from
 # Rath 2017 (https://pure.mpg.de/pubman/item/item_2508673_4)
 # and convert it for compatibility with further modeling
 
-# +
 import DataFrames: DataFrame
 import CSV
 
@@ -12,32 +10,24 @@ import CSV
 # from the julia Pkg REPL for installing the package.
 # You must then activate the package enviroment
 import Chemostat_Rath2017
-Rd = Chemostat_Rath2017.RathData;
-M = Chemostat_Rath2017.MODEL1105100000;
-# -
+const ChR = Chemostat_Rath2017
+const Rd = ChR.RathData;
+const M = ChR.MODEL1105100000;
 
-# This just check that the script is run in the
-# package enviroment
-Chemostat_Rath2017.check_env()
-
-# ---
-# ### Processed data dir
-# ---
+## ----------------------------------------------------------------------------
+# Processed data dir
 
 if !isdir(Rd.RATH_PROCESSED_DATA_DIR)
     mkpath(Rd.RATH_PROCESSED_DATA_DIR)
     println("created $(relpath(Rd.RATH_PROCESSED_DATA_DIR))!!!")
 end
 
-# ---
-# ### Standard Medium 42 MAX-UB
-# ---
-
+# Standard Medium 42 MAX-UB
 # Standard medium original file
 # This is the base of the feed medium
 stdm_orig = CSV.read(Rd.RATH_STDM_ORIG_FILE, DataFrame; delim = "\t");
 
-# +
+## ----------------------------------------------------------------------------
 # Converting all conc to mM
 stdm_conv = DataFrame(stdm_orig);
 
@@ -67,16 +57,14 @@ end
 CSV.write(Rd.RATH_STDM_CONV_FILE, stdm_conv, delim = "\t")
 println("created $(relpath(Rd.RATH_STDM_CONV_FILE))!!!")
 
-# ---
-# ### Cont cult data
-# ---
+## ----------------------------------------------------------------------------
+# Cont cult data
 
 # Cell density ρ = 0.25 pgDW/μm³ from Niklas(2011) https://doi.org/10.1007/s00449-010-0502-y.
 ρ = 0.25
 
-# #### Data Files
-
-# +
+## ----------------------------------------------------------------------------
+# Data Files
 # Original files
 for exp in Rd.exps
     
@@ -158,8 +146,8 @@ for exp in Rd.exps
 
 end
 
+## ----------------------------------------------------------------------------
 # invitro max fluxes
-
 
 max_flux_data_orig = CSV.read(Rd.RATH_MAX_FLUX_ORIG_FILE, DataFrame; delim = "\t")
 max_flux_data_conv = DataFrame(max_flux_data_orig)
@@ -180,6 +168,7 @@ end
 # unit 
 max_flux_data_conv[!, :flux_unit] .= "mmol/ gDW hr";
 
+## ----------------------------------------------------------------------------
 # Saving
 CSV.write(Rd.RATH_MAX_FLUX_CONV_FILE, max_flux_data_conv, delim = "\t")
 println("created $(relpath(Rd.RATH_MAX_FLUX_CONV_FILE))!!!")
