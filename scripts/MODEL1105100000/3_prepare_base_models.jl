@@ -2,25 +2,48 @@ import DrWatson: quickactivate
 quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 # ----------------------------------------------------------------------
-import UtilsJL
-const UJL = UtilsJL
-import MAT
+@time begin
+    import UtilsJL
+    const UJL = UtilsJL
+    import MAT
 
-import Chemostat
-const Ch = Chemostat
-const ChSS = Ch.SteadyState
-const ChLP = Ch.LP
-const ChU = Ch.Utils
+    import Chemostat
+    const Ch = Chemostat
+    const ChSS = Ch.SteadyState
+    const ChLP = Ch.LP
+    const ChU = Ch.Utils
 
-import Chemostat_Rath2017
-const ChR = Chemostat_Rath2017
-const Rd = ChR.RathData
-const M = ChR.MODEL1105100000
+    import Chemostat_Rath2017
+    const ChR = Chemostat_Rath2017
+    const Rd = ChR.RathData
+    const M = ChR.MODEL1105100000
+
+    import UtilsJL
+    const UJL = UtilsJL
+
+    using Serialization
+end
 
 ## ----------------------------------------------------------------------------
 # This file is the primary input to the processing
 if !isfile(M.MODEL_RAW_MAT_FILE)
-    error("$(M.MODEL_RAW_MAT_FILE) not found, you must run 'scripts/MODEL1105100000/0_make_mat_file.py'")
+    error("$(M.MODEL_RAW_MAT_FILE) not found, you must run " *
+        "'scripts/MODEL1105100000/0_make_mat_file.py'")
+end
+
+## ----------------------------------------------------------------------------
+# MINDEX 
+const MINDEX = UJL.Dict()
+function model_file(name; params...)
+    fname = UJL.mysavename(name, "jld"; params...)
+    joinpath(M.MODEL_PROCESSED_DATA_DIR, fname)
+end
+function save_model(model, name; params...) 
+    mfile = model_file(name; params...)
+    model = ChU.compressed_model(model)
+    serialize(mfile, model)
+    @info("Model saved", basename(mfile), size(model)); println()
+    return mfile
 end
 
 ## ----------------------------------------------------------------------------
@@ -190,10 +213,12 @@ ChU.S!(base_model, M.COST_MET, M.ATPM_IDER, 0.0)
 ChU.lb!(base_model, M.ATPM_IDER, atpm_flux)
 println(ChU.rxn_str(base_model, M.ATPM_IDER), " ", ChU.bounds(base_model, M.ATPM_IDER))
 
+ChU.clampfields!(base_model, [:lb, :ub]; 
+    zeroth = M.ZEROTH,  abs_max = M.ABS_MAX_BOUND)
+
 ## ----------------------------------------------------------------------------
 # Saving base_model
-dict_ = base_model |> UJL.struct_to_dict |> UJL.compressed_copy
-UJL.save_data(M.BASE_MODEL_FILE, ChU.MetNet(dict_))
+MINDEX[:base_model] = save_model(base_model, "base_model")
 
 ## ----------------------------------------------------------------------------
 # FVA Preprocess
@@ -203,23 +228,114 @@ UJL.save_data(M.BASE_MODEL_FILE, ChU.MetNet(dict_))
 # The method allows you to set a block eps (lb = fva_lb - eps, ub = fva_ub + eps).
 # We fully blocked eps = 0, for save computations in EP.
 
-# +
-println("Base base_model ChU.summary")
-ChU.summary(base_model)
-println("FVA Preprocessing")
-# This can take a while
-# TODO use COBRA fva for speed up
-fva_preprocessed_model = ChLP.fva_preprocess(base_model, eps = 0, verbose = true)
-##
-ChU.clampfields!(fva_preprocessed_model, [:lb, :ub]; 
-    zeroth = M.ZEROTH,  abs_max = M.ABS_MAX_BOUND)
-println("Fva preprocessed base_model ChU.summary")
+println("Base model FVA preprocessing")
+for stst in Rd.ststs
 
-fbaout = ChLP.fba(fva_preprocessed_model, M.BIOMASS_IDER)
-ChU.summary(fva_preprocessed_model, fbaout)
+    EXPINDEX = get!(MINDEX, stst, Dict())
+    EXPINDEX[:base_model] =  model_file("base_model"; stst)
+    EXPINDEX[:fva_pp_model] = model_file("fva_pp_model"; stst)
 
+    # Cache
+    if isfile(EXPINDEX[:base_model]) && isfile(EXPINDEX[:fva_pp_model])
+        @info("Cache found (Skipping)!!")
+        println()
+        continue
+    end
+    
+    # Prepare models
+    model = deepcopy(base_model)
+    local ξ = Rd.val(:ξ, stst)
+    intake_info = M.stst_base_intake_info(stst)
+    # Chemostat steady state constraint, see Cossio's paper, (see README)
+    ChSS.apply_bound!(model, ξ, intake_info; emptyfirst = true, ignore_miss = true)
+
+    fbaout = ChLP.fba(model, M.BIOMASS_IDER)
+    growth = ChU.av(model, fbaout, M.BIOMASS_IDER)
+    
+    @info("Doing FVA Processing ", stst, size(model), growth); println()
+
+    # This can take a while
+    # TODO use COBRA fva for speed up
+    fva_pp_model = ChLP.fva_preprocess(model; 
+        check_obj = M.BIOMASS_IDER,
+        eps = 0, verbose = true
+    ); println()
+    
+    fbaout = ChLP.fba(fva_pp_model, M.BIOMASS_IDER)
+    growth = ChU.av(fva_pp_model, fbaout, M.BIOMASS_IDER)
+    @info("DONE!", size(fva_pp_model), growth); println()
+    
+    save_model(model, "base_model"; stst)
+    save_model(fva_pp_model, "fva_pp_model"; stst)
+end
+
+# ----------------------------------------------------------------------------
+# SCALED MODEL
+println("Scaling model")
+# Scale model
+# A smaller base could kill the process because of memory usage
+
+b = 1000.0
+scaled_base_model = ChU.well_scaled_model(base_model, b; verbose = true)
+
+let
+    base_nzrange = ChU.nzabs_range(base_model.S)
+    scaled_nzrange = ChU.nzabs_range(scaled_base_model.S)
+    fbaout = ChLP.fba(base_model, M.BIOMASS_IDER)
+    base_growth = ChU.av(base_model, fbaout, M.BIOMASS_IDER)
+    fbaout = ChLP.fba(scaled_base_model, M.BIOMASS_IDER)
+    scaled_growth = ChU.av(scaled_base_model, fbaout, M.BIOMASS_IDER)
+    @info("Info", 
+        size(base_model), size(scaled_base_model),
+        base_nzrange, scaled_nzrange, 
+        base_growth, scaled_growth
+    ); println()
+end
+
+MINDEX[:scaled_base_model] = save_model(scaled_base_model, "scaled_model")
+
+println("Base model FVA preprocessing")
+for stst in Rd.ststs
+
+    EXPINDEX = get!(MINDEX, stst, Dict())
+    EXPINDEX[:scaled_base_model] =  model_file("scaled_base_model"; stst)
+    EXPINDEX[:scaled_fva_pp_model] = model_file("scaled_fva_pp_model"; stst)
+    
+    # Cache
+    if isfile(EXPINDEX[:scaled_base_model]) && 
+            isfile(EXPINDEX[:scaled_fva_pp_model])
+        @info("Cache found (Skipping)!!")
+        println()
+        continue
+    end
+    
+    # Prepare models
+    model = deepcopy(scaled_base_model)
+    local ξ = Rd.val(:ξ, stst)
+    intake_info = M.stst_base_intake_info(stst)
+    # Chemostat steady state constraint, see Cossio's paper, (see README)
+    ChSS.apply_bound!(model, ξ, intake_info; emptyfirst = true, ignore_miss = true)
+
+    fbaout = ChLP.fba(model, M.BIOMASS_IDER)
+    growth = ChU.av(model, fbaout, M.BIOMASS_IDER)
+    
+    @info("Doing FVA Processing ", stst, size(model), growth); println()
+
+    # This can take a while
+    # TODO use COBRA fva for speed up
+    fva_pp_model = ChLP.fva_preprocess(model; 
+        check_obj = M.BIOMASS_IDER,
+        eps = 0, verbose = true
+    ); println()
+    
+    fbaout = ChLP.fba(fva_pp_model, M.BIOMASS_IDER)
+    growth = ChU.av(fva_pp_model, fbaout, M.BIOMASS_IDER)
+    @info("DONE!", size(fva_pp_model), growth); println()
+    
+    save_model(model, "scaled_base_model"; stst)
+    save_model(fva_pp_model, "scaled_fva_pp_model"; stst)
+end
 
 ## ----------------------------------------------------------------------------
 # Saving
-dict_ = fva_preprocessed_model |> UJL.struct_to_dict |> UJL.compressed_copy
-UJL.save_data(M.FVA_PP_BASE_MODEL_FILE, ChU.MetNet(dict_))
+UJL.save_data(M.MODEL_INDEX_FILE, MINDEX)
