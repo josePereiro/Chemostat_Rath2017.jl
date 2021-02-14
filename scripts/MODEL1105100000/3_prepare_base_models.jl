@@ -237,7 +237,7 @@ for stst in Rd.ststs
 
     # Cache
     if isfile(EXPINDEX[:base_model]) && isfile(EXPINDEX[:fva_pp_model])
-        @info("Cache found (Skipping)!!")
+        @info("Cache found (Skipping)!!", stst)
         println()
         continue
     end
@@ -304,7 +304,7 @@ for stst in Rd.ststs
     # Cache
     if isfile(EXPINDEX[:scaled_base_model]) && 
             isfile(EXPINDEX[:scaled_fva_pp_model])
-        @info("Cache found (Skipping)!!")
+        @info("Cache found (Skipping)!!", stst)
         println()
         continue
     end
