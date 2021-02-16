@@ -86,24 +86,22 @@ end
 @everywhere FILE_ID = "4"
 
 ## ----------------------------------------------------------------------------
-# UTILS
+# GLOBALS 
 @everywhere begin
-
-    function dat_file(name, ext = "jls"; kwargs...) 
-        fname = UJL.mysavename(name; A = 1)
-        joinpath(M.MODEL_PROCESSED_DATA_DIR, 
-            UJL.mysavename(string(FILE_ID, "_", name), ext; kwargs...)
-        )
-    end
-
     FIG_DIR = joinpath(M.MODEL_FIGURES_DATA_DIR, "$(FILE_ID)_err_progress")
-
     ME_BOUNDED = :ME_BOUNDED
 end
 mkpath(FIG_DIR)        
 
 ## ----------------------------------------------------------------------------
 # AUX FUNCTIONS
+@everywhere function dat_file(name, ext = "jls"; kwargs...) 
+    fname = UJL.mysavename(name; A = 1)
+    joinpath(M.MODEL_PROCESSED_DATA_DIR, 
+        UJL.mysavename(string(FILE_ID, "_", name), ext; kwargs...)
+    )
+end
+
 @everywhere function load_model(name, stst; compressed = false)
     MINDEX = UJL.load_data(M.MODEL_INDEX_FILE; verbose = false)
     mfile = MINDEX[stst][name]
@@ -150,11 +148,13 @@ end
     )
 
     # Collect
-    max_err = it <= 1 ? last(errs_tracking) : epmodel.stat[:max_err]
+    max_err = (it <= 1 && !isempty(errs_tracking)) ? 
+        last(errs_tracking) : 
+        epmodel.stat[:max_err]
     push!(errs_tracking, max_err)
     max_beta = max(maximum(epmodel.beta_vec), 1e-2)
     push!(max_beta_tracking, max_beta)
-        
+    
     errs_len = length(errs_tracking)
     try_plotting = errs_len > 1 && rem(errs_len, plot_frec) == 0.0
     try_plotting && plot_progress(sim_id, stst, method, 
