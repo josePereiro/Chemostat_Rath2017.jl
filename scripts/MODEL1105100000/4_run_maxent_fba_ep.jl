@@ -92,6 +92,7 @@ end
     FIG_DIR = joinpath(M.MODEL_FIGURES_DATA_DIR, "$(FILE_ID)_err_progress")
 
     ME_BOUNDED = :ME_BOUNDED
+    ME_EXPECTED = :ME_EXPECTED
 
 end
 mkpath(FIG_DIR)        
@@ -171,12 +172,143 @@ end
 INDEX_CH = RemoteChannel(() -> Channel{Any}(Inf))
 
 ## ----------------------------------------------------------------------------
-# ME_BOUNDED
+# ME_EXPECTED
 let
+    method = ME_EXPECTED
+    
     ststs = Rd.ststs
     pmap(ststs) do stst
+        
+        sim_id = (stst, method, FILE_ID)
+        dfile = dat_file("me_fba_dat"; stst, method)
+        put!(INDEX_CH, (stst, method, dfile))
+        
+        ## ----------------------------------------------------------------------------
+        # CACHE
+        if isfile(dfile) 
+            UJL.tagprintln_inmw("CACHE FOUND (SKIPPING) ", 
+               "\nsim id:        ", sim_id, 
+            )
+            return nothing
+        end
+        
+        ## ----------------------------------------------------------------------------
+        # SIMULATION PARAMS
+        βs = [0.0; UJL.logspace(1, 14, 100)] 
 
-        method = ME_BOUNDED
+        # This determine how often EP results will be cached
+        epochlen = Int(1e3)
+        
+        epconv_kwargs = Dict()
+        epconv_kwargs[:maxiter] = Int(3e2)
+        epconv_kwargs[:epsconv] = 1e-5
+        epconv_kwargs[:damp] = 0.9
+        epconv_kwargs[:maxvar] = 1e50
+        epconv_kwargs[:minvar] = 1e-50
+
+        epmodel_kwargs = Dict()
+        epmodel_kwargs[:alpha] = Inf
+        
+        ## ----------------------------------------------------------------------------
+        # TRACKING ERR
+        plot_frec = 50
+        errs_tracking = []
+        max_beta_tracking = []
+        epconv_kwargs[:oniter] = (it, epmodel) -> 
+            oniter(it, epmodel, sim_id, stst, method, 
+                errs_tracking, max_beta_tracking, plot_frec
+            )
+
+        ## ----------------------------------------------------------------------------
+        # GET MODEL
+        get_model() = load_model(:scaled_fva_pp_model, stst)
+
+        ## ----------------------------------------------------------------------------
+        # BREAK CONDITION
+        exp_μ = Rd.val(:μ, stst)
+        μ_convth = 1e-2
+        objidx = ChU.rxnindex(get_model(), M.BIOMASS_IDER)
+        exp_beta = 0.0
+
+        function on_betaiter(epout, beta_vec)
+            isnothing(epout) && return (false, epout)
+
+            curr_μ = ChU.av(epout)[objidx]
+            isnan(curr_μ) && error("curr_μ = NaN")
+            
+            err = abs(curr_μ - exp_μ)/ exp_μ
+            break_ = err < μ_convth || curr_μ > exp_μ
+    
+            UJL.tagprintln_inmw("BEFORE EPOCH", 
+                "\nsim id:                      ", sim_id, 
+                "\ncurr_μ:                      ", curr_μ, 
+                "\nexp_μ:                       ", exp_μ, 
+                "\ngrowth err:                  ", err,
+                "\nbreak:                       ", break_,
+                "\n"
+            )
+            
+            break_ && (exp_beta = maximum(beta_vec))
+            return break_
+        end
+        
+        ## ----------------------------------------------------------------------------
+        # SIMULATION
+        sim_dat = ChSU.cached_simulation(;
+            sim_id, epochlen, get_model,
+            verbose = true,
+            objider = M.BIOMASS_IDER, 
+            on_betaiter,
+            beta_info = [(M.BIOMASS_IDER, βs)],
+            costider = M.COST_IDER,
+            clear_cache = false, use_seed = true,
+            epmodel_kwargs, epconv_kwargs
+        )
+
+        ## ----------------------------------------------------------------------------
+        # BUNDLING
+        UJL.tagprintln_inmw("SAVING SIM DAT ", 
+            "\nsim id:        ", sim_id, 
+        )
+        
+        bundle = Dict()
+        bundle[:exp_beta] = exp_beta
+        bundle[:epout] = sim_dat[(:ep, bundle[:exp_beta])]
+        bundle[:sim_dat] = sim_dat
+        bundle[:fbaout] = sim_dat[:fba]
+        bundle[:model] = get_model() |> ChU.compressed_model
+        serialize(dfile, bundle)
+
+        put!(INDEX_CH, (stst, method, dfile))
+
+        return nothing
+    end
+end
+
+## ----------------------------------------------------------------------------
+# ME_BOUNDED
+let
+    method = ME_BOUNDED
+    
+    ststs = Rd.ststs
+    pmap(ststs) do stst
+        
+        sim_id = (stst, method, FILE_ID)
+        dfile = dat_file("me_fba_dat"; stst, method)
+        put!(INDEX_CH, (stst, method, dfile))
+        
+        ## ----------------------------------------------------------------------------
+        # CACHE
+        if isfile(dfile) 
+            UJL.tagprintln_inmw("CACHE FOUND (SKIPPING) ", 
+               "\nsim id:        ", sim_id, 
+            )
+            return nothing
+        end
+        
+        ## ----------------------------------------------------------------------------
+        # SIMULATION PARAMS
+
         # This determine how often EP results will be cached
         epochlen = 30
         
@@ -189,17 +321,19 @@ let
 
         epmodel_kwargs = Dict()
         epmodel_kwargs[:alpha] = Inf
-
-        sim_id = (stst, method, FILE_ID)
         
         ## ----------------------------------------------------------------------------
-        # Tracking err
+        # TRACKING ERR
         plot_frec = 50
         errs_tracking = []
         max_beta_tracking = []
         epconv_kwargs[:oniter] = (it, epmodel) -> 
-            oniter(it, epmodel, sim_id, stst, method, errs_tracking, max_beta_tracking, plot_frec)
+            oniter(it, epmodel, sim_id, stst, method, errs_tracking, 
+                max_beta_tracking, plot_frec
+            )
 
+        ## ----------------------------------------------------------------------------
+        # GET MODEL
         function get_model() 
             model = load_model(:scaled_fva_pp_model, stst)
             exp_μ = Rd.val(:μ, stst)
@@ -207,6 +341,8 @@ let
             return model
         end
 
+        ## ----------------------------------------------------------------------------
+        # SIMULATION
         sim_dat = ChSU.cached_simulation(;
             sim_id, epochlen, get_model,
             verbose = true,
@@ -216,12 +352,12 @@ let
             epmodel_kwargs, epconv_kwargs
         )
 
+        ## ----------------------------------------------------------------------------
+        # BUNDLING
         UJL.tagprintln_inmw("SAVING SIM DAT ", 
             "\nsim id:        ", sim_id, 
         )
         
-        # bundle
-        dfile = dat_file("me_fba_dat"; stst, method)
         bundle = Dict()
         bundle[:exp_beta] = 0.0
         bundle[:epout] = sim_dat[(:ep, bundle[:exp_beta])]
@@ -230,7 +366,6 @@ let
         serialize(dfile, bundle)
 
         put!(INDEX_CH, (stst, method, dfile))
-
         
         return nothing
     end
@@ -245,18 +380,6 @@ while isready(INDEX_CH)
     INDEX[:DFILE, stst, method] = relpath(dfile, ChR.PROJ_ROOT)
 end
 ChU.save_data(dat_file("index", "bson"), INDEX)
-
-## ----------------------------------------------------------------------------
-# # RES IDS
-# # Collect all the computed results ids for bundling
-# const chnl = RemoteChannel() do
-#     Channel{Any}(10)
-# end
-# const res_ids = []
-# const collector = @async while true
-#     id = take!(chnl)
-#     push!(res_ids, id)
-# end
 
 # ## ----------------------------------------------------------------------------
 # # BETA EXPLORATION SIMULATION
@@ -370,9 +493,9 @@ ChU.save_data(dat_file("index", "bson"), INDEX)
 #     sim_dat = ChSU.cached_simulation(;
 #         sim_id, epochlen, 
 #         verbose = true,
-#         get_model, on_betaiter,
 #         objider = M.BIOMASS_IDER, 
 #         costider = M.COST_IDER,
+#         get_model, on_betaiter,
 #         beta_info = [(M.BIOMASS_IDER, βs)],
 #         clear_cache = false, use_seed = true,
 #         epmodel_kwargs, epconv_kwargs
