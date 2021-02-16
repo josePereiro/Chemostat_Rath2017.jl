@@ -38,13 +38,19 @@ function model_file(name; params...)
     fname = UJL.mysavename(name, "jld"; params...)
     joinpath(M.MODEL_PROCESSED_DATA_DIR, fname)
 end
-function save_model(model, name; params...) 
-    mfile = model_file(name; params...)
-    model = ChU.compressed_model(model)
-    serialize(mfile, model)
-    @info("Model saved", basename(mfile), size(model)); println()
-    return mfile
+function set_index!(I, name; params...)
+    abs_path = model_file(name; params...)
+    I[Symbol(name)] = relpath(abs_path, ChR.PROJ_ROOT)
+    return abs_path
 end
+function save_model!(I, model, name; params...) 
+    abs_path = model_file(name; params...)
+    model = ChU.compressed_model(model)
+    serialize(abs_path, model)
+    @info("Model saved", basename(abs_path), size(model)); println()
+    return set_index!(I, name; params...)
+end
+check_cache!(I, name; params...) = isfile(set_index!(I, name; params...))
 
 ## ----------------------------------------------------------------------------
 # LOAD MAT MODEL
@@ -106,8 +112,6 @@ end
 ## ----------------------------------------------------------------------------
 # EXCH MET MAP
 # A fast way to get the exch reaction from the metabolite and viceversa
-
-# +
 exch_met_map = Dict()
 for rxn in exchs
     mets = ChU.rxn_mets(base_model, rxn)
@@ -153,11 +157,11 @@ for rath_met in Rd.all_mets
     base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
 end
 
-## ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Required open intakes from FBA analysis (a.k.a the base_model die if not open)
-for rxn in ["EX_h2o_LPAREN_e_RPAREN_", 
-            "EX_o2_LPAREN_e_RPAREN"]
-    base_intake_info[rxn] = Dict("c" => M.ABS_MAX_CONC, "lb" => -M.ABS_MAX_BOUND) 
+for rxn in ["EX_h2o_LPAREN_e_RPAREN_", "EX_o2_LPAREN_e_RPAREN"]
+    base_intake_info[rxn] = 
+        Dict("c" => M.ABS_MAX_CONC, "lb" => -M.ABS_MAX_BOUND) 
 end
 
 # This met is a carbon source but is required, so, 
@@ -218,7 +222,7 @@ ChU.clampfields!(base_model, [:lb, :ub];
 
 ## ----------------------------------------------------------------------------
 # Saving base_model
-MINDEX[:base_model] = save_model(base_model, "base_model")
+save_model!(MINDEX, base_model, "base_model")
 
 ## ----------------------------------------------------------------------------
 # FVA Preprocess
@@ -231,14 +235,13 @@ MINDEX[:base_model] = save_model(base_model, "base_model")
 println("Base model FVA preprocessing")
 for stst in Rd.ststs
 
-    EXPINDEX = get!(MINDEX, stst, Dict())
-    EXPINDEX[:base_model] =  model_file("base_model"; stst)
-    EXPINDEX[:fva_pp_model] = model_file("fva_pp_model"; stst)
-
+    I = get!(MINDEX, stst, Dict())
+    
+    
     # Cache
-    if isfile(EXPINDEX[:base_model]) && isfile(EXPINDEX[:fva_pp_model])
-        @info("Cache found (Skipping)!!", stst)
-        println()
+    if check_cache!(I, "base_model"; stst) && 
+            check_cache!(I, "fva_pp_model"; stst)
+        @info("Cache found (Skipping)!!", stst); println()
         continue
     end
     
@@ -265,16 +268,16 @@ for stst in Rd.ststs
     growth = ChU.av(fva_pp_model, fbaout, M.BIOMASS_IDER)
     @info("DONE!", size(fva_pp_model), growth); println()
     
-    save_model(model, "base_model"; stst)
-    save_model(fva_pp_model, "fva_pp_model"; stst)
+    save_model!(I, model, "base_model"; stst)
+    save_model!(I, fva_pp_model, "fva_pp_model"; stst)
 end
 
-# ----------------------------------------------------------------------------
+## ----------------------------------------------------------------------------
 # SCALED MODEL
 println("Scaling model")
 # Scale model
-# A smaller base could kill the process because of memory usage
 
+# A smaller base could kill the process because of memory usage
 b = 1000.0
 scaled_base_model = ChU.well_scaled_model(base_model, b; verbose = true)
 
@@ -292,18 +295,17 @@ let
     ); println()
 end
 
-MINDEX[:scaled_base_model] = save_model(scaled_base_model, "scaled_model")
+save_model!(MINDEX, scaled_base_model, "scaled_model")
 
+# ----------------------------------------------------------------------------
 println("Base model FVA preprocessing")
 for stst in Rd.ststs
 
-    EXPINDEX = get!(MINDEX, stst, Dict())
-    EXPINDEX[:scaled_base_model] =  model_file("scaled_base_model"; stst)
-    EXPINDEX[:scaled_fva_pp_model] = model_file("scaled_fva_pp_model"; stst)
+    I = get!(MINDEX, stst, Dict())
     
     # Cache
-    if isfile(EXPINDEX[:scaled_base_model]) && 
-            isfile(EXPINDEX[:scaled_fva_pp_model])
+    if check_cache!(I, "scaled_base_model"; stst) && 
+            check_cache!(I, "scaled_fva_pp_model"; stst)
         @info("Cache found (Skipping)!!", stst)
         println()
         continue
@@ -332,8 +334,8 @@ for stst in Rd.ststs
     growth = ChU.av(fva_pp_model, fbaout, M.BIOMASS_IDER)
     @info("DONE!", size(fva_pp_model), growth); println()
     
-    save_model(model, "scaled_base_model"; stst)
-    save_model(fva_pp_model, "scaled_fva_pp_model"; stst)
+    save_model!(I, model, "scaled_base_model"; stst)
+    save_model!(I, fva_pp_model, "scaled_fva_pp_model"; stst)
 end
 
 ## ----------------------------------------------------------------------------

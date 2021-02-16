@@ -129,7 +129,7 @@ end
             lw = 3
         )
         p2 = plot(log10.(max_beta_tracking); title = "EP beta evolution",
-            label = "", xlabel = "ep iteration", ylabel = "log(beta + eps)",
+            label = "", xlabel = "ep iteration", ylabel = "log(beta + 1e-2)",
             lw = 3
         )
 
@@ -150,12 +150,12 @@ end
     )
 
     # Collect
-    push!(errs_tracking, epmodel.stat[:max_err])
+    max_err = it <= 1 ? last(errs_tracking) : epmodel.stat[:max_err]
+    push!(errs_tracking, max_err)
     max_beta = max(maximum(epmodel.beta_vec), 1e-2)
     push!(max_beta_tracking, max_beta)
-    
+        
     errs_len = length(errs_tracking)
-
     try_plotting = errs_len > 1 && rem(errs_len, plot_frec) == 0.0
     try_plotting && plot_progress(sim_id, stst, method, 
         errs_tracking, max_beta_tracking
@@ -230,7 +230,7 @@ UJL.tagprintln_inmw("SAVING INDEX ")
 INDEX = UJL.DictTree()
 while isready(INDEX_CH)
     stst, method, dfile = take!(INDEX_CH)
-    INDEX[:DFILE, stst, method] = dfile
+    INDEX[:DFILE, stst, method] = relpath(dfile, ChR.PROJ_ROOT)
 end
 ChU.save_data(dat_file("index", "bson"), INDEX)
 
