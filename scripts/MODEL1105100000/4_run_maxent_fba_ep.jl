@@ -88,8 +88,11 @@ end
 ## ----------------------------------------------------------------------------
 # GLOBALS 
 @everywhere begin
+    
     FIG_DIR = joinpath(M.MODEL_FIGURES_DATA_DIR, "$(FILE_ID)_err_progress")
+
     ME_BOUNDED = :ME_BOUNDED
+
 end
 mkpath(FIG_DIR)        
 
@@ -216,9 +219,18 @@ let
         UJL.tagprintln_inmw("SAVING SIM DAT ", 
             "\nsim id:        ", sim_id, 
         )
-        dfile = dat_file("me_fbs_dat"; stst, method)
-        serialize(dfile, sim_dat)
+        
+        # bundle
+        dfile = dat_file("me_fba_dat"; stst, method)
+        bundle = Dict()
+        bundle[:exp_beta] = 0.0
+        bundle[:epout] = sim_dat[(:ep, bundle[:exp_beta])]
+        bundle[:fbaout] = sim_dat[:fba]
+        bundle[:model] = get_model() |> ChU.compressed_model
+        serialize(dfile, bundle)
+
         put!(INDEX_CH, (stst, method, dfile))
+
         
         return nothing
     end

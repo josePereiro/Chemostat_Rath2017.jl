@@ -43,7 +43,7 @@ end
 ## ----------------------------------------------------------------------------
 let
     # setup
-    fig_dir = joinpath(M.MODEL_FIGURES_DATA_DIR, "4.0_err_progress")
+    fig_dir = joinpath(M.MODEL_FIGURES_DATA_DIR, "4.2_err_progress")
     mkpath(fig_dir)
     
     WLOCK = ReentrantLock()
