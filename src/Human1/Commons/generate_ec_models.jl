@@ -1,7 +1,7 @@
 function build_ecModel(srcmodel, ec_refdata_vec::Vector; add_protless = true)
     mM, mN = size(srcmodel) .* (3,5) # heuristic
     
-    merge_model = expanded_model(srcmodel, mM, mN)
+    merge_model = ChU.expanded_model(srcmodel, mM, mN)
     
     rxn_ecmaps = [ec_refdata[ECMAP_KEY] for ec_refdata in ec_refdata_vec]
     allowed_protless = union([ec_refdata[PROTLESS_KEY] for ec_refdata in ec_refdata_vec]...)
@@ -42,71 +42,15 @@ function build_ecModel(srcmodel, ec_refdata_vec::Vector; add_protless = true)
     end
 
     finish!(prog)
-    return compacted_model(merge_model)
+    return ChU.compacted_model(merge_model)
 end
-
-
-# This just prepare the model to hold more elements by making 
-# all the numerical fields larger
-# function expanded_model(model, expdM::Int, expdN::Int)
-#     M, N = size(model)
-#     @assert all((expdM, expdN) .> (M, N))
-
-#     function setfirsts!(col1, col2)
-#         L = min(length(col1), length(col2))
-#         col1[1:L] .= col2[1:L]
-#         return col1
-#     end
-    
-#     S_ = zeros(expdM, expdN)
-#     S_[1:M, 1:N] .= model.S
-#     b_ = setfirsts!(zeros(expdM), model.b)
-#     lb_ = setfirsts!(zeros(expdN), model.lb)
-#     ub_ = setfirsts!(zeros(expdN), model.ub)
-#     subSystems_ = setfirsts!(Vector{Any}(fill("NA", expdN)), model.subSystems)
-#     rxns_ = setfirsts!(fill(EMPTY_SPOT, expdN), model.rxns)
-#     mets_ = setfirsts!(fill(EMPTY_SPOT, expdM), model.mets)
-    
-#     return MetNet(S_, b_, lb_, ub_, rxns_, mets_; subSystems = subSystems_)
-# end
-
-# function find_free_spot(model, col)
-#     spot = findfirst(isequal(EMPTY_SPOT), getfield(model, col))
-#     isnothing(spot) && error("Not $col empty spot!!!")
-#     return spot
-# end
-
-function compacted_model(model)
-
-    empty_mets = findall(model.mets .== EMPTY_SPOT)
-    met_idxs = trues(size(model, 1))
-    met_idxs[empty_mets] .= false
-    M = count(met_idxs)
-
-    empty_rxns = findall(model.rxns .== EMPTY_SPOT)
-    rxn_idxs = trues(size(model, 2))
-    rxn_idxs[empty_rxns] .= false
-    N = count(rxn_idxs)
-    
-    S_ = model.S[met_idxs, rxn_idxs]
-    b_ = model.b[met_idxs]
-    lb_ = model.lb[rxn_idxs]
-    ub_ = model.ub[rxn_idxs]
-    subSystems_ = model.subSystems[rxn_idxs]
-    rxns_ = model.rxns[rxn_idxs]
-    mets_ = model.mets[met_idxs]
-    
-    return MetNet(S_, b_, lb_, ub_, rxns_, mets_; subSystems = subSystems_)
-    
-end
-
 
 function merge_rxndata!(model, rxndata)
     # check if already exist
     (rxndata.rxn in model.rxns) && return model
     
     # get empty spot
-    nrxni = find_free_spot(model, :rxns)
+    nrxni = ChU.findempty(model, :rxns)
     
     # add data
     model.rxns[nrxni] = rxndata.rxn
@@ -117,10 +61,10 @@ function merge_rxndata!(model, rxndata)
     for (i, met) in rxndata.mets |> enumerate
         # check if already exist
         if (met in model.mets)
-            nmeti = metindex(model, met)
+            nmeti = ChU.metindex(model, met)
         else
             # get empty spot
-            nmeti = find_free_spot(model, :mets)
+            nmeti = ChU.findempty(model, :mets)
         end
         
         # add data
@@ -134,7 +78,7 @@ end
 
 function clear_rxndata!(model, rxndata)    
     # find reaction
-    nrxni = rxnindex(model, rxndata.rxn)
+    nrxni = ChU.rxnindex(model, rxndata.rxn)
     
     # clear data
     model.rxns[nrxni] = EMPTY_SPOT
@@ -143,13 +87,13 @@ function clear_rxndata!(model, rxndata)
     model.subSystems[nrxni] = "NA"
     
     for met in rxndata.mets
-        nmeti = metindex(model, met)
+        nmeti = ChU.metindex(model, met)
 
         # clear stoi
         model.S[nmeti, nrxni] = 0.0
 
         # Do not delete if it is used in other reactions
-        rxns = met_rxns(model, nmeti)
+        rxns = ChU.met_rxns(model, nmeti)
         length(rxns) > 0 && continue 
         model.mets[nmeti] = EMPTY_SPOT
         model.b[nmeti] = 0.0
@@ -164,7 +108,7 @@ function print_ec_stats(ec_model)
     protless_count = N
     draw_count = 0
     for (rxni, rxn) in ec_model.rxns |> enumerate
-        metis = rxn_mets(ec_model, rxni)
+        metis = ChU.rxn_mets(ec_model, rxni)
         any(startswith(ec_model.mets[meti], PROT_PREFFIX) 
             for meti in metis) && (protless_count -= 1)
         startswith(rxn, DRAW_PREFFIX) && (draw_count += 1)

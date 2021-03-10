@@ -97,11 +97,11 @@ struct RxnData
     lb::Float64
     ub::Float64
     
-    function RxnData(model::MetNet, ider)
-        rxni = rxnindex(model, ider)
+    function RxnData(model::ChU.MetNet, ider)
+        rxni = ChU.rxnindex(model, ider)
         rxn = model.rxns[rxni]
         subSys = model.subSystems[rxni]
-        metis = rxn_mets(model, rxni)
+        metis = ChU.rxn_mets(model, rxni)
         mets = model.mets[metis]
         stoi = [model.S[meti, rxni] for meti in metis]
         b = model.b[metis]
@@ -114,8 +114,8 @@ end
 
 get_ec_refdata(src_model, ec_model) = Dict(
         ECMAP_KEY => get_rxn_ecmap(src_model, ec_model; verbose = true),
-        SRC_MODEL_KEY => compress_model(src_model),
-        EC_MODEL_KEY => compress_model(ec_model),
+        SRC_MODEL_KEY => ChU.compressed_model(src_model),
+        EC_MODEL_KEY => ChU.compressed_model(ec_model),
         PROTLESS_KEY => ec_model.rxns[collect_protless(ec_model)],
         PROT_STOIS_KEY => prot_stois(ec_model)
     )

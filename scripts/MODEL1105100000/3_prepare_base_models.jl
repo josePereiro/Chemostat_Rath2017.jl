@@ -278,7 +278,7 @@ println("Scaling model")
 # Scale model
 
 # A smaller base could kill the process because of memory usage
-b = 1000.0
+b = 100.0
 scaled_base_model = ChU.well_scaled_model(base_model, b; verbose = true)
 
 let

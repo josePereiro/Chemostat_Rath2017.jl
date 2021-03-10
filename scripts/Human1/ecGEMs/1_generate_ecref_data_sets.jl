@@ -1,6 +1,7 @@
 ## ----------------------------------------------------------------------------
-import DrWatson: quickactivate
-quickactivate(@__DIR__, "Chemostat_Rath2017")
+import DrWatson
+const DW = DrWatson
+DW.quickactivate(@__DIR__, "Chemostat_Rath2017")
 
 @time begin
     import MAT
@@ -17,6 +18,9 @@ quickactivate(@__DIR__, "Chemostat_Rath2017")
     const H1 = ChR.Human1
     const ecG = H1.ecGEMs
     const HG = H1.HumanGEM
+
+    import UtilsJL
+    const UJL = UtilsJL
 end
 
 ## ----------------------------------------------------------------------------
@@ -45,58 +49,81 @@ end
 
 println("\n\n--------------- Preprocessing models ---------------")
 ec_reference_models = Dict()
-models_count = length(ec_model_files)
-for (i, (id, files)) in ec_model_files |> enumerate
+let
+    models_count = length(ec_model_files)
+    base_intake_info = HG.load_base_intake_info()
 
-    println("\n\nmodel $id [$i/$models_count] ---------------\n")
-    ec_reference_models[id] = Dict()
+    for (i, (id, files)) in ec_model_files |> enumerate
 
-    src_exchs = nothing # this need to survive both iterations
-    for model_sym in [:src, :ec]
-        is_src = model_sym == :src
+        println("\n\nmodel $id [$i/$models_count] ---------------\n")
+        ec_reference_models[id] = Dict()
 
-        println("\nProcessing ", model_sym)
-        model = Ch.Utils.read_mat(files[model_sym]); 
-        Ch.Utils.clamp_bounds!(model, Human1.MAX_BOUND, Human1.ZEROTH);
-        
-        # We delete the boundary metabolites, they are not required
-        # bkwd and fwd splitted reactions are troublemakers for EP, but they 
-        # are necessary to model enzymatic costs. So, we leave as least as possible 
-        # only leaving in rev format the exchanges
+        src_exchs = nothing # this need to survive both iterations
+        for model_sym in [:src, :ec]
+            is_src = model_sym == :src
 
-        # We unified the exchanges (make them a unique rxn), and let them in a 
-        # semi-open state (intake bloked, outtake open)   
-        model = Human1.delete_boundary_mets(model);
-        
-        # We close all reactions marked as "Exchanges/boundary" and returns the exchanges
-        # We also close complitly the reactions classified as exchanges by having anly reacts or
-        # prods
-        exchs = Human1.prepare_extract_exchanges!(model)
-        is_src && (src_exchs = exchs)
-        
-        # We delate any backward defined exchange reaction, 
-        # all reactions will be possible reversible
-        !is_src && (model = Human1.del_REV_rxns(model, src_exchs))
+            println("\nProcessing ", model_sym)
+            model = ChU.read_mat(files[model_sym])
+            model = ChU.fix_dims(model)
+            ChU.clampfields!(model, [:lb, :ub]; 
+                abs_max = H1.MAX_BOUND, zeroth = H1.ZEROTH
+            )
 
-        # Apply Hams medium
-        medium = HG.base_intake_info |> keys |> collect
-        medium = filter((rxn) -> rxn in model.rxns, medium)
-        Human1.open_rxns!(model, medium)
+            
+            # We delete the boundary metabolites, they are not required
+            # bkwd and fwd splitted reactions are troublemakers for EP, but they 
+            # are necessary to model enzymatic costs. So, we leave as least as possible 
+            # only leaving in rev format the exchanges
 
-        # Open prot pool exchange
-        !is_src && Ch.Utils.bounds!(model, Human1.PROT_POOL_EXCHANGE, 0.0, Human1.MAX_BOUND);
+            # We unified the exchanges (make them a unique rxn), and let them in a 
+            # semi-open state (intake bloked, outtake open)   
+            # global m = model
+            model = H1.delete_boundary_mets(model);
+            
+            # We close all reactions marked as "Exchanges/boundary" and returns the exchanges
+            # We also close completely the reactions classified as exchanges by having any reacts or
+            # prods
+            exchs = H1.prepare_extract_exchanges!(model)
+            is_src && (src_exchs = exchs)
+            
+            # We delate any backward defined exchange reaction, 
+            # all reactions will be possible reversible
+            !is_src && (model = H1.del_REV_rxns(model, src_exchs))
 
-        # Check that the model is feasible
-        fbaout = Human1.try_fba(model, Human1.BIOMASS_IDER);
-        @assert fbaout.obj_val > Human1.ZEROTH
+            # Apply Hams medium
+            medium = base_intake_info |> keys |> collect
+            medium = filter((rxn) -> rxn in model.rxns, medium)
+            H1.open_rxns!(model, medium)
 
-        model = Ch.Utils.compress_model(model);
-        ec_reference_models[id][model_sym] = model
-    end
+            # Open prot pool exchange
+            !is_src && ChU.bounds!(model, H1.PROT_POOL_EXCHANGE, 0.0, H1.MAX_BOUND);
+
+            # Check that the model is feasible
+            fbaout = H1.try_fba(model, H1.BIOMASS_IDER);
+            # @assert fbaout.obj_val > H1.ZEROTH
+
+            model = ChU.compressed_model(model);
+            ec_reference_models[id][model_sym] = model
+        end # for model_sym 
+        break # Test
+    end # for (i, (id, files)) 
 end
 
-# ---
-# ## Generate ecmaps
+# ## ----------------------------------------------------------------------------
+# let
+#     m0 = deppcopy(m)
+#     # ChU.summary(m, fbaout)
+#     exchs = ChU.exchanges(m0)
+#     for exch in exchs
+#         m0.lb[exch] == 0.0 && continue
+#         # ChU.summary(m0, m0.rxns[exch])
+#         ChU.
+#     end
+#     H1.try_fba(m0, H1.BIOMASS_IDER);
+# end
+
+## ----------------------------------------------------------------------------
+# Generate ecmaps
 
 refs = Dict()
 println("\n\n--------------- Generating ec reference data ---------------")
@@ -108,12 +135,12 @@ for (i, (model_id, models_dict)) in ec_reference_models |> enumerate
     src_model = models_dict[:src]
     ec_model = models_dict[:ec]
 
-    ec_refdata = Human1.get_ec_refdata(src_model, ec_model);
-    new_ec_model = Human1.build_ecModel(src_model, [ec_refdata]);
-    Human1.print_ec_stats(new_ec_model)
+    ec_refdata = H1.get_ec_refdata(src_model, ec_model);
+    new_ec_model = H1.build_ecModel(src_model, [ec_refdata]);
+    H1.print_ec_stats(new_ec_model)
     
-    ec_model = Ch.Utils.compress_model(ec_model)
-    new_ec_model = Ch.Utils.compress_model(new_ec_model)
+    ec_model = ChU.compressed_model(ec_model)
+    new_ec_model = ChU.compressed_model(new_ec_model)
     
     # testing
     # We used a tINIT GEM and its respective ecModel as ec template.
@@ -129,9 +156,8 @@ for (i, (model_id, models_dict)) in ec_reference_models |> enumerate
     refs[model_id] = ec_refdata
 end
 
+## ----------------------------------------------------------------------------
 # saving
-file = ecG.EC_REFERENCE_DATA
-tagsave(file, Dict(DATA_KEY => refs))
-println(relpath(file), " created!!!, size: ", filesize(file), " bytes")
+UJL.save_data(ecG.EC_REFERENCE_DATA, refs)
 
 

@@ -3,7 +3,7 @@
 
 # redefining the Chemostat exchange criteria
 function is_exchange_subsys(model, ider)
-    idx = rxnindex(model, ider)
+    idx = ChU.rxnindex(model, ider)
     subsys = model.subSystems[idx]
     return occursin(EXCH_SUBSYS_HINT, string(subsys))
 end
@@ -21,22 +21,23 @@ function delete_boundary_mets(base_model; verbose = true)
     verbose && println("\nDeleting Boundary (x) metabolites ")
     verbose && println("Before: ", size(base_model))
     to_del = [met for met in base_model.mets if endswith(met, "x")];
-    base_model = del_met(base_model, to_del);
+    base_model = ChU.del_met!(base_model, to_del);
+    base_model = ChU.compacted_model(base_model)
     verbose && println("After: ", size(base_model))
     to_del = [met for met in base_model.mets if endswith(met, "x")];
     @assert isempty(to_del)
     return base_model
 end
 
-function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
+function prepare_extract_exchanges!(base_model::ChU.MetNet; verbose = true)
     # Exchanges
     exchs = []
     bkwd_exchs = []
     fwd_exchs = []
 
-    subsys_exchs = base_model.rxns[subsys_exchs(base_model)]
-    for exch in subsys_exchs
-        exch_i = rxnindex(base_model, exch)
+    ss_exchs = base_model.rxns[subsys_exchs(base_model)]
+    for exch in ss_exchs
+        exch_i = ChU.rxnindex(base_model, exch)
 
         # Because, this reactions are forward unbalanced (A <-> nothing)
         # positibe (+) bounds limit the outtake of the cell and
@@ -44,18 +45,18 @@ function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
         # Because in the Chemostat the intakes is 
         # controlled by the medium, we'll close all intakes to handle with them later
         # We'll open all outtakes
-        react = rxn_reacts(base_model, exch_i)
+        react = ChU.rxn_reacts(base_model, exch_i)
         if isempty(react) 
             # backward defined (nothing -> A) 
             # A positive flux means intake (close)
-            ub!(base_model, exch_i, 0.0)
-            lb!(base_model, exch_i, -MAX_BOUND)
+            ChU.ub!(base_model, exch_i, 0.0)
+            ChU.lb!(base_model, exch_i, -MAX_BOUND)
             push!(bkwd_exchs, exch)
         else 
             # forward defined (A -> nothing)
             # A positive flux means production (open)
-            ub!(base_model, exch_i, MAX_BOUND)
-            lb!(base_model, exch_i, 0.0)
+            ChU.ub!(base_model, exch_i, MAX_BOUND)
+            ChU.lb!(base_model, exch_i, 0.0)
             push!(fwd_exchs, exch)
         end
 
@@ -70,6 +71,7 @@ function prepare_extract_exchanges!(base_model::MetNet; verbose = true)
 end
 
 function del_REV_rxns(model, rxns)
+
     println("\nDeleting REV exchs")
     println("Before: ", size(model))
     REV_rxns = []
@@ -81,10 +83,12 @@ function del_REV_rxns(model, rxns)
             (rxn in model.rxns) && push!(REV_rxns, rxn)
         end
     end
-    model = del_rxn(model, REV_rxns);
+    ChU.del_rxn!(model, REV_rxns)
+    model = ChU.compacted_model(model)
     println("After: ", size(model))
     prepare_extract_exchanges!(model)
     return model
+    
 end
 
 function try_fba(args...; verbose = true)
