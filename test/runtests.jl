@@ -3,4 +3,5 @@ using Test
 
 @testset "Chemostat_Rath2017.jl" begin
     # Write your own tests here.
+    @test true
 end

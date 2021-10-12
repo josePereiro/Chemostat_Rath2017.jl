@@ -1,1 +1,0 @@
-const PROJ_NAME = "HumanGEM"

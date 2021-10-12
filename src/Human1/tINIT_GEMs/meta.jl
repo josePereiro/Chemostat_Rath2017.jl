@@ -1,1 +1,0 @@
-PROJ_NAME = "tINIT_GEMs"

@@ -1,6 +1,10 @@
+DEPRECATED
+*DEPRECATED
+
 *-gitworker-copy
 .DS_Store
 /dev/
+dev
 *dev.jl
 
 *.jl.*.cov

@@ -4,17 +4,5 @@
     The module itself only contains the common tools
 """
 module Chemostat_Rath2017
-
-    using Distributed
-    using Dates
-    using Serialization
-    import DrWatson: tagsave, wload
-    import Chemostat
-    import Chemostat.Utils: IDER_TYPE, rxnindex, load_data
-
-    include("Utils/Utils.jl")
-    include("RathData/RathData.jl")
-    include("MODEL1105100000/MODEL1105100000.jl")
-    include("Human1/Human1.jl") 
     
 end # module
