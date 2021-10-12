@@ -14,7 +14,8 @@ module RathData
     using ProjAssistant
     @gen_sub_proj
     
-    include("iders.jl")
+    include("const.jl")
+    include("raw_dat.jl")
     # include("dir_and_files.jl")
     # include("data_interface.jl")
     # include("a1at_aa_rel_ab.jl")
