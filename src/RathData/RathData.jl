@@ -16,6 +16,7 @@ module RathData
     
     include("const.jl")
     include("raw_dat.jl")
+    include("proc_dat.jl")
     # include("dir_and_files.jl")
     # include("data_interface.jl")
     # include("a1at_aa_rel_ab.jl")
