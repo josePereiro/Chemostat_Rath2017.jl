@@ -1,11 +1,11 @@
-a1at_aa_rel_ab = nothing
-function load_a1at_aa_rel_ab()
-    !isfile(A1AT_AA_REL_ABUNDANCE_FILE) && return nothing
-    global a1at_aa_rel_ab = Dict()
-    df = CSV.read(A1AT_AA_REL_ABUNDANCE_FILE, DataFrame)
+const _A1AT_AA_REL_AB = Dict()
+function _load_a1at_aa_rel_ab()
+    empty!(_A1AT_AA_REL_AB)
+    datfile = _a1at_aa_rel_abundance_proc_file()
+    !isfile(datfile) && error("data file missing ", datfile)
+    df = CSV.read(_a1at_aa_rel_abundance_proc_file(), DataFrame)
     for (m1, m2) in zip(df[!,1], df[!,2])
-        a1at_aa_rel_ab[m1] = m2
+        _A1AT_AA_REL_AB[m1] = m2
     end
-    return a1at_aa_rel_ab
+    return _A1AT_AA_REL_AB
 end
-load_a1at_aa_rel_ab()

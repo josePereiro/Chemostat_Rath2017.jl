@@ -17,14 +17,15 @@ module RathData
     include("const.jl")
     include("raw_dat.jl")
     include("proc_dat.jl")
-    # include("dir_and_files.jl")
-    # include("data_interface.jl")
-    # include("a1at_aa_rel_ab.jl")
+    include("a1at_aa_rel_ab.jl")
+    include("data_interface.jl")
     
     function __init__()
         @create_proj_dirs
-        # _load_rath_bundle()
-        # _define_interface()
+        
+        _load_a1at_aa_rel_ab()
+        _load_rath_bundle()
+        _define_interface()
     end
 
 end

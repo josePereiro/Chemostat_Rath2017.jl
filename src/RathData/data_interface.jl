@@ -4,22 +4,22 @@
 
 
 # A single structure with all the data.
-const rath_bundle = Dict()
+const _RATH_BUNDLE = Dict()
 function _load_rath_bundle()
     
-    files = [RATH_CONT_CUL_DATA_CONV_FILES[exp] for exp in exps]
-    push!(files, RATH_STDM_CONV_FILE)
+    files = [_cont_culture_proc_file(exp) for exp in EXPS]
+    push!(files, _stand_medium_proc_file())
     for file in files
-        !isfile(file) && return
+        !isfile(file) && error("data file missing ", file)
     end
 
-    empty!(rath_bundle)
-    for exp in exps
+    empty!(_RATH_BUNDLE)
+    for exp in EXPS
         
-        data = get!(rath_bundle, exp, Dict())
+        data = get!(_RATH_BUNDLE, exp, Dict())
         
         # std medium
-        stdm_conv = CSV.read(RATH_STDM_CONV_FILE, DataFrame);
+        stdm_conv = CSV.read(_stand_medium_proc_file(), DataFrame);
         for (i, met) in enumerate(stdm_conv[!, :id])
             val = stdm_conv[i, :conc]
             err = 0.0
@@ -29,7 +29,7 @@ function _load_rath_bundle()
         end
         
         #cont cul data
-        cul_data_convs = CSV.read(RATH_CONT_CUL_DATA_CONV_FILES[exp], DataFrame)
+        cul_data_convs = CSV.read(_cont_culture_proc_file(exp), DataFrame)
         for (i, id) in enumerate(cul_data_convs[!, :id])
             val = cul_data_convs[i, :val]
             err = cul_data_convs[i, :err]
@@ -45,7 +45,7 @@ function _load_rath_bundle()
         data["ξ"] = Dict("val" => ξval, "err" => ξerr, "unit" => ξunit)
             
     end
-    return rath_bundle
+    return _RATH_BUNDLE
 end
 
 # interface
@@ -55,7 +55,7 @@ function _define_interface()
     for base_fun in [:val, :err, :unit]      
         key = string(base_fun)
         @eval begin
-            $base_fun(id, exp) = rath_bundle[string(exp)][string(id)][$key]
+            $base_fun(id, exp) = _RATH_BUNDLE[string(exp)][string(id)][$key]
             function $base_fun(id, exp::AbstractString, deflt)
                 try 
                     $base_fun(id, exp); 
@@ -66,7 +66,7 @@ function _define_interface()
             end
             $base_fun(id, exps::Vector, deflt) = [$base_fun(id, exp, deflt) for exp in exps]
             $base_fun(id, exps::Vector) = [$base_fun(id, exp) for exp in exps]
-            $base_fun(id) = $base_fun(id, $exps) # all the experiments
+            $base_fun(id) = $base_fun(id, $EXPS) # all the experiments
         end 
 
         for prefix in ["q", "c", "s"]
