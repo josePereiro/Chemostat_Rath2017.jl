@@ -1,3 +1,9 @@
+load_base_intake_info() = ldat(HumanGEM, 
+    "base_intake_info", ".jls"; 
+    verbose = false
+)
+
+
 """
     returns a copy of the base_intake_info but with the 
     feed medium concentration of a given Rath steady state

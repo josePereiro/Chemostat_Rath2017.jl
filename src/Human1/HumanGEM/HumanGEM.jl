@@ -7,12 +7,14 @@ module HumanGEM
     using ProjAssistant
     @gen_sub_proj
 
-    include("const.jl")
-    include("mets_map.jl")
-    include("Hams_medium.jl")
-    include("metnet.jl")
-    include("Niklas_biomass.jl")
     include("base_intake_info.jl")
+    include("const.jl")
+    include("exch_met_map.jl")
+    include("Hams_medium.jl")
+    include("met_readable_ids.jl")
+    include("metnet.jl")
+    include("mets_map.jl")
+    include("Niklas_biomass.jl")
 
     function __init__()
         @create_proj_dirs

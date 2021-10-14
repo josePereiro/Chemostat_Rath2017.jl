@@ -5,15 +5,15 @@ quickactivate(@__DIR__, "Chemostat_Rath2017")
 ## --------------------------------------------------------------------
 import Chemostat_Rath2017
 const ChR = Chemostat_Rath2017
-const HG = ChR.Human1
+const H1 = ChR.Human1
 
 ## --------------------------------------------------------------------
 const ZENODO_DOWNLOAD_LINK = "https://zenodo.org/record/3583004/files/Human1_Publication_Data_Scripts.zip"
 
-cd(rawdir(HG))
+cd(rawdir(H1))
 println("Now at: ", pwd())
 
-const DEST_DIT = rawdir(HG, "Human1_Publication_Data_Scripts")
+const DEST_DIT = rawdir(H1, "Human1_Publication_Data_Scripts")
 const ZIP_FILE_NAME = "Human1_Publication_Data_Scripts.zip"
 if isdir(DEST_DIT)
     println(relpath(DEST_DIT), " already exist, to force a re-unzip delete the folder")
