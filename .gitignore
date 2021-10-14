@@ -5,6 +5,8 @@ DEPRECATED
 .DS_Store
 /dev/
 dev
+/data/raw
+/data/raw*
 *dev.jl
 
 *.jl.*.cov
@@ -17,7 +19,6 @@ dev
 
 !data/
 data/*
-!data/raw/
 *.jls
 
 *.py

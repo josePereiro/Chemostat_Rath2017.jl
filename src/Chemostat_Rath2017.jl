@@ -9,6 +9,7 @@ module Chemostat_Rath2017
     @gen_top_proj
 
     include("RathData/RathData.jl")
+    include("Human1/Human1.jl")
 
     function __init__()
         @create_proj_dirs
