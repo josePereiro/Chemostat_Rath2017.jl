@@ -15,101 +15,101 @@ function load_Ham_medium()
     # Inorganic Salts
 
     # Calcium Chloride (CaCl2)   0.0333 g/L
-    # Ham_medium["Ca2+[s]"] = 0.0333 * 1e3 / 110.98 # mM
-    Ham_medium["Ca2+[s]"] = INF
-    # Ham_medium["chloride[s]"] = 2 * 0.0333 * 1e3 / 110.98 # mM
-    Ham_medium["chloride[s]"] = INF
+    Ham_medium["Ca2+[s]"] = 0.0333 * 1e3 / 110.98 # mM
+    # Ham_medium["Ca2+[s]"] = INF
+    Ham_medium["chloride[s]"] = 2 * 0.0333 * 1e3 / 110.98 # mM
+    # Ham_medium["chloride[s]"] = INF
 
     # Cupric Sulfate • 5H2O (CuSO4 + 5H2O)   0.0000025 g/L
-    # Ham_medium["Cu2+[s]"] = 0.0000025 * 1e3 / 249.685 # mM
-    Ham_medium["Cu2+[s]"] = INF
-    # Ham_medium["sulfate[s]"] = 0.0000025 * 1e3 / 249.685 # mM
-    Ham_medium["sulfate[s]"] = INF
+    Ham_medium["Cu2+[s]"] = 0.0000025 * 1e3 / 249.685 # mM
+    # Ham_medium["Cu2+[s]"] = INF
+    Ham_medium["sulfate[s]"] = 0.0000025 * 1e3 / 249.685 # mM
+    # Ham_medium["sulfate[s]"] = INF
 
     # Ferrous Sulfate • 7H2O (FeSO4.7H2O)   0.000834 g/L
-    # Ham_medium["Fe2+[s]"] = 0.000834 * 1e3 / 151.91 # mM
-    Ham_medium["Fe2+[s]"] = INF
-    # Ham_medium["sulfate[s]"] += 0.000834 * 1e3 / 151.91 # mM
+    Ham_medium["Fe2+[s]"] = 0.000834 * 1e3 / 151.91 # mM
+    Ham_medium["sulfate[s]"] += 0.000834 * 1e3 / 151.91 # mM
+    # Ham_medium["Fe2+[s]"] = INF
 
     # Magnesium Chloride (MgCl2)   0.0576 g/L
-    # Ham_medium["Mg2+[s]"] = 0.0576 * 1e3 / 95.211 # mM
-    Ham_medium["Mg2+[s]"] = INF
-    # Ham_medium["chloride[s]"] += 0.0576 * 1e3 / 95.211 # mM
+    Ham_medium["Mg2+[s]"] = 0.0576 * 1e3 / 95.211 # mM
+    Ham_medium["chloride[s]"] += 0.0576 * 1e3 / 95.211 # mM
+    # Ham_medium["Mg2+[s]"] = INF
 
     # Potassium Chloride (KCl)  0.224 g/L
-    # Ham_medium["K+[s]"] = 0.224 * 1e3 / 74.5513 # mM
-    Ham_medium["K+[s]"] = INF
-    # Ham_medium["chloride[s]"] += 0.224 * 1e3 / 74.5513 # mM
+    Ham_medium["K+[s]"] = 0.224 * 1e3 / 74.5513 # mM
+    Ham_medium["chloride[s]"] += 0.224 * 1e3 / 74.5513 # mM
+    # Ham_medium["K+[s]"] = INF
 
     # Sodium Bicarbonate (NaHCO3)  1.176 g/L
-    # Ham_medium["Na+[s]"] = 1.176 * 1e3 / 84.007 # mM
-    Ham_medium["Na+[s]"] = INF
-    # Ham_medium["HCO3-[s]"] = 1.176 * 1e3 / 84.007 # mM
-    Ham_medium["HCO3-[s]"] = INF
+    Ham_medium["Na+[s]"] = 1.176 * 1e3 / 84.007 # mM
+    Ham_medium["HCO3-[s]"] = 1.176 * 1e3 / 84.007 # mM
+    # Ham_medium["Na+[s]"] = INF
+    # Ham_medium["HCO3-[s]"] = INF
 
     # Sodium Chloride (NaCl)  7.599 g/L
-    # Ham_medium["Na+[s]"] += 7.599 * 1e3 / 58.44 # mM
-    # Ham_medium["chloride[s]"] += 7.599 * 1e3 / 58.44 # mM
+    Ham_medium["Na+[s]"] += 7.599 * 1e3 / 58.44 # mM
+    Ham_medium["chloride[s]"] += 7.599 * 1e3 / 58.44 # mM
 
     # Sodium Phosphate Dibasic (anhydrous) (Na2HPO4)  0.14204 g/L
-    # Ham_medium["Na+[s]"] += 2 * 0.14204 * 1e3 / 141.96 # mM
-    # Ham_medium["Pi[s]"] = 0.14204 * 1e3 / 141.96 # mM
-    Ham_medium["Pi[s]"] = INF
+    Ham_medium["Na+[s]"] += 2 * 0.14204 * 1e3 / 141.96 # mM
+    Ham_medium["Pi[s]"] = 0.14204 * 1e3 / 141.96 # mM
+    # Ham_medium["Pi[s]"] = INF
 
     # Zinc Sulfate • 7H2O (ZnSO4. 7H2O)  0.000863 g/L
-    # Ham_medium["zinc[s]"] = 0.000863 * 1e3 / 287.6 # mM
-    Ham_medium["zinc[s]"] = INF
-    # Ham_medium["sulfate[s]"] += 0.000863 * 1e3 / 287.6 # mM
+    Ham_medium["zinc[s]"] = 0.000863 * 1e3 / 287.6 # mM
+    Ham_medium["sulfate[s]"] += 0.000863 * 1e3 / 287.6 # mM
+    # Ham_medium["zinc[s]"] = INF
 
     # Sodium Bicarbonate  1.176 g/L
-    # Ham_medium["Na+[s]"] += 1.176 * 1e3 / 58.44 # mM
-    # Ham_medium["HCO3-[s]"] += 1.176 * 1e3 / 84.007 # mM
+    Ham_medium["Na+[s]"] += 1.176 * 1e3 / 58.44 # mM
+    Ham_medium["HCO3-[s]"] += 1.176 * 1e3 / 84.007 # mM
 
     ## ---------------------------------------------------------------
     # Vitamins
 
     # D-Biotin   0.0000073 g/L
-    # Ham_medium["biotin[s]"] = 0.0000073 * 1e3 / 244.31 # mM
-    Ham_medium["biotin[s]"] = INF 
+    Ham_medium["biotin[s]"] = 0.0000073 * 1e3 / 244.31 # mM
+    # Ham_medium["biotin[s]"] = INF 
 
     # Choline Chloride (C5H14NO.Cl) 0.01396 g/L
-    # Ham_medium["choline[s]"] = 0.01396 * 1e3 / 139.62 # mM
-    Ham_medium["choline[s]"] = INF
-    # Ham_medium["chloride[s]"] += 0.01396 * 1e3 / 139.62 # mM
+    Ham_medium["choline[s]"] = 0.01396 * 1e3 / 139.62 # mM
+    Ham_medium["chloride[s]"] += 0.01396 * 1e3 / 139.62 # mM
+    # Ham_medium["choline[s]"] = INF
 
     # Folic Acid   0.00132 g/L
-    # Ham_medium["folate[s]"] = 0.00132 * 1e3 / 441.4 # mM
-    Ham_medium["folate[s]"] = INF
+    Ham_medium["folate[s]"] = 0.00132 * 1e3 / 441.4 # mM
+    # Ham_medium["folate[s]"] = INF
 
     # myo-Inositol   0.018 g/L
-    # Ham_medium["inositol[s]"] = 0.018 * 1e3 / 180.16 # mM
-    Ham_medium["inositol[s]"] = INF
+    Ham_medium["inositol[s]"] = 0.018 * 1e3 / 180.16 # mM
+    # Ham_medium["inositol[s]"] = INF
 
     # Niacinamide   0.000037 g/L
-    # Ham_medium["nicotinamide[s]"] = 0.000037 * 1e3 / 122.12 # mM
-    Ham_medium["nicotinamide[s]"] = INF
+    Ham_medium["nicotinamide[s]"] = 0.000037 * 1e3 / 122.12 # mM
+    # Ham_medium["nicotinamide[s]"] = INF
 
     # D-Pantothenic Acid (hemicalcium)   0.00048 g/L
-    # Ham_medium["pantothenate[s]"] = 0.00048 * 1e3 / 219.23 # mM
-    Ham_medium["pantothenate[s]"] = INF
+    Ham_medium["pantothenate[s]"] = 0.00048 * 1e3 / 219.23 # mM
+    # Ham_medium["pantothenate[s]"] = INF
 
     # Pyridoxine • HCl   0.000062 g/L
-    # Ham_medium["pyridoxine[s]"] = 0.000062 * 1e3 / 169.18 # mM
-    Ham_medium["pyridoxine[s]"] = INF
-    # Ham_medium["chloride[s]"] += 0.000062 * 1e3 / 169.18 # mM
+    Ham_medium["pyridoxine[s]"] = 0.000062 * 1e3 / 169.18 # mM
+    Ham_medium["chloride[s]"] += 0.000062 * 1e3 / 169.18 # mM
+    # Ham_medium["pyridoxine[s]"] = INF
 
     # Riboflavin   0.000038 g/L
-    # Ham_medium["riboflavin[s]"] = 0.000038 * 1e3 / 376.36 # mM
-    Ham_medium["riboflavin[s]"] = INF
+    Ham_medium["riboflavin[s]"] = 0.000038 * 1e3 / 376.36 # mM
+    # Ham_medium["riboflavin[s]"] = INF
 
     # Thiamine • HCl   0.00034 g/L
-    # Ham_medium["thiamin[s]"] = 0.00034 * 1e3 / 265.355 # mM
-    Ham_medium["thiamin[s]"] = INF
-    # Ham_medium["chloride[s]"] += 0.00034 * 1e3 / 265.355 # mM
+    Ham_medium["thiamin[s]"] = 0.00034 * 1e3 / 265.355 # mM
+    Ham_medium["chloride[s]"] += 0.00034 * 1e3 / 265.355 # mM
+    # Ham_medium["thiamin[s]"] = INF
 
     # Vitamin B12   0.00136 g/L
-    # Ham_medium["cobamide-coenzyme[s]"] = 0.00136 * 1e3 / 1355.365 # mM
-    Ham_medium["cobamide-coenzyme[s]"] = INF
+    Ham_medium["cobamide-coenzyme[s]"] = 0.00136 * 1e3 / 1355.365 # mM
+    # Ham_medium["cobamide-coenzyme[s]"] = INF
 
     ## ---------------------------------------------------------------
     # Other
@@ -117,29 +117,29 @@ function load_Ham_medium()
     Ham_medium["glucose[s]"] = 1.802 * 1e3 / 180.156 # mM
 
     # Hypoxanthine   0.00408 g/L
-    # Ham_medium["hypoxanthine[s]"] = 0.00408 * 1e3 / 136.1115 # mM
-    Ham_medium["hypoxanthine[s]"] = INF
+    Ham_medium["hypoxanthine[s]"] = 0.00408 * 1e3 / 136.1115 # mM
+    # Ham_medium["hypoxanthine[s]"] = INF
 
     # Linoleic Acid   0.000084 g/L
-    # Ham_medium["linolenate[s]"] = 0.000084 * 1e3 / 280.4472 # mM
-    Ham_medium["linolenate[s]"] = INF
+    Ham_medium["linolenate[s]"] = 0.000084 * 1e3 / 280.4472 # mM
+    # Ham_medium["linolenate[s]"] = INF
 
     # Phenol Red • Na   0.0013 g/L # PH Indicator
 
     # Putrescine • HCl   0.000161 g/L
-    # Ham_medium["putrescine[s]"] = 0.000161 * 1e3 / 88.15 # mM
-    Ham_medium["putrescine[s]"] = INF
-    # Ham_medium["chloride[s]"] += 0.000161 * 1e3 / 88.15 # mM
+    Ham_medium["putrescine[s]"] = 0.000161 * 1e3 / 88.15 # mM
+    Ham_medium["chloride[s]"] += 0.000161 * 1e3 / 88.15 # mM
+    # Ham_medium["putrescine[s]"] = INF
 
     # Pyruvic Acid • Na   0.11 g/L # Carbon source, not included
 
     # Thioctic Acid   0.00021 g/L
-    # Ham_medium["lipoic acid[s]"] = 0.00021 * 1e3 / 206.33 # mM
-    Ham_medium["lipoic acid[s]"] = INF
+    Ham_medium["lipoic acid[s]"] = 0.00021 * 1e3 / 206.33 # mM
+    # Ham_medium["lipoic acid[s]"] = INF
 
     # Thymidine   0.00073   g/L
-    # Ham_medium["thymidine[s]"] = 0.00073 * 1e3 / 242.2286 # mM
-    Ham_medium["thymidine[s]"] = INF
+    Ham_medium["thymidine[s]"] = 0.00073 * 1e3 / 242.2286 # mM
+    # Ham_medium["thymidine[s]"] = INF
 
     ## ---------------------------------------------------------------
     # Add
@@ -155,7 +155,7 @@ function load_Ham_medium()
 
     # L-Arginine • HCl   0.211 g/L
     Ham_medium["arginine[s]"] = 0.211 * 1e3 / 174.2 # mM
-    # Ham_medium["chloride[s]"] += 0.211 * 1e3 / 174.2 # mM
+    Ham_medium["chloride[s]"] += 0.211 * 1e3 / 174.2 # mM
 
     # L-Asparagine • H2O   0.01501 g/L
     Ham_medium["asparagine[s]"] = 0.01501 * 1e3 / 132.12 # mM
@@ -165,7 +165,7 @@ function load_Ham_medium()
 
     # L-Cysteine • HCl • H2O   0.035 g/L
     Ham_medium["cysteine[s]"] = 0.035 * 1e3 / 121.16 # mM
-    # Ham_medium["chloride[s]"] += 0.035 * 1e3 / 121.16  # mM
+    Ham_medium["chloride[s]"] += 0.035 * 1e3 / 121.16  # mM
 
     # L-Glutamic Acid   0.0147 g/L
     Ham_medium["glutamate[s]"] = 0.0147 * 1e3 / 147.13 # mM
@@ -178,7 +178,7 @@ function load_Ham_medium()
 
     # L-Histidine • 3HCl • H2O   0.02096 g/L
     Ham_medium["histidine[s]"] = 0.02096 * 1e3 / 155.1546 # mM
-    # Ham_medium["chloride[s]"] += 3 * 0.02096 * 1e3 / 155.1546 # mM
+    Ham_medium["chloride[s]"] += 3 * 0.02096 * 1e3 / 155.1546 # mM
 
     # L-Isoleucine   0.00394 g/L
     Ham_medium["isoleucine[s]"] = 0.00394 * 1e3 / 131.17 # mM
@@ -188,7 +188,7 @@ function load_Ham_medium()
 
     # L-Lysine • HCl   0.0365 g/L
     Ham_medium["lysine[s]"] = 0.0365 * 1e3 / 146.19 # mM
-    # Ham_medium["chloride[s]"] += 0.0365 * 1e3 / 146.19 # mM
+    Ham_medium["chloride[s]"] += 0.0365 * 1e3 / 146.19 # mM
 
     # L-Methionine   0.00448 g/L
     Ham_medium["methionine[s]"] = 0.00448 * 1e3 / 149.21 # mM
@@ -210,7 +210,7 @@ function load_Ham_medium()
 
     # L-Tyrosine • 2Na • 2H2O   0.00778 g/L
     Ham_medium["tyrosine[s]"] =  0.00778 * 1e3 / 181.19 # mM
-    # Ham_medium["Na+[s]"] += 2 * 0.00778 * 1e3 / 181.19 # mM
+    Ham_medium["Na+[s]"] += 2 * 0.00778 * 1e3 / 181.19 # mM
     
     # L-Valine   0.0117 g/L
     Ham_medium["valine[s]"] = 0.0117 * 1e3 / 117.151 # mM

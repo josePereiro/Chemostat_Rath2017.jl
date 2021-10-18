@@ -4,6 +4,7 @@ module Human1
     @gen_sub_proj
 
     include("HumanGEM/HumanGEM.jl")
+    include("HartGEMs/HartGEMs.jl")
 
     function __init__()
         @create_proj_dirs

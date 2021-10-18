@@ -12,7 +12,7 @@ using ProjAssistant
 
     import Chemostat_Rath2017
     const ChR = Chemostat_Rath2017
-    const Rd = ChR.RathData;
+    const Rd = ChR.RathData
 end
 
 ## ----------------------------------------------------------------------------

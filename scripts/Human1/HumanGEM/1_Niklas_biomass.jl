@@ -7,6 +7,7 @@ using ProjAssistant
     import CSV
 
     import Chemostat
+    import Chemostat.MetNets
     const Ch = Chemostat
     import Chemostat_Rath2017: Human1, RathData
     const Rd = RathData
@@ -17,7 +18,7 @@ end
 ## ------------------------------------------------------------------
 # load model
 model = HG.load_humangem_raw_model()
-biomass_idx = Chemostat.Utils.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
+biomass_idx = MetNets.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
 
 ## ------------------------------------------------------------------
 # Biomass equation
@@ -29,7 +30,7 @@ biomass_idx = Chemostat.Utils.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
 # I do not touch the energetic part of the equation, atp + h20 -> adp + h2 + pi
 
 biomass = Dict()
-for met_idx in Chemostat.Utils.rxn_mets(model, biomass_idx)
+for met_idx in MetNets.rxn_mets(model, biomass_idx)
     met = model.mets[met_idx]
     biomass[met] = model.S[met_idx, biomass_idx]
 end

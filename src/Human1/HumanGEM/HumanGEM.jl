@@ -1,9 +1,11 @@
 module HumanGEM
 
     import ...Chemostat_Rath2017
+    import ...RathData
     import ..Human1
     import MAT
     import Chemostat
+    import Chemostat.MetNets
     using ProjAssistant
     @gen_sub_proj
 

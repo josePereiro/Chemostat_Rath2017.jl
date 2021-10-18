@@ -1,6 +1,3 @@
-
-
-
 function load_mets_map()
     ## ---------------------------------------------------------------
     # This create a map between the metabolites ids of the Human1 model 
