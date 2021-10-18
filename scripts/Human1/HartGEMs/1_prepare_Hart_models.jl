@@ -7,7 +7,10 @@ using ProjAssistant
     using Base.Threads
 
     import Chemostat
-    const Ch = Chemostat
+    import Chemostat.MetNets
+    import Chemostat.MetLP
+    import Chemostat.MetEP
+
     import Chemostat_Rath2017
     const ChR = Chemostat_Rath2017
     const Rd = ChR.RathData
@@ -28,10 +31,11 @@ let
     for tissue in AG.TISSUES
         (tissue != "GBM") && continue # Test
 
-        hart_model = AG.load_model(:raw, tissue)
-        hart_model = MetNets.force_dims(hart_model)
+        raw_model = AG.load_model(:raw, tissue; uncompress = true)
+        raw_model = MetNets.force_dims(raw_model)
 
-        hart_model = ChR.prepare_metnet(AG, hart_model);
+        hart_model = ChR.prepare_metnet(AG, raw_model; inf_medium = true);
+        hart_model = MetNets.force_dims(hart_model)
         
         println()
         @info("Saving", modelid, tissue)
@@ -64,12 +68,13 @@ let
         base_model = AG.load_model(:base, tissue; uncompress = true)
         @info("Processing", tissue, 
             base_model = size(base_model),
-            nzrange = Chemostat.Utils.nzabs_range(base_model.S)
+            nzrange = MetNets.nzabs_range(base_model.S)
         )
-        scaled_model = Ch.Utils.well_scaled_model(base_model, scale_factor; lift_bound)
+        scaled_model = MetNets.well_scaled_model(base_model, scale_factor; lift_bound)
+        scaled_model = MetNets.force_dims(scaled_model)
         @info("Done", tissue, 
             scaled_model = size(scaled_model), 
-            nzrange = Chemostat.Utils.nzabs_range(scaled_model.S)
+            nzrange = MetNets.nzabs_range(scaled_model.S)
         )
 
         println()
@@ -99,10 +104,11 @@ let
         )
 
         # This run in parallel
-        fva_model = Chemostat.LP.fva_preprocess(
+        fva_model = MetLP.fva_preprocess(
             base_model; 
             check_obj = HG.HUMAN_BIOMASS_IDER
         )
+        fva_model = MetNets.force_dims(fva_model)
 
         println()
         @info("Done!!", tissue, modelid,

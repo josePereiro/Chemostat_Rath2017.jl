@@ -1,7 +1,10 @@
-function prepare_metnet(proj, base_model)
+function prepare_metnet(proj, base_model; inf_medium = false)
 
     base_model = deepcopy(base_model)
     
+    ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+
     ## ---------------------------------------------------------------------
     ## Description
     
@@ -9,6 +12,7 @@ function prepare_metnet(proj, base_model)
     
     ## ---------------------------------------------------------------------
     make_supp_files = (proj == HG)
+    make_supp_files && @info("Creating support files")
     
     ## ---------------------------------------------------------------------
     M, N = size(base_model)
@@ -63,6 +67,9 @@ function prepare_metnet(proj, base_model)
     end
 
     ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+
+    ## ---------------------------------------------------------------------
     # Exchanges
     exchs = []
     for exch in filter((ider) -> is_exchange(base_model, ider), base_model.rxns)
@@ -93,6 +100,9 @@ function prepare_metnet(proj, base_model)
     println("\nExchanges: ", exchs |> length)
 
     ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+
+    ## ---------------------------------------------------------------------
     # Exch Met map
     # A fast way to get the exch reaction from the metabolite and viceversa
     if make_supp_files
@@ -119,49 +129,18 @@ function prepare_metnet(proj, base_model)
     end
 
     ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+
+    ## ---------------------------------------------------------------------
     # Base intake info
     # The Base model will have a medium (expressed as open intake fluxes) that resamble the cultivation
     # at xi = 1 using the set up in Rath 2017 exp A. So the lb of the intakes will be directly the (negative)
     # concentration in 42_MAX_UB standard medium (see Cossio's paper). Also, a few intakes, not justified in
     # the standard medium will be add based in the intakes of the original model FBA analysis.
+    base_intake_info = HG.load_base_intake_info(; inf_medium)
 
-    if make_supp_files
-        base_intake_info = Dict()
-        mets_map = HG.load_mets_map()
-
-        # From 42_MAX_UB standard medium
-        for rath_met in Rd.ALL_METS
-            
-            # base_model id
-            model_met = mets_map[rath_met]   
-            exch_rxn = exch_met_map[model_met]
-            
-            # 42_MAX_UB standard medium
-            # we take the openest version of the intakes for building the
-            # base model
-            conc = maximum(Rd.cval(rath_met, Rd.STSTS, 0.0)) 
-            lb = -HG.ABS_MAX_BOUND # intake bound
-            base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
-        end
-
-        # From ham's medium see Hams_medium.jl
-        for (Ham_id, conc) in HG.load_Ham_medium()
-            model_met = met_readable_ids[Ham_id]
-            exch_rxn = exch_met_map[model_met]
-            haskey(base_intake_info, exch_rxn) && continue # Not overwrite 42_MAX_UB standard medium
-            
-            lb = -HG.ABS_MAX_BOUND # intake bound
-            base_intake_info[exch_rxn] = Dict("c" => conc, "lb" => lb) 
-        end
-
-        # Saving
-        sdat(HG, base_intake_info, 
-            "base_intake_info", ".jls"; 
-            verbose = true
-        )
-    else
-        base_intake_info = HG.load_base_intake_info()
-    end
+    ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Apply medium
@@ -172,6 +151,8 @@ function prepare_metnet(proj, base_model)
         emptyfirst = true, ignore_miss = true
     );
 
+    ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Niklas Biomasss
@@ -186,6 +167,9 @@ function prepare_metnet(proj, base_model)
     for (met, y) in HG.load_Niklas_biomass()
         MetNets.S!(base_model, met, biomass_idx, y)
     end
+
+    ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # ATPM demand
@@ -211,8 +195,14 @@ function prepare_metnet(proj, base_model)
     end
 
     ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+
+    ## ---------------------------------------------------------------------
     # dimentions
     base_model = MetNets.force_dims(base_model)
+
+    ## ---------------------------------------------------------------------
+    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # summary
@@ -221,7 +211,6 @@ function prepare_metnet(proj, base_model)
 
     ## ---------------------------------------------------------------------
     #  FBA Test
-
     fbaout = MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER)
     println("\nFBAout summary")
     MetNets.summary(base_model, fbaout)

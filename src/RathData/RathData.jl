@@ -23,7 +23,6 @@ module RathData
     function __init__()
         @create_proj_dirs
         
-        _load_a1at_aa_rel_ab()
         _load_rath_bundle()
         _define_interface()
     end

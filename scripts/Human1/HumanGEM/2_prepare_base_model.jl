@@ -35,7 +35,7 @@ end
 end
 
 ## ---------------------------------------------------------------------
-base_model = ChR.prepare_metnet(HG, base_model);
+base_model = ChR.prepare_metnet(HG, base_model; inf_medium = true);
 
 ## ---------------------------------------------------------------------
 let

@@ -16,11 +16,11 @@ end
 function load_Hart_raw_model(tissue = "GBM"; uncompress = false)
     model_dict = load_Hart_mat_model(tissue)
     model = MetNets.MetNet(model_dict; reshape = true)
-    uncompress ? model : Chemostat.Utils.compressed_model(model) 
+    uncompress ? model : MetNets.compressed_model(model) 
 end
 
 save_model(modelid, tissue, model; verbose = true) = 
-    sdat(HartGEMs, Chemostat.Utils.compressed_model(model), 
+    sdat(HartGEMs, MetNets.compressed_model(model), 
         HART_GEM_PREFIX, (;modelid, tissue), ".jls"; 
         verbose
     )

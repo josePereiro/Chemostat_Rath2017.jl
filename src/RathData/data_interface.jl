@@ -10,7 +10,7 @@ function _load_rath_bundle()
     files = [_cont_culture_proc_file(exp) for exp in EXPS]
     push!(files, _stand_medium_proc_file())
     for file in files
-        !isfile(file) && error("data file missing ", file)
+        !isfile(file) && return _RATH_BUNDLE
     end
 
     empty!(_RATH_BUNDLE)

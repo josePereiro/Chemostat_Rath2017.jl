@@ -108,7 +108,7 @@ version = "1.8.0"
 deps = ["MetEP", "MetLP", "MetNets"]
 path = "/Users/Pereiro/.julia/dev/Chemostat"
 uuid = "c5987326-81b3-11ea-28dd-b531745de20f"
-version = "0.11.2"
+version = "0.12.0"
 
 [[Clp]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "MathOptInterface", "MathProgBase", "SparseArrays"]
@@ -816,7 +816,7 @@ version = "0.3.1"
 deps = ["Distributions", "ExtractMacro", "LinearAlgebra", "MetLP", "MetNets", "Printf", "ProgressMeter", "SparseArrays", "SpecialFunctions"]
 path = "../../../../../../.julia/dev/MetEP"
 uuid = "94559648-8665-43eb-95be-b874d653e167"
-version = "0.1.0"
+version = "0.1.1"
 
 [[MetLP]]
 deps = ["Clp", "MathProgBase", "MetNets", "ProgressMeter", "SparseArrays"]
@@ -825,10 +825,10 @@ uuid = "bb7579a6-17cc-4454-bc80-c1b83f10c6c8"
 version = "0.1.4"
 
 [[MetNets]]
-deps = ["MAT", "Serialization", "SparseArrays", "Statistics"]
-path = "../../../../../../.julia/dev/MetNets"
+deps = ["MAT", "ProgressMeter", "Serialization", "SparseArrays", "Statistics"]
+path = "/Users/Pereiro/.julia/dev/MetNets"
 uuid = "e57bcde5-101c-47b4-bac9-e79e238e37d4"
-version = "0.1.6"
+version = "0.1.7"
 
 [[Missings]]
 deps = ["DataAPI"]

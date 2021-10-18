@@ -4,6 +4,7 @@ module HartGEMs
     import ..Human1
     import MAT
     import Chemostat
+    import Chemostat.MetNets
     using ProjAssistant
     @gen_sub_proj
 

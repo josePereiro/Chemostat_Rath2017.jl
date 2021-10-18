@@ -1,6 +1,5 @@
-const _A1AT_AA_REL_AB = Dict()
-function _load_a1at_aa_rel_ab()
-    empty!(_A1AT_AA_REL_AB)
+function load_a1at_aa_rel_ab()
+    _A1AT_AA_REL_AB = Dict()
     datfile = _a1at_aa_rel_abundance_proc_file()
     !isfile(datfile) && error("data file missing ", datfile)
     df = CSV.read(_a1at_aa_rel_abundance_proc_file(), DataFrame)
