@@ -1,7 +1,7 @@
 name = "Chemostat_Rath2017"
 uuid = "f511193e-9926-11ea-07ad-fb434f320181"
 authors = ["josePereiro"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
