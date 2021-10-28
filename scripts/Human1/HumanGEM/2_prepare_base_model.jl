@@ -38,24 +38,5 @@ end
 base_model = ChR.prepare_metnet(HG, base_model; inf_medium = true);
 
 ## ---------------------------------------------------------------------
-let
-    model = deepcopy(base_model)
-    
-    ## ---------------------------------------------------------------------
-    #  FBA Test
-    fbaout = MetLP.fba!(model, HG.HUMAN_BIOMASS_IDER)
-    println("\nbase_model")
-    println(fbaout)
-
-    ## ---------------------------------------------------------------------
-    println("\nComparing with experiments")
-    ChR.compare_with_experimets(model)
-end
-
-## ---------------------------------------------------------------------
-# # Saving base_model
-# # Saving
-# sdat(HG, MetNets.compressed_model(base_model), 
-#     "HumanGEM_base_model", ".jls"; 
-#     verbose = true
-# )
+# Saving base_model
+HG.save_humangem_base_model(base_model)

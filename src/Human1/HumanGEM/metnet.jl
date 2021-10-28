@@ -9,6 +9,12 @@ function load_humangem_raw_model(model_dict = load_humangem_mat_model())
     return MetNets.MetNet(model_dict; reshape = true)
 end
 
+save_humangem_base_model(model; verbose = true) = 
+    sdat(HumanGEM, MetNets.compressed_model(model), 
+        "HumanGEM_base_model", ".jls"; 
+        verbose
+    )
+
 function load_humangem_base_model(;uncompress = false)
     base_model = ldat(HumanGEM,  
         "HumanGEM_base_model", ".jls"; 

@@ -12,8 +12,9 @@ using ProjAssistant
 end
 
 ## ----------------------------------------------------------------------------
-# This just check that the script is run in the
-# package enviroment
+# The human glycoprotein
+# A1AT has a weight of 52 kDa. It consists of a single polypeptide chain with 394
+# amino acids, and it has about 14 % carbohydrates by weight.
 
 # from https=>//www.drugbank.ca/polypeptides/P01009
 a1at_sec = string(

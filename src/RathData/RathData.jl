@@ -5,6 +5,9 @@
 # Steady State Conditions for the Human Cell Line AGE1.HN-AAT,” 
 # 2017. https://pure.mpg.de/pubman/item/item_2508673_4.
 
+# The AGE1.HN cells express only marker genes characteristic
+# for neuronal cells and lack markers characteristic for glial cells.
+
 module RathData
 
     import CSV

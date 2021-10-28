@@ -82,8 +82,13 @@ function prepare_metnet(proj, base_model; inf_medium = false)
         mets = MetNets.rxn_mets(base_model, exch_i)
         reacts = MetNets.rxn_reacts(base_model, exch_i)
         
-        length(reacts) != length(mets) != 1 && continue # I want only the forward monomoleculars
-        !endswith(base_model.mets[first(reacts)], "s") && continue # I what only the exchanges 's'
+        # I want only the forward monomoleculars
+        !(length(mets) == length(reacts) == 1) && continue 
+        @show length(base_model.mets)
+        @show length(mets)
+        @show length(reacts)
+        # I want only the exchanges 's'
+        isempty(reacts) && !endswith(base_model.mets[first(reacts)], "s") && continue 
         
         # Because, this reactions are forward unbalanced (A <-> nothing)
         # positibe (+) bounds limit the outtake of the cell and
