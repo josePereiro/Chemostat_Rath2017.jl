@@ -84,9 +84,6 @@ function prepare_metnet(proj, base_model; inf_medium = false)
         
         # I want only the forward monomoleculars
         !(length(mets) == length(reacts) == 1) && continue 
-        @show length(base_model.mets)
-        @show length(mets)
-        @show length(reacts)
         # I want only the exchanges 's'
         isempty(reacts) && !endswith(base_model.mets[first(reacts)], "s") && continue 
         
