@@ -150,7 +150,7 @@ let
             biom = MetLP.objval(fbaout)
             
             # If rexch is not essential 
-            if abs(biom - biom0) < abs(biom0 * 0.1)
+            if abs(biom) > 0.9 * abs(biom0)
 
                 @info("Met NOT essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
 
@@ -162,7 +162,7 @@ let
                 fbaout = MetLP.fba!(model_th, objidx)
                 biom = MetLP.objval(fbaout)
                 # If glc is essential
-                if abs(biom - biom0) < abs(biom0 * 0.05) 
+                if abs(biom) < 0.1 * abs(biom0)
 
                     @info("GLC essential", it, length(minimum_mediumis), biom0, biom, thid)
                     @show minimum_mediumis
