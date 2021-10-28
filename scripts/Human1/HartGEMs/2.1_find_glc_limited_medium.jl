@@ -43,8 +43,12 @@ let
     met_map = HG.load_exch_met_map()
 
     @info("Loading model")
-    model = MetNets.uncompressed_model(ldat(AG, "ec_model", ".jls"))
+    # model = MetNets.uncompressed_model(ldat(AG, "ec_model", ".jls"))
+    tissue = "GBM"
+    modelid = "base"
+    model = AG.load_model(;modelid, tissue, uncompress = true)
     objidx = MetNets.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
+    exglcidx = MetNets.rxnindex(model, HG.HUMAN_GLC_EX_IDER)
 
     @info("Finding open exchanges")
     exchis = filter(MetNets.exchanges(model)) do exchi
@@ -105,11 +109,12 @@ let
     @show biom
 
     @info("Test adding glucose")
-    MetNets.lb!(model, HG.HUMAN_GLC_EX_IDER, -1000.0)
+    MetNets.lb!(model, exglcidx, -1000.0)
     fbaout = MetLP.fba!(model, objidx)
     biom = MetLP.objval(fbaout)
     @show biom
 
+    # I will find the minimum medium with make glucose essential
     @threads for _ in collect(1:100)
         thid = threadid()
         
@@ -122,7 +127,7 @@ let
 
         @info("Finding a greedy minimum medium", thid)
         minimum_mediumis = Set(exchis)
-        for it in 1:(2*length(exchis))
+        for it in 1:(5*length(exchis))
             
             # Open minimum_mediumis
             for exchi in exchis
@@ -131,6 +136,7 @@ let
             for exchi in minimum_mediumis
                 MetNets.lb!(model_th, exchi, -1000.0)
             end
+            MetNets.lb!(model_th, exglcidx, -1000.0)
             
             # close one
             rexchi = rand(setdiff(minimum_mediumis, essentialis))
@@ -140,139 +146,158 @@ let
             met == "glucose[s]" && continue # protect glucose
             MetNets.lb!(model_th, rexchi, 0.0)
             
-            # test
             fbaout = MetLP.fba!(model_th, objidx)
             biom = MetLP.objval(fbaout)
-
-            if (biom > biom0 / 3)
+            
+            # If rexch is not essential 
+            if abs(biom - biom0) / biom0 > 0.9 
+                # remove
                 delete!(minimum_mediumis, rexchi)
+
+                # Test glc essensiality
+                MetNets.lb!(model_th, exglcidx, 0.0)
+                fbaout = MetLP.fba!(model_th, objidx)
+                biom = MetLP.objval(fbaout)
+                if abs(biom - biom0) / biom0 < 0.05 # If glc is essential
+                    # save
+                    medium_hash = hash((:MIN_MEDIUM, minimum_mediumis))
+                    sdat(AG, minimum_mediumis, 
+                        "minimum_medium", (;medium_hash), ".jls";
+                        verbose = true
+                    )
+                end
+            else
+                # If rexch is essential (open)
+                MetNets.lb!(model_th, rexchi, -1000.0)
+                continue
             end
 
             @info("Try", it, length(minimum_mediumis), met, biom0, biom, thid)
         end
-        medium_hash = hash((:MIN_MEDIUM, minimum_mediumis))
-        sdat(AG, minimum_mediumis, 
-            "minimum_medium", (;medium_hash), ".jls";
-            verbose = true
-        )
+        
     end # threads
 
 
 end
 
 ## ---------------------------------------------------------------------
-# histogram
-let
-    dir = datdir(AG)
-    lens = Int[]
-    medium_files = filter(readdir(dir; join = true)) do fn
-        contains(fn, "minimum_medium")
-    end
-    @show length(medium_files)
-    for fn in medium_files
-        push!(lens, length(ldat(fn)))
-    end
-    histogram(lens; bins = 20)
-end
-
-
 ## ---------------------------------------------------------------------
-let
-    dir = datdir(AG)
-    lens = Int[]
-    medium_files = filter(readdir(dir; join = true)) do fn
-        contains(fn, "minimum_medium")
-    end
-
-    met_readable = HG.load_met_readable_ids()
-    met_map = HG.load_exch_met_map()
-
-    @info("Loading model")
-    model = MetNets.uncompressed_model(ldat(AG, "ec_model", ".jls"))
-    objidx = MetNets.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
-
-    @info("Finding open exchanges")
-    exchis = filter(MetNets.exchanges(model)) do exchi
-        MetNets.lb(model, exchi) < 0
-    end
-    @show length(exchis)
-
-    # test
-    fbaout = MetLP.fba!(model, objidx)
-    biom0 = MetLP.objval(fbaout)
-    @show biom0
-
-    for medium_file in medium_files
-        
-        println()
-        minimum_mediumis = ldat(medium_file)
-        @show minimum_mediumis
-        @show length(minimum_mediumis)
-        
-        println()
-        @show biom0
-
-        # close all
-        for exchi in exchis
-            MetNets.lb!(model, exchi, 0.0)
-        end
-        
-        # open minimum
-        for exchi in minimum_mediumis
-            MetNets.lb!(model, exchi, -1000.0)
-        end
-
-        # test
-        fbaout = MetLP.fba!(model, objidx)
-        biom = MetLP.objval(fbaout)
-        @show biom
-        
-        # close glcose
-        MetNets.lb!(model, HG.HUMAN_GLC_EX_IDER, 0.0)
-        
-        # test
-        fbaout = MetLP.fba!(model, objidx)
-        biom = MetLP.objval(fbaout)
-        @show biom
-
-    end
-
-end
-
-## ---------------------------------------------------------------------
-## ---------------------------------------------------------------------
+# ## ---------------------------------------------------------------------
+# # histogram
 # let
+#     dir = datdir(AG)
+#     lens = Int[]
+#     medium_files = filter(readdir(dir; join = true)) do fn
+#         contains(fn, "minimum_medium")
+#     end
+#     @show length(medium_files)
+#     for fn in medium_files
+#         push!(lens, length(ldat(fn)))
+#     end
+#     histogram(lens; bins = 20)
+# end
+
+
+# ## ---------------------------------------------------------------------
+# let
+#     dir = datdir(AG)
+#     lens = Int[]
+#     medium_files = filter(readdir(dir; join = true)) do fn
+#         contains(fn, "minimum_medium")
+#     end
+
 #     met_readable = HG.load_met_readable_ids()
 #     met_map = HG.load_exch_met_map()
-#     results = ldat(AG, "glc_limited_study", ".jls")
-    
-#     li = 5
-#     biomis = Float64[]
-#     mets = String[]
-#     p = plot()
-#     for (exch, dat) in results
-#         met = get(met_map, exch, exch)
-#         met = get(met_readable, met, met)
-#         println("met: ", met)
-#         println("bioms: ", join(dat, ", "))
-#         println()
-#         # idx = findfirst(reverse(dat)) do biom
-#         #     biom < maximum(dat) * 0.9
-#         # end
-#         # idx = isnothing(idx) ? 0 : idx
-#         if any(iszero.(dat))
-#             # push!(biomis, idx)
-#             # push!(mets, met)
-#             plot!(p, dat; label = met)
-#         end
+
+#     @info("Loading model")
+#     # model = MetNets.uncompressed_model(ldat(AG, "ec_model", ".jls"))
+#     tissue = "GBM"
+#     modelid = "base"
+#     model = AG.load_model(;modelid, tissue, uncompress = true)
+#     objidx = MetNets.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
+
+#     @info("Finding open exchanges")
+#     exchis = filter(MetNets.exchanges(model)) do exchi
+#         MetNets.lb(model, exchi) < 0
 #     end
-#     p
-#     # rang_ = 1:10
-#     # sis = sortperm(biomis; rev = true)
-#     # bar(mets[sis], biomis[sis]; xrotation = 45)
-    
-#     # sfig(AG, ps,
-#     #     @fileid, "glc_limited_study", ".png";
-#     #     layout = (3,3)
-#     # )
+#     @show length(exchis)
+
+#     # test
+#     fbaout = MetLP.fba!(model, objidx)
+#     biom0 = MetLP.objval(fbaout)
+#     @show biom0
+
+#     for medium_file in medium_files
+        
+#         println()
+#         minimum_mediumis = ldat(medium_file)
+#         @show minimum_mediumis
+#         @show length(minimum_mediumis)
+        
+#         println()
+#         @show biom0
+
+#         # close all
+#         for exchi in exchis
+#             MetNets.lb!(model, exchi, 0.0)
+#         end
+        
+#         # open minimum
+#         for exchi in minimum_mediumis
+#             MetNets.lb!(model, exchi, -1000.0)
+#         end
+
+#         # test
+#         fbaout = MetLP.fba!(model, objidx)
+#         biom = MetLP.objval(fbaout)
+#         @show biom
+        
+#         # close glcose
+#         MetNets.lb!(model, HG.HUMAN_GLC_EX_IDER, 0.0)
+        
+#         # test
+#         fbaout = MetLP.fba!(model, objidx)
+#         biom = MetLP.objval(fbaout)
+#         @show biom
+
+#     end
+
 # end
+
+# ## ---------------------------------------------------------------------
+# ## ---------------------------------------------------------------------
+# # let
+# #     met_readable = HG.load_met_readable_ids()
+# #     met_map = HG.load_exch_met_map()
+# #     results = ldat(AG, "glc_limited_study", ".jls")
+    
+# #     li = 5
+# #     biomis = Float64[]
+# #     mets = String[]
+# #     p = plot()
+# #     for (exch, dat) in results
+# #         met = get(met_map, exch, exch)
+# #         met = get(met_readable, met, met)
+# #         println("met: ", met)
+# #         println("bioms: ", join(dat, ", "))
+# #         println()
+# #         # idx = findfirst(reverse(dat)) do biom
+# #         #     biom < maximum(dat) * 0.9
+# #         # end
+# #         # idx = isnothing(idx) ? 0 : idx
+# #         if any(iszero.(dat))
+# #             # push!(biomis, idx)
+# #             # push!(mets, met)
+# #             plot!(p, dat; label = met)
+# #         end
+# #     end
+# #     p
+# #     # rang_ = 1:10
+# #     # sis = sortperm(biomis; rev = true)
+# #     # bar(mets[sis], biomis[sis]; xrotation = 45)
+    
+# #     # sfig(AG, ps,
+# #     #     @fileid, "glc_limited_study", ".png";
+# #     #     layout = (3,3)
+# #     # )
+# # end
