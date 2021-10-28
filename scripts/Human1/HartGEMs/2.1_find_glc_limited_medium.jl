@@ -115,7 +115,7 @@ let
     @show biom
 
     # I will find the minimum medium with make glucose essential
-    @threads for _ in collect(1:100)
+    @threads for _ in collect(1:10000)
         thid = threadid()
         
         # local copy
@@ -127,7 +127,7 @@ let
 
         @info("Finding a greedy minimum medium", thid)
         minimum_mediumis = Set(exchis)
-        for it in 1:(5*length(exchis))
+        for it in 1:(3*length(exchis))
             
             # Open minimum_mediumis
             for exchi in exchis
