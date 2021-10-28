@@ -151,7 +151,7 @@ let
             modelid, tissue, stst,
             fva_model = size(fva_model),
         )
-        # AG.check_modelfile(;modelid, tissue, stst) && continue
+        AG.check_modelfile(;modelid, tissue, stst) && continue
 
         # stst contextualization
         intake_info = HG.stst_base_intake_info(stst)
