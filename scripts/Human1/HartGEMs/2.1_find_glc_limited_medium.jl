@@ -152,7 +152,7 @@ let
             # If rexch is not essential 
             if abs(biom) > 0.9 * abs(biom0)
 
-                @info("Met NOT essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
+                # @info("Met NOT essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
 
                 # remove
                 delete!(minimum_mediumis, rexchi)
@@ -174,11 +174,11 @@ let
                         verbose = true
                     )
                 else
-                    @info("GLC NOT essential", it, length(minimum_mediumis), biom0, biom, thid)
+                    # @info("GLC NOT essential", it, length(minimum_mediumis), biom0, biom, thid)
                 end
             else
                 # If rexch is essential (open)
-                @info("Met essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
+                # @info("Met essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
                 MetNets.lb!(model_th, rexchi, -1000.0)
                 continue
             end
