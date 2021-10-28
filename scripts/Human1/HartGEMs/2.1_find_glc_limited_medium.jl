@@ -141,9 +141,9 @@ let
             # close one
             rexchi = rand(setdiff(minimum_mediumis, essentialis))
             exch = model_th.rxns[rexchi]
-            met = get(met_map, exch, exch)
-            met = get(met_readable, met, met)
-            met == "glucose[s]" && continue # protect glucose
+            rmet = get(met_map, exch, exch)
+            rmet = get(met_readable, rmet, rmet)
+            rmet == "glucose[s]" && continue # protect glucose
             MetNets.lb!(model_th, rexchi, 0.0)
             
             fbaout = MetLP.fba!(model_th, objidx)
@@ -151,6 +151,9 @@ let
             
             # If rexch is not essential 
             if abs(biom - biom0) / biom0 > 0.9 
+
+                @info("Met NOT essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
+
                 # remove
                 delete!(minimum_mediumis, rexchi)
 
@@ -158,21 +161,28 @@ let
                 MetNets.lb!(model_th, exglcidx, 0.0)
                 fbaout = MetLP.fba!(model_th, objidx)
                 biom = MetLP.objval(fbaout)
-                if abs(biom - biom0) / biom0 < 0.05 # If glc is essential
+                # If glc is essential
+                if abs(biom - biom0) / biom0 < 0.05 
+
+                    @info("GLC essential", it, length(minimum_mediumis), biom0, biom, thid)
+                    @show minimum_mediumis
+
                     # save
                     medium_hash = hash((:MIN_MEDIUM, minimum_mediumis))
                     sdat(AG, minimum_mediumis, 
                         "minimum_medium", (;medium_hash), ".jls";
                         verbose = true
                     )
+                else
+                    @info("GLC NOT essential", it, length(minimum_mediumis), biom0, biom, thid)
                 end
             else
                 # If rexch is essential (open)
+                @info("Met essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
                 MetNets.lb!(model_th, rexchi, -1000.0)
                 continue
             end
-
-            @info("Try", it, length(minimum_mediumis), met, biom0, biom, thid)
+            println()
         end
         
     end # threads
