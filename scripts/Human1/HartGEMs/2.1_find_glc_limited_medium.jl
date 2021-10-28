@@ -83,8 +83,6 @@ let
             met = get(met_map, exch, exch)
             met = get(met_readable, met, met)
 
-            @info(met, biom)
-
             MetNets.lb!(model, exchi, lb_)
         end
         return _essentialis
@@ -152,7 +150,7 @@ let
             # If rexch is not essential 
             if abs(biom) > 0.9 * abs(biom0)
 
-                # @info("Met NOT essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
+                @info("Met NOT essential", it, length(minimum_mediumis), rmet, biom0, biom, thid)
 
                 # remove
                 delete!(minimum_mediumis, rexchi)
