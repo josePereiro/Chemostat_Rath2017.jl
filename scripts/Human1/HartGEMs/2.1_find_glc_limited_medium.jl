@@ -1,5 +1,5 @@
 using ProjAssistant
-@quickactivate "Chemostat_Rath2017"
+# @quickactivate "Chemostat_Rath2017"
 
 @time begin
 
@@ -26,7 +26,9 @@ end
 ## ---------------------------------------------------------------------
 # Load model
 let
-    fn = "/Users/Pereiro/University/Research/Metabolism/MaxEntEP2020/WIP/Chemostat_Rath2017/data/raw/Human1/Human1_Publication_Data_Scripts/ec_GEMs/models/HOP62/ecModel_batch.mat"
+    
+    fn = joinpath(@__DIR__, "../../../", "data/raw/Human1", "Human1_Publication_Data_Scripts/ec_GEMs/models/HOP62/ecModel_batch.mat")
+    @show isfile(fn)
     ec_model = MetNets.read_mat(fn)
     MetNets.clampfields!(ec_model, [:lb, :ub]; abs_max = 999999, zeroth = 1e-8)
     objidx = MetNets.rxnindex(ec_model, HG.HUMAN_BIOMASS_IDER)
