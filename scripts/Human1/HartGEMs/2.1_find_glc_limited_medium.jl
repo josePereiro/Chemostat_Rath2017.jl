@@ -24,17 +24,16 @@ using ProjAssistant
 end
 
 ## ---------------------------------------------------------------------
-# # Load model
-# let
-#     fn = "/Users/Pereiro/University/Research/Metabolism/MaxEntEP2020/WIP/Chemostat_Rath2017/data/raw/Human1/Human1_Publication_Data_Scripts/ec_GEMs/models/HOP62/ecModel_batch.mat"
-#     ec_model = MetNets.read_mat(fn)
-#     MetNets.clampfields!(ec_model, [:lb, :ub]; abs_max = 999999, zeroth = 1e-8)
-#     objidx = MetNets.rxnindex(ec_model, HG.HUMAN_BIOMASS_IDER)
-#     ec_model = ChR.prepare_metnet(AG, ec_model; inf_medium = true);
-#     ec_model = MetNets.force_dims(ec_model)
-#     # fbaout = MetLP.fba!(ec_model, objidx)
-#     sdat(AG, MetNets.compressed_model(ec_model), "ec_model", ".jls")
-# end 
+# Load model
+let
+    fn = "/Users/Pereiro/University/Research/Metabolism/MaxEntEP2020/WIP/Chemostat_Rath2017/data/raw/Human1/Human1_Publication_Data_Scripts/ec_GEMs/models/HOP62/ecModel_batch.mat"
+    ec_model = MetNets.read_mat(fn)
+    MetNets.clampfields!(ec_model, [:lb, :ub]; abs_max = 999999, zeroth = 1e-8)
+    objidx = MetNets.rxnindex(ec_model, HG.HUMAN_BIOMASS_IDER)
+    ec_model = ChR.prepare_metnet(AG, ec_model; inf_medium = true);
+    ec_model = MetNets.force_dims(ec_model)
+    sdat(AG, MetNets.compressed_model(ec_model), "ec_model", ".jls")
+end 
 
 ## ---------------------------------------------------------------------
 let
@@ -43,10 +42,10 @@ let
     met_map = HG.load_exch_met_map()
 
     @info("Loading model")
-    # model = MetNets.uncompressed_model(ldat(AG, "ec_model", ".jls"))
-    tissue = "GBM"
-    modelid = "base"
-    model = AG.load_model(;modelid, tissue, uncompress = true)
+    model = MetNets.uncompressed_model(ldat(AG, "ec_model", ".jls"))
+    # tissue = "GBM"
+    # modelid = "base"
+    # model = AG.load_model(;modelid, tissue, uncompress = true)
     objidx = MetNets.rxnindex(model, HG.HUMAN_BIOMASS_IDER)
     exglcidx = MetNets.rxnindex(model, HG.HUMAN_GLC_EX_IDER)
 
