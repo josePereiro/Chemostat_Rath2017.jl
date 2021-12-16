@@ -31,7 +31,7 @@ let
     for tissue in AG.TISSUES
         (tissue != "GBM") && continue # Test
 
-        AG.check_modelfile(;modelid, tissue) && continue
+        AG.check_modelfile(; modelid, tissue) && continue
 
         raw_model = AG.load_model(;modelid = :raw, tissue, uncompress = true)
         raw_model = MetNets.force_dims(raw_model)

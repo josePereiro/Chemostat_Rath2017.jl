@@ -3,7 +3,10 @@
 const HART_GEM_PREFIX = "HartGEM"
 
 function load_Hart_raw_dat()
-    hart_file = rawdir(Human1, [ "Human1_Publication_Data_Scripts/tINIT_GEMs/run_tINIT_outputs/Hart2015" ], "tINIT_Hart2015_HumanGEM_outputs.mat")
+    hart_file = rawdir(Human1, 
+        ["Human1_Publication_Data_Scripts/tINIT_GEMs/run_tINIT_outputs/Hart2015"], 
+        "tINIT_Hart2015_HumanGEM_outputs.mat"
+    )
     return MAT.matread(hart_file)["INIT_output"]
 end
 
@@ -48,7 +51,8 @@ function load_model(;uncompress = false, verbose = false,
 end
 
 function check_modelfile(;params...) 
-    exist = isfile(datdir(HartGEMs, HART_GEM_PREFIX, params, ".jls"))
+    mfile = datdir(HartGEMs, HART_GEM_PREFIX, params, ".jls")
+    exist = isfile(mfile)
     exist && @info("Model cached ", params...)
     return exist
 end

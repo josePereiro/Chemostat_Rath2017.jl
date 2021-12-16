@@ -1,6 +1,7 @@
 
 const HUMAN_BIOMASS_IDER = "biomass_human"
 const HUMAN_ATPM_IDER = "HMR_3964"
+const PROT_POOL_EXCHANGE = "prot_pool_exchange"
 const HUMAN_GLC_EX_IDER = "HMR_9034"
 const HUMAN_GLN_EX_IDER = "HMR_9063"
 const HUMAN_GAL_EX_IDER = "HMR_9140"

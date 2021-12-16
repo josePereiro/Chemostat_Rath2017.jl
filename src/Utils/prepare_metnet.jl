@@ -3,7 +3,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     base_model = deepcopy(base_model)
     
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     ## Description
@@ -67,7 +67,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     end
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Exchanges
@@ -102,7 +102,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     println("\nExchanges: ", exchs |> length)
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Exch Met map
@@ -131,7 +131,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     end
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Base intake info
@@ -142,7 +142,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     base_intake_info = HG.load_base_intake_info(; inf_medium)
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Apply medium
@@ -154,7 +154,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     );
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # Niklas Biomasss
@@ -171,7 +171,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     end
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # ATPM demand
@@ -197,14 +197,14 @@ function prepare_metnet(proj, base_model; inf_medium = false)
     end
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # dimentions
     base_model = MetNets.force_dims(base_model)
 
     ## ---------------------------------------------------------------------
-    println("FBOut: ", MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
+    println("FBOut: ", MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER).obj_val)
 
     ## ---------------------------------------------------------------------
     # summary
@@ -213,7 +213,7 @@ function prepare_metnet(proj, base_model; inf_medium = false)
 
     ## ---------------------------------------------------------------------
     #  FBA Test
-    fbaout = MetLP.fba!(base_model, HG.HUMAN_BIOMASS_IDER)
+    fbaout = MetLP.fba(base_model, HG.HUMAN_BIOMASS_IDER)
     println("\nFBAout summary")
     MetNets.summary(base_model, fbaout)
 

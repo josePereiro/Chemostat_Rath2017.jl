@@ -1,32 +1,3 @@
-using ProjAssistant
-@quickactivate "Chemostat_Rath2017"
-
-@time begin
-
-    using Plots
-    using Statistics
-    using ProgressMeter
-    using Base.Threads
-
-    import Chemostat
-    import Chemostat.MetNets
-    import Chemostat.MetLP
-    import Chemostat.MetEP
-    const Ch = Chemostat
-
-    import Chemostat_Rath2017
-    const ChR = Chemostat_Rath2017
-    const Rd = ChR.RathData
-    const H1 = ChR.Human1
-    const HG = H1.HumanGEM
-    const AG = H1.HartGEMs
-
-end
-
-## ---------------------------------------------------------------------
-# DESCRIPTION
-# The intake of glucose must be the limiting external flux of the network
-
 ## ---------------------------------------------------------------------
 let
     tissue = "GBM"
@@ -58,7 +29,7 @@ let
 
         for f in 0.0:0.1:1.0
             MetNets.lb!(model, exchi, lb_ * f)
-            fbaout = MetLP.fba!(model, objidx)
+            fbaout = MetLP.fba(model, objidx)
             biom = MetLP.objval(fbaout)
             push!(dat, biom)
         end
